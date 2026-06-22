@@ -24,6 +24,18 @@ assert.match(
 
 assert.match(
   source,
+  /rect\.height\s*<\s*44/,
+  "interactive accessibility smoke must enforce 44px minimum target height",
+);
+
+assert.match(
+  source,
+  /rect\.width\s*<\s*44/,
+  "interactive accessibility smoke must enforce 44px minimum target width",
+);
+
+assert.match(
+  source,
   /expectText\(page,\s*"Manual QA Evidence"\)/,
   "settings smoke must verify the manual QA evidence panel is visible",
 );

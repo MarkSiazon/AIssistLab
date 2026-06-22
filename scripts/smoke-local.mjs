@@ -206,7 +206,7 @@ async function assertInteractiveControlsAccessible(page, scope) {
 
         if (shouldEnforceTarget(element)) {
           const rect = element.getBoundingClientRect();
-          if (rect.height < 40) {
+          if (rect.height < 44) {
             found.push(
               `${descriptor(element)} has small target height ${Math.round(
                 rect.height,
@@ -216,7 +216,7 @@ async function assertInteractiveControlsAccessible(page, scope) {
           if (
             (element.tagName.toLowerCase() === "button" ||
               element.tagName.toLowerCase() === "a") &&
-            rect.width < 40
+            rect.width < 44
           ) {
             found.push(
               `${descriptor(element)} has small target width ${Math.round(
