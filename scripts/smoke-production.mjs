@@ -5,6 +5,7 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
+import { assertRouteVisualState } from "./smoke/visual-assertions.mjs";
 
 const root = process.cwd();
 const demoWorkspace = path.join(root, "examples", "demo-workspace");
@@ -43,6 +44,19 @@ const localCliApiChecks = [
   ["/api/settings/claude-cli", { method: "POST", body: "{}" }],
   ["/api/settings/claude-cli/profiles"],
   ["/api/settings/claude-cli/test", { method: "POST", body: "{}" }],
+];
+const pageChecks = [
+  ["/", "Library Readiness"],
+  ["/settings", "V1 Release Readiness"],
+  ["/skills", "Library Readiness"],
+  ["/chat", "Chat Readiness"],
+  ["/export", "Export Skills"],
+  ["/editor", "New Skill"],
+  ["/editor/guided", "Guided Skill Builder"],
+];
+const visualViewports = [
+  ["desktop", { width: 1366, height: 920 }],
+  ["mobile", { width: 390, height: 844, isMobile: true }],
 ];
 
 function assert(condition, message) {
@@ -188,7 +202,7 @@ async function runApiSmoke(baseUrl) {
   await expectProductionChatMissingKeyStream(baseUrl);
 }
 
-async function expectPageText(page, baseUrl, route, text) {
+async function expectPageText(page, baseUrl, route, text, viewportLabel = "desktop") {
   await page.goto(`${baseUrl}${route}`, {
     waitUntil: "networkidle",
     timeout: routeNavigationTimeoutMs,
@@ -197,6 +211,7 @@ async function expectPageText(page, baseUrl, route, text) {
     state: "visible",
     timeout: routeNavigationTimeoutMs,
   });
+  await assertRouteVisualState(page, `${viewportLabel} ${route}`);
 }
 
 function attachBrowserIssueTracking(page, browserIssues) {
@@ -221,24 +236,28 @@ async function runBrowserSmoke(baseUrl) {
   const browser = await chromium.launch({
     headless: process.env.SMOKE_HEADLESS !== "false",
   });
-  const page = await browser.newPage({ viewport: { width: 1366, height: 920 } });
-  page.setDefaultNavigationTimeout(routeNavigationTimeoutMs);
-  page.setDefaultTimeout(routeNavigationTimeoutMs);
-  const browserIssues = [];
-  attachBrowserIssueTracking(page, browserIssues);
-
   try {
-    await expectPageText(page, baseUrl, "/", "Library Readiness");
-    await expectPageText(page, baseUrl, "/settings", "V1 Release Readiness");
-    await expectPageText(page, baseUrl, "/skills", "Library Readiness");
-    await expectPageText(page, baseUrl, "/chat", "Chat Readiness");
-    await expectPageText(page, baseUrl, "/export", "Export Skills");
-    await expectPageText(page, baseUrl, "/editor", "New Skill");
-    await expectPageText(page, baseUrl, "/editor/guided", "Guided Skill Builder");
-    assert(
-      browserIssues.length === 0,
-      `Production browser issues:\n${browserIssues.join("\n")}`,
-    );
+    for (const [viewportLabel, viewport] of visualViewports) {
+      const page = await browser.newPage({ viewport });
+      page.setDefaultNavigationTimeout(routeNavigationTimeoutMs);
+      page.setDefaultTimeout(routeNavigationTimeoutMs);
+      const browserIssues = [];
+      attachBrowserIssueTracking(page, browserIssues);
+
+      try {
+        for (const [route, text] of pageChecks) {
+          await expectPageText(page, baseUrl, route, text, viewportLabel);
+        }
+        assert(
+          browserIssues.length === 0,
+          `Production browser issues (${viewportLabel}):\n${browserIssues.join(
+            "\n",
+          )}`,
+        );
+      } finally {
+        await page.close();
+      }
+    }
   } finally {
     await browser.close();
   }

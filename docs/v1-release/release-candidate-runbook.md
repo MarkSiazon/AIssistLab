@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs the full test sweep, lint, production build, production server smoke, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 

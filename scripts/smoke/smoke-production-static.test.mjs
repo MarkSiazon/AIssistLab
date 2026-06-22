@@ -27,6 +27,24 @@ assert.match(
   "production smoke must start the built Next app with next start on localhost",
 );
 
+assert.match(
+  productionSmokeSource,
+  /assertRouteVisualState/,
+  "production smoke must assert visual route state for rendered pages",
+);
+
+assert.match(
+  productionSmokeSource,
+  /\["mobile",\s*\{\s*width:\s*390,\s*height:\s*844,\s*isMobile:\s*true\s*\}\]/,
+  "production smoke must include a mobile viewport visual pass",
+);
+
+assert.match(
+  productionSmokeSource,
+  /\["desktop",\s*\{\s*width:\s*1366,\s*height:\s*920\s*\}\]/,
+  "production smoke must include a desktop viewport visual pass",
+);
+
 for (const route of [
   "/settings",
   "/skills",
@@ -37,7 +55,7 @@ for (const route of [
 ]) {
   assert.match(
     productionSmokeSource,
-    new RegExp(`expectPageText\\(page, baseUrl, "${route.replace("/", "\\/")}"`),
+    new RegExp(`\\["${route.replace("/", "\\/")}",\\s*"`),
     `production smoke must verify ${route}`,
   );
 }
