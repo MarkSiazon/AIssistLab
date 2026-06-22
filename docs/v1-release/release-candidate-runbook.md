@@ -108,6 +108,8 @@ npm run smoke:production
 git diff --check
 ```
 
+`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, local hash links, and browser console/page errors.
+
 When the local app is already running, use the manual external QA helper to print the current sanitized readiness summary and remaining device/account checks:
 
 ```bash

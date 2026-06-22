@@ -73,45 +73,44 @@ export function SkillEditorBodyPanel({
           {body.split("\n").length} lines
         </span>
       </div>
-      {activeTab === "edit" ? (
-        <div
-          id="skill-editor-edit-panel"
-          role="tabpanel"
-          aria-labelledby="skill-editor-edit-tab"
-          className="skill-editor-edit-panel"
-        >
-          <textarea
-            aria-label="Skill markdown body"
-            value={body}
-            onChange={(event) => onBodyChange(event.target.value)}
-            onBlur={() => onFieldTouched("body")}
-            className="skill-editor-body"
-            aria-invalid={bodyError ? "true" : "false"}
-            aria-describedby={`skill-editor-body-help${
-              bodyError ? " skill-editor-body-error" : ""
-            }`}
-            spellCheck={false}
-          />
-          {bodyError && (
-            <div
-              id="skill-editor-body-error"
-              className="skill-editor-body-error"
-              role="alert"
-            >
-              {bodyError.message}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div
-          id="skill-editor-preview-panel"
-          role="tabpanel"
-          aria-labelledby="skill-editor-preview-tab"
-          className="skill-editor-preview-scroll"
-        >
-          <SkillMarkdownPreview body={body} />
-        </div>
-      )}
+      <div
+        id="skill-editor-edit-panel"
+        role="tabpanel"
+        aria-labelledby="skill-editor-edit-tab"
+        className="skill-editor-edit-panel"
+        hidden={activeTab !== "edit"}
+      >
+        <textarea
+          aria-label="Skill markdown body"
+          value={body}
+          onChange={(event) => onBodyChange(event.target.value)}
+          onBlur={() => onFieldTouched("body")}
+          className="skill-editor-body"
+          aria-invalid={bodyError ? "true" : "false"}
+          aria-describedby={`skill-editor-body-help${
+            bodyError ? " skill-editor-body-error" : ""
+          }`}
+          spellCheck={false}
+        />
+        {bodyError && (
+          <div
+            id="skill-editor-body-error"
+            className="skill-editor-body-error"
+            role="alert"
+          >
+            {bodyError.message}
+          </div>
+        )}
+      </div>
+      <div
+        id="skill-editor-preview-panel"
+        role="tabpanel"
+        aria-labelledby="skill-editor-preview-tab"
+        className="skill-editor-preview-scroll"
+        hidden={activeTab !== "preview"}
+      >
+        <SkillMarkdownPreview body={body} />
+      </div>
     </div>
   );
 }

@@ -28,7 +28,7 @@ export function GuidedAutosavePanel({
         onClick={onRequestClear}
         disabled={!canClear}
         aria-expanded={confirmOpen}
-        aria-controls="guided-clear-confirmation"
+        aria-controls={confirmOpen ? "guided-clear-confirmation" : undefined}
         className="guided-autosave-clear"
       >
         Clear draft
