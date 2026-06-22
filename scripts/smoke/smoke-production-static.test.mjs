@@ -190,4 +190,25 @@ for (const exportInteraction of [
   );
 }
 
+assert.match(
+  productionSmokeSource,
+  /runProductionSettingsInteractionSmoke/,
+  "production smoke must verify built-app Settings interaction states",
+);
+
+for (const settingsInteraction of [
+  "production settings ready state",
+  "production settings refreshed state",
+  "production settings saved state",
+  "Manual QA Evidence",
+  "Rebuild Index",
+  "Saved and applied to this server session.",
+]) {
+  assert.match(
+    productionSmokeSource,
+    new RegExp(escapeRegExp(settingsInteraction)),
+    `production smoke must verify ${settingsInteraction}`,
+  );
+}
+
 console.log("Production smoke runner static tests passed");

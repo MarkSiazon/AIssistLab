@@ -579,7 +579,22 @@ async function clickLink(page, label, options = {}) {
 }
 
 async function clickNavigationLink(page, label, urlPattern) {
-  await clickLink(page, label, { timeout: routeNavigationTimeoutMs });
+  const link = page.getByRole("link", { name: label, exact: true }).first();
+  await link.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+  await markLinkLocatorCovered(link);
+  await Promise.all([
+    page.waitForURL(
+      (url) =>
+        typeof urlPattern === "function"
+          ? urlPattern(url)
+          : urlPattern.test(url.href),
+      {
+        timeout: routeNavigationTimeoutMs,
+        waitUntil: "commit",
+      },
+    ),
+    link.click({ timeout: routeNavigationTimeoutMs }),
+  ]);
   await waitForPageUrl(page, urlPattern, label);
   await page
     .waitForLoadState("networkidle", {
@@ -694,6 +709,16 @@ async function markAppRouteLinksCovered(locator, extraLabels = []) {
 }
 
 async function markChatReadinessLinksCovered(locator) {
+  await locator
+    .getByRole("link", { name: "Open Settings", exact: true })
+    .first()
+    .waitFor({ state: "visible", timeout: 5000 })
+    .catch(() => undefined);
+  await locator
+    .getByRole("link", { name: "Export Diagnostics", exact: true })
+    .first()
+    .waitFor({ state: "visible", timeout: 5000 })
+    .catch(() => undefined);
   await markAppRouteLinksCovered(locator, [
     "Open Settings",
     "Export Diagnostics",

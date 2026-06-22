@@ -110,7 +110,7 @@ git diff --check
 
 `npm run smoke:local` drives local interactive Settings, Skills, Chat, Export, Editor, and Guided Builder flows in Chromium and verifies keyboard paths, semantic route structure, ARIA references, accessible control names, and 44px action targets across those states.
 
-`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client editor/guided/chat/export interaction states, and browser console/page errors.
+`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
 When the local app is already running, use the manual external QA helper to print the current sanitized readiness summary and remaining device/account checks:
 

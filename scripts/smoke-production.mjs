@@ -344,6 +344,197 @@ function mockChatStatusPayload() {
   };
 }
 
+function mockSettingsEnvPayload() {
+  const raw = [
+    "WORKSPACE_ROOT=./examples/demo-workspace",
+    "SKILLS_DIR=.claude/skills",
+    "LLM_PROVIDER=anthropic_api",
+    "ENABLE_LOCAL_CLAUDE_CLI=false",
+    "CLAUDE_CLI_PATH=auto",
+    "CLAUDE_LOGIN_COMMAND=auto",
+    "CLAUDE_CONFIG_DIR=",
+    "ANTHROPIC_API_KEY=",
+    "",
+  ].join("\n");
+
+  return {
+    raw,
+    parsed: {
+      WORKSPACE_ROOT: "./examples/demo-workspace",
+      SKILLS_DIR: ".claude/skills",
+      LLM_PROVIDER: "anthropic_api",
+      ENABLE_LOCAL_CLAUDE_CLI: "false",
+      CLAUDE_CLI_PATH: "auto",
+      CLAUDE_LOGIN_COMMAND: "auto",
+      CLAUDE_CONFIG_DIR: "",
+      ANTHROPIC_API_KEY: "",
+    },
+    path: ".env.local",
+    runtimeApplied: true,
+    activeRuntime: mockRuntimeStatusPayload(),
+  };
+}
+
+function mockRuntimeStatusPayload() {
+  return {
+    provider: "anthropic_api",
+    claudeCliEnabled: false,
+    configDirConfigured: false,
+    source: "runtime",
+  };
+}
+
+function mockIndexStatusPayload() {
+  return {
+    status: "ready",
+    built: true,
+    builtAt: "2026-06-12T04:00:00.000Z",
+    skillCount: 1,
+    chunkCount: 2,
+    staleReason: null,
+    workspaceDisplay: "./examples/demo-workspace",
+    skillsDirDisplay: ".claude/skills",
+    error: null,
+  };
+}
+
+function mockSkillQualityPayload() {
+  return {
+    totalSkills: 1,
+    issueCount: 0,
+    issues: [],
+  };
+}
+
+function mockDoctorReportPayload() {
+  const checks = [
+    {
+      id: "workspace-root",
+      group: "workspace",
+      title: "Workspace path",
+      status: "ok",
+      severity: "optional",
+      message: "Workspace path is valid.",
+      suggestedFix: "No action needed.",
+      relatedEnvKeys: ["WORKSPACE_ROOT"],
+    },
+    {
+      id: "skills-dir",
+      group: "workspace",
+      title: "Skills directory",
+      status: "ok",
+      severity: "optional",
+      message: "Skills directory is valid.",
+      suggestedFix: "No action needed.",
+      relatedEnvKeys: ["SKILLS_DIR"],
+    },
+    {
+      id: "anthropic-api-key",
+      group: "provider",
+      title: "Anthropic API key",
+      status: "ok",
+      severity: "optional",
+      message: "API provider is configured for production smoke.",
+      suggestedFix: "No action needed.",
+      relatedEnvKeys: ["ANTHROPIC_API_KEY"],
+    },
+    {
+      id: "rag-index-ready",
+      group: "rag",
+      title: "RAG index",
+      status: "ok",
+      severity: "optional",
+      message: "Index is ready.",
+      suggestedFix: "No action needed.",
+      relatedEnvKeys: [],
+    },
+    {
+      id: "claude-project-inventory",
+      group: "claude-project",
+      title: "Claude project inventory",
+      status: "ok",
+      severity: "optional",
+      message: "Claude project inventory is available.",
+      suggestedFix: "No action needed.",
+      relatedEnvKeys: ["WORKSPACE_ROOT"],
+    },
+  ];
+
+  return {
+    summary: {
+      status: "ok",
+      readinessScore: 100,
+      errorCount: 0,
+      warningCount: 0,
+      okCount: checks.length,
+      topRecommendation: "Setup is ready.",
+    },
+    checks,
+    claudeProject: {
+      workspaceDisplay: "./examples/demo-workspace",
+      counts: {
+        skills: 1,
+        commands: 1,
+        agents: 1,
+        mcpServers: 1,
+        hooks: 0,
+        pluginFolders: 0,
+      },
+      checks: [
+        {
+          id: "claude-project-settings",
+          status: "ok",
+          title: "Project settings",
+          message: "Shared project settings are present.",
+        },
+      ],
+      reloadHints: ["Restart Claude Code after project config changes."],
+    },
+  };
+}
+
+function mockClaudeCliStatusPayload(lastCliSmokeTest = null) {
+  const selectedProfile = {
+    id: "default",
+    label: "Default profile",
+    source: "default",
+    displayPath: "~/.claude",
+    selected: true,
+    exists: true,
+    auth: {
+      checked: true,
+      loggedIn: true,
+      method: "Subscription",
+      error: null,
+    },
+  };
+
+  return {
+    provider: "anthropic_api",
+    enabled: false,
+    cliPath: "claude",
+    configuredCliPath: "auto",
+    cliPathSource: "path",
+    loginCommand: "claude auth login",
+    loginCommandSource: "path",
+    loginHelperAvailable: false,
+    canOpenLogin: true,
+    configDirConfigured: false,
+    installed: true,
+    version: "production-smoke",
+    profiles: [selectedProfile],
+    selectedProfile,
+    selectedProfileFingerprint: "production-smoke-default-profile",
+    lastCliSmokeTest,
+    auth: {
+      checked: true,
+      loggedIn: true,
+      method: "Subscription",
+      error: null,
+    },
+  };
+}
+
 function mockExportSkillsPayload() {
   return {
     skills: [
@@ -534,6 +725,179 @@ async function runProductionInteractionSmoke(page, baseUrl) {
   await runProductionChatInteractionSmoke(page, baseUrl);
 }
 
+async function runProductionSettingsInteractionSmoke(page, baseUrl) {
+  let settingsSaveCount = 0;
+  let indexRebuildCount = 0;
+  let cliTestResult = null;
+
+  await page.route("**/api/settings/runtime", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockRuntimeStatusPayload()),
+    });
+  });
+  await page.route("**/api/chat/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockChatStatusPayload()),
+    });
+  });
+  await page.route("**/api/index", async (route) => {
+    if (route.request().method() === "POST") indexRebuildCount += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockIndexStatusPayload()),
+    });
+  });
+  await page.route("**/api/settings/doctor", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockDoctorReportPayload()),
+    });
+  });
+  await page.route("**/api/settings/path-exists**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ exists: true, isDirectory: true }),
+    });
+  });
+  await page.route("**/api/skills/validation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockSkillQualityPayload()),
+    });
+  });
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockReleaseReadinessPayload()),
+    });
+  });
+  await page.route("**/api/settings/claude-cli**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+
+    if (pathname === "/api/settings/claude-cli/test") {
+      cliTestResult = {
+        checked: true,
+        ok: true,
+        output: "OK",
+        error: null,
+        provider: "anthropic_api",
+        profileId: "default",
+        configFingerprint: "production-smoke-default-profile",
+      };
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(cliTestResult),
+      });
+      return;
+    }
+
+    if (pathname === "/api/settings/claude-cli" && request.method() === "POST") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ loginCommand: "claude auth login" }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockClaudeCliStatusPayload(cliTestResult)),
+    });
+  });
+  await page.route("**/api/settings", async (route) => {
+    if (route.request().method() === "POST") {
+      settingsSaveCount += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(mockSettingsEnvPayload()),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockSettingsEnvPayload()),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/settings`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await expectText(page, "V1 Release Readiness");
+    await expectText(page, "First Run Checklist");
+    await expectText(page, "Workspace path valid");
+    await expectText(page, "Claude/API auth tested");
+    await expectText(page, "Manual QA Evidence");
+    await assertCurrentRouteState(page, "production settings ready state");
+
+    await clickButton(page, "Refresh");
+    await expectText(page, "Setup is ready.");
+    await assertCurrentRouteState(page, "production settings refreshed state");
+
+    const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
+    await manualQaPanel.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await clickButton(manualQaPanel, "Mark Passed");
+    await expectText(page, "Passed");
+    await clickButton(manualQaPanel, "Needs Fix");
+    await expectText(page, "Needs fix");
+    await clickButton(manualQaPanel, "Reset");
+    await expectText(page, "Pending");
+
+    const ragIndexLabel = page.getByText("RAG Index", { exact: true }).first();
+    await ragIndexLabel.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    const ragIndexButton = ragIndexLabel
+      .locator(
+        "xpath=ancestor::div[.//button[normalize-space()='Rebuild Index']][1]//button[normalize-space()='Rebuild Index']",
+      )
+      .first();
+    await ragIndexButton.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    assert(
+      !(await ragIndexButton.isDisabled()),
+      "Production settings RAG Index rebuild button is disabled",
+    );
+    await ragIndexButton.click();
+    await waitForRecordedUrl(
+      page,
+      () => (indexRebuildCount > 0 ? "index rebuilt" : ""),
+      "Production settings rebuild index action",
+    );
+    await expectText(page, "Index ready: 1 skills, 2 chunks.");
+
+    await clickButton(page, /^Save settings( changes)?$/i);
+    await waitForRecordedUrl(
+      page,
+      () => (settingsSaveCount > 0 ? "settings saved" : ""),
+      "Production settings save action",
+    );
+    await expectText(page, "Saved and applied to this server session.");
+    await assertCurrentRouteState(page, "production settings saved state");
+  } finally {
+    await page.unroute("**/api/settings/runtime");
+    await page.unroute("**/api/chat/status");
+    await page.unroute("**/api/index");
+    await page.unroute("**/api/settings/doctor");
+    await page.unroute("**/api/settings/path-exists**");
+    await page.unroute("**/api/skills/validation");
+    await page.unroute("**/api/release/readiness");
+    await page.unroute("**/api/settings/claude-cli**");
+    await page.unroute("**/api/settings");
+  }
+}
+
 async function runProductionExportInteractionSmoke(page, baseUrl) {
   const requestedZipUrls = [];
   const requestedSkillUrls = [];
@@ -654,6 +1018,7 @@ async function runBrowserSmoke(baseUrl) {
         }
         if (viewportLabel === "desktop") {
           await runProductionInteractionSmoke(page, baseUrl);
+          await runProductionSettingsInteractionSmoke(page, baseUrl);
           await runProductionExportInteractionSmoke(page, baseUrl);
         }
         assert(
