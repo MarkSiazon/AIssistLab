@@ -61,6 +61,56 @@ const visualViewports = [
   ["mobile", { width: 390, height: 844, isMobile: true }],
 ];
 
+const mockTemplates = [
+  {
+    id: "reference-skill",
+    label: "Reference Skill",
+    description: "Capture stable reference material with clear lookup guidance.",
+    category: "reference",
+    initialFrontmatter: {
+      description: "Reference facts and examples for a focused topic.",
+      tags: ["reference"],
+    },
+    initialBody: [
+      "## Purpose",
+      "",
+      "Use this skill when the user needs reliable reference material.",
+      "",
+    ].join("\n"),
+  },
+  {
+    id: "workflow-skill",
+    label: "Workflow Skill",
+    description: "Guide a repeated task from intake through verification.",
+    category: "workflow",
+    initialFrontmatter: {
+      description: "Step-by-step workflow for completing a repeated task.",
+      tags: ["workflow"],
+    },
+    initialBody: [
+      "## Intake",
+      "",
+      "- Confirm the target files and expected output.",
+      "",
+      "## Verification",
+      "",
+      "- Run the documented checks.",
+      "",
+    ].join("\n"),
+  },
+  {
+    id: "learning-rubric",
+    label: "Learning And Rubric Skill",
+    description: "Coach a user through learning with prompts and rubric feedback.",
+    category: "learning",
+    initialFrontmatter: {
+      description: "Guide learning through prompts and rubric feedback.",
+      tags: ["learning", "rubric"],
+    },
+    initialBody: "## Learning Goal\n\nCoach the user through the concept.\n",
+  },
+];
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -218,6 +268,33 @@ async function expectPageText(page, baseUrl, route, text, viewportLabel = "deskt
   await assertRouteInteractionState(page, `${viewportLabel} ${route}`);
 }
 
+async function expectText(page, text, label = text) {
+  await page.getByText(text, { exact: false }).first().waitFor({
+    state: "visible",
+    timeout: routeNavigationTimeoutMs,
+  });
+  assert(Boolean(label), "Expected text label must be non-empty");
+}
+
+async function expectTextHidden(page, text) {
+  await page.getByText(text, { exact: false }).first().waitFor({
+    state: "hidden",
+    timeout: routeNavigationTimeoutMs,
+  });
+}
+
+async function clickButton(page, name) {
+  const button = page.getByRole("button", { name }).first();
+  await button.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+  assert(!(await button.isDisabled()), `Button is disabled: ${name}`);
+  await button.click();
+}
+
+async function assertCurrentRouteState(page, scope) {
+  await assertRouteSemanticState(page, scope);
+  await assertRouteInteractionState(page, scope);
+}
+
 function attachBrowserIssueTracking(page, browserIssues) {
   page.on("pageerror", (error) => {
     browserIssues.push(`pageerror: ${error.stack || error.message}`);
@@ -236,6 +313,171 @@ function attachBrowserIssueTracking(page, browserIssues) {
   });
 }
 
+function mockChatStatusPayload() {
+  return {
+    provider: "anthropic_api",
+    runtimeSource: "runtime",
+    canSend: true,
+    blockingReason: null,
+    suggestedAction: null,
+    claudeCliEnabled: false,
+    suggestedQuestions: ["What should I test in production smoke?"],
+    index: {
+      status: "ready",
+      skillCount: 1,
+      chunkCount: 2,
+      staleReason: null,
+      error: null,
+    },
+    lastCliSmokeTest: null,
+  };
+}
+
+function mockChatStreamBody() {
+  return [
+    JSON.stringify({
+      type: "citations",
+      sources: [
+        {
+          skillName: "release-readiness-smoke",
+          section: "1-8",
+          score: 0.91,
+          preview: "Production smoke citation preview.",
+        },
+      ],
+    }),
+    JSON.stringify({ type: "text", text: "Production mock assistant response." }),
+    "",
+  ].join("\n");
+}
+
+async function withMockedSkillTemplates(page, callback) {
+  await page.route("**/api/skills/templates", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ templates: mockTemplates }),
+    });
+  });
+
+  try {
+    await callback();
+  } finally {
+    await page.unroute("**/api/skills/templates");
+  }
+}
+
+async function runProductionEditorInteractionSmoke(page, baseUrl) {
+  await withMockedSkillTemplates(page, async () => {
+    await page.goto(`${baseUrl}/editor`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await expectText(page, "Template Gallery");
+    const editorBody = page.getByLabel("Skill markdown body");
+    await editorBody.fill("## Custom Draft\n\nKeep this until the user confirms.");
+    await clickButton(page, /Use Workflow Skill template/i);
+    await expectText(page, "Apply Workflow Skill template?");
+    await assertCurrentRouteState(page, "production editor template confirmation");
+    await clickButton(page, "Keep draft");
+    await expectTextHidden(page, "Apply Workflow Skill template?");
+
+    await clickButton(page, /Use Reference Skill template/i);
+    await expectText(page, "Apply Reference Skill template?");
+    await clickButton(page, "Apply template");
+    await editorBody.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    const body = await editorBody.inputValue();
+    assert(
+      body.includes("## Purpose"),
+      "Production editor template apply did not populate the markdown body",
+    );
+    const previewTab = page.getByRole("tab", { name: "Mobile Preview" }).first();
+    await previewTab.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    await previewTab.click();
+    await expectText(page, "Use this skill when the user needs reliable reference material.");
+    await assertCurrentRouteState(page, "production editor preview tab");
+  });
+}
+
+async function runProductionGuidedInteractionSmoke(page, baseUrl) {
+  await withMockedSkillTemplates(page, async () => {
+    await page.goto(`${baseUrl}/editor/guided`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await expectText(page, "Guided Skill Builder");
+    const purpose = page.locator("#guided-purpose");
+    await purpose.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    await purpose.fill("Temporary production smoke draft.");
+    await clickButton(page, "Clear draft");
+    await expectText(page, "This clears the guided draft from this browser tab.");
+    await assertCurrentRouteState(page, "production guided clear confirmation");
+    await clickButton(page, "Cancel");
+    await expectTextHidden(page, "This clears the guided draft from this browser tab.");
+    assert(
+      (await purpose.inputValue()) === "Temporary production smoke draft.",
+      "Production guided clear cancel did not preserve the draft",
+    );
+  });
+}
+
+async function runProductionChatInteractionSmoke(page, baseUrl) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value) => {
+          window.__smokeCopiedText = value;
+        },
+      },
+    });
+  });
+  await page.route("**/api/chat/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockChatStatusPayload()),
+    });
+  });
+  await page.route("**/api/chat", async (route) => {
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: mockChatStreamBody(),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/chat`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await expectText(page, "Ready");
+    await page.locator("textarea").fill("Mock production chat request");
+    await clickButton(page, "Send");
+    await expectText(page, "Production mock assistant response.");
+    await clickButton(page, /Show citation preview/i);
+    await expectText(page, "Production smoke citation preview.");
+    await assertCurrentRouteState(page, "production chat expanded citation");
+    await clickButton(page, /Hide citation preview/i);
+    await expectTextHidden(page, "Production smoke citation preview.");
+    await assertCurrentRouteState(page, "production chat collapsed citation");
+    await clickButton(page, "Copy assistant message");
+    await expectText(page, "Copied");
+    const copiedText = await page.evaluate(() => window.__smokeCopiedText);
+    assert(
+      copiedText === "Production mock assistant response.",
+      "Production chat copy did not write the assistant message text",
+    );
+  } finally {
+    await page.unroute("**/api/chat/status");
+    await page.unroute("**/api/chat");
+  }
+}
+
+async function runProductionInteractionSmoke(page, baseUrl) {
+  await runProductionEditorInteractionSmoke(page, baseUrl);
+  await runProductionGuidedInteractionSmoke(page, baseUrl);
+  await runProductionChatInteractionSmoke(page, baseUrl);
+}
+
 async function runBrowserSmoke(baseUrl) {
   const browser = await chromium.launch({
     headless: process.env.SMOKE_HEADLESS !== "false",
@@ -251,6 +493,9 @@ async function runBrowserSmoke(baseUrl) {
       try {
         for (const [route, text] of pageChecks) {
           await expectPageText(page, baseUrl, route, text, viewportLabel);
+        }
+        if (viewportLabel === "desktop") {
+          await runProductionInteractionSmoke(page, baseUrl);
         }
         assert(
           browserIssues.length === 0,

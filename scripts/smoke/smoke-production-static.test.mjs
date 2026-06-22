@@ -145,4 +145,29 @@ assert.match(
   "production smoke must fail on browser console, page, or 500-response issues",
 );
 
+assert.match(
+  productionSmokeSource,
+  /runProductionInteractionSmoke/,
+  "production smoke must verify built-app interaction states",
+);
+
+for (const interaction of [
+  "production editor template confirmation",
+  "production guided clear confirmation",
+  "production chat expanded citation",
+  "production chat collapsed citation",
+]) {
+  assert.match(
+    productionSmokeSource,
+    new RegExp(escapeRegExp(interaction)),
+    `production smoke must verify ${interaction}`,
+  );
+}
+
+assert.match(
+  productionSmokeSource,
+  /Production mock assistant response\./,
+  "production smoke must verify mocked chat send/copy behavior in the built app",
+);
+
 console.log("Production smoke runner static tests passed");
