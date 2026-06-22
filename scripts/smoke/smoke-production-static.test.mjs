@@ -47,6 +47,24 @@ assert.match(
 
 assert.match(
   productionSmokeSource,
+  /assertVisibleButtonsAccountedFor/,
+  "production smoke must assert visible button coverage for driven built-app states",
+);
+
+assert.match(
+  productionSmokeSource,
+  /assertVisibleLinksAccountedFor/,
+  "production smoke must assert visible link coverage for driven built-app states",
+);
+
+assert.match(
+  productionSmokeSource,
+  /assertCurrentRouteDomCoverage/,
+  "production smoke must use the shared DOM coverage helper for driven states",
+);
+
+assert.match(
+  productionSmokeSource,
   /\["mobile",\s*\{\s*width:\s*390,\s*height:\s*844,\s*isMobile:\s*true\s*\}\]/,
   "production smoke must include a mobile viewport visual pass",
 );

@@ -88,12 +88,21 @@ function runPrivacyScan() {
   process.exit(1);
 }
 
+runCommand("Project process cleanup dry run preflight", "npm", [
+  "run",
+  "cleanup:project:dry-run",
+]);
 runCommand("Full test sweep", "npm", ["test"]);
 runCommand("Lint", "npm", ["run", "lint"]);
 runCommand("Production build", "npm", ["run", "build"]);
 runCommand("Production server smoke", "npm", ["run", "smoke:production"]);
 runCommand("Dependency audit", "npm", ["audit", "--audit-level=moderate"]);
 runCommand("Local browser/API smoke", "npm", ["run", "smoke:local"]);
+runCommand("Manual QA helper auto smoke", "npm", ["run", "qa:manual:auto"]);
+runCommand("Project process cleanup dry run postflight", "npm", [
+  "run",
+  "cleanup:project:dry-run",
+]);
 runCommand("Diff whitespace check", "git", ["diff", "--check"]);
 runUntrackedTextHygieneScan();
 runPrivacyScan();

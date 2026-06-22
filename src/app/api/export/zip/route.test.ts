@@ -91,6 +91,9 @@ async function main() {
       assert.doesNotMatch(diagnosticsRaw, /[\\/](?:Users|home)[\\/]/i);
       assert.doesNotMatch(diagnosticsRaw, /oauth/i);
       assert.doesNotMatch(diagnosticsRaw, /Authorization/i);
+      assert.doesNotMatch(diagnosticsRaw, /Bearer\s+[A-Za-z0-9._~+/=-]{10,}/i);
+      assert.doesNotMatch(diagnosticsRaw, /sk-[A-Za-z0-9_-]{10,}/i);
+      assert.doesNotMatch(diagnosticsRaw, /\.claude-profiles[\\/][^"'\s]+/i);
 
       const exactNameResponse = await route.GET(
         localRequest("/api/export/zip?skill=alpha%2Cbeta"),

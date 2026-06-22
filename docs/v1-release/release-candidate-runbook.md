@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -112,13 +112,33 @@ git diff --check
 
 `npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
+If a local smoke/dev run is interrupted and memory or ports look stale, inspect project-owned process trees first:
+
+```bash
+npm run cleanup:project:dry-run
+```
+
+Then stop only this repo's detected Next/smoke/test process trees:
+
+```bash
+npm run cleanup:project
+```
+
+The cleanup command requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure so other Codex conversations are not targeted.
+
 When the local app is already running, use the manual external QA helper to print the current sanitized readiness summary and remaining device/account checks:
 
 ```bash
 npm run qa:manual
 ```
 
-Set `MANUAL_QA_BASE_URL=http://localhost:3000` when the app is running on a different local port. The helper does not click native OS dialogs, launch login, send chat, or write evidence files.
+Set `MANUAL_QA_BASE_URL=http://localhost:3000` when the app is running on a different local port. If no dev server is running, use the temporary-server helper instead:
+
+```bash
+npm run qa:manual:auto
+```
+
+Both helpers print only sanitized status plus the manual checklist. They do not click native OS dialogs, launch login, send chat, or write evidence files.
 
 After running those checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted.
 
@@ -169,3 +189,5 @@ Capture this evidence for a V1 release-candidate checkpoint:
 11. Final diff review.
 
 Commit and push only after explicit approval.
+
+The latest privacy-safe local evidence snapshot is tracked in [latest-local-qa-evidence.md](latest-local-qa-evidence.md).

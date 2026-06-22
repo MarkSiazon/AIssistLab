@@ -76,6 +76,18 @@ assert.match(
 
 assert.match(
   source,
+  /Native folder picker cancel should leave the selected workspace path unchanged/,
+  "settings smoke must verify native folder picker cancel keeps the current path",
+);
+
+assert.match(
+  source,
+  /Native folder picker is unavailable\. Use Browse app instead\./,
+  "settings smoke must verify native folder picker error fallback copy",
+);
+
+assert.match(
+  source,
   /Chat Shift\+Enter did not insert a newline/,
   "chat smoke must verify keyboard newline behavior before Enter submit",
 );
@@ -156,6 +168,18 @@ assert.match(
   source,
   /Browser storage is unavailable, so the draft cannot be handed off to the editor in this tab\./,
   "blocked-session-storage smoke must verify the guided handoff failure copy",
+);
+
+assert.match(
+  source,
+  /Smoke Claude CLI test failed\./,
+  "settings smoke must verify Claude CLI smoke-test failure handling",
+);
+
+assert.match(
+  source,
+  /Test: Failed - Smoke Claude CLI test failed\./,
+  "settings smoke must verify Claude CLI failure appears in the panel alert",
 );
 
 assert.match(

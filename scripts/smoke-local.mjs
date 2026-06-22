@@ -1318,10 +1318,23 @@ async function runMockedNativeFolderPickerSmoke(page, workspacePath) {
   await workspaceInput.waitFor({ state: "visible", timeout: 15000 });
   await workspaceInput.fill("");
 
+  const responses = [
+    { status: 200, body: { path: workspacePath } },
+    { status: 200, body: { cancelled: true } },
+    {
+      status: 500,
+      body: {
+        error: "Native folder picker is unavailable. Use Browse app instead.",
+      },
+    },
+  ];
+
   await page.route("**/api/settings/native-folder**", async (route) => {
+    const response = responses.shift() ?? responses.at(-1);
     await route.fulfill({
+      status: response.status,
       contentType: "application/json",
-      body: JSON.stringify({ path: workspacePath }),
+      body: JSON.stringify(response.body),
     });
   });
 
@@ -1342,6 +1355,41 @@ async function runMockedNativeFolderPickerSmoke(page, workspacePath) {
       workspaceInput,
       workspacePath,
       "Native folder picker did not apply the selected workspace path",
+    );
+
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings/native-folder") &&
+        response.request().method() === "GET",
+      ),
+      clickButton(page, "Choose folder"),
+    ]);
+    await waitForLocatorInputValue(
+      workspaceInput,
+      workspacePath,
+      "Native folder picker cancel should leave the selected workspace path unchanged",
+    );
+
+    expectBrowserIssue(/http 500: .*\/api\/settings\/native-folder/);
+    expectBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    );
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings/native-folder") &&
+        response.request().method() === "GET",
+      ),
+      clickButton(page, "Choose folder"),
+    ]);
+    await expectText(
+      page,
+      "Native folder picker is unavailable. Use Browse app instead.",
+      "native folder picker error fallback",
+    );
+    await waitForLocatorInputValue(
+      workspaceInput,
+      workspacePath,
+      "Native folder picker error should leave the selected workspace path unchanged",
     );
   } finally {
     await page.unroute("**/api/settings/native-folder**");
@@ -1644,21 +1692,34 @@ function mockClaudeCliStatusPayload(lastCliSmokeTest = null) {
 
 async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
   let lastCliSmokeTest = null;
+  let cliTestCount = 0;
 
   await page.route("**/api/settings/claude-cli**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
 
     if (pathname === "/api/settings/claude-cli/test") {
-      lastCliSmokeTest = {
-        checked: true,
-        ok: true,
-        output: "OK",
-        error: null,
-        provider: "claude_code_cli",
-        profileId: "default",
-        configFingerprint: "smoke-default-profile",
-      };
+      cliTestCount += 1;
+      lastCliSmokeTest =
+        cliTestCount === 1
+          ? {
+              checked: true,
+              ok: true,
+              output: "OK",
+              error: null,
+              provider: "claude_code_cli",
+              profileId: "default",
+              configFingerprint: "smoke-default-profile",
+            }
+          : {
+              checked: true,
+              ok: false,
+              output: null,
+              error: "Smoke Claude CLI test failed.",
+              provider: "claude_code_cli",
+              profileId: "default",
+              configFingerprint: "smoke-default-profile",
+            };
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(lastCliSmokeTest),
@@ -1714,6 +1775,9 @@ async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
     await clickButton(page, "Test CLI");
     await expectText(page, "Claude CLI test passed.");
     await expectText(page, "Test passed: OK");
+    await clickButton(page, "Test CLI");
+    await expectText(page, "Smoke Claude CLI test failed.");
+    await expectText(page, "Test: Failed - Smoke Claude CLI test failed.");
     await markButtonLocatorCovered(
       claudePanel.locator(".settings-claude-refresh").first(),
     );

@@ -75,7 +75,10 @@ await assert.doesNotReject(() =>
   assertVisibleButtonsAccountedFor(
     pageWith({
       buttons: [
+        element({ innerText: "Retry status" }),
         element({ innerText: "Open Login", disabled: true }),
+        element({ innerText: "Fix field", disabled: true }),
+        element({ innerText: "Back", disabled: true }),
         element({ innerText: "Save changes", __smokeCovered: true }),
       ],
     }),

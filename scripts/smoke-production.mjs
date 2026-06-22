@@ -4,6 +4,14 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import {
+  assertVisibleButtonsAccountedFor,
+  assertVisibleLinksAccountedFor,
+  markButtonLocatorCovered,
+  markVisibleButtonsCoveredByLabel,
+  markVisibleLinksCoveredByHref,
+  markVisibleLinksCoveredByLabel,
+} from "./smoke/dom-coverage.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
 import { assertRouteInteractionState } from "./smoke/interaction-assertions.mjs";
 import { assertRouteSemanticState } from "./smoke/semantic-assertions.mjs";
@@ -59,6 +67,15 @@ const pageChecks = [
 const visualViewports = [
   ["desktop", { width: 1366, height: 920 }],
   ["mobile", { width: 390, height: 844, isMobile: true }],
+];
+const appRouteLinkLabels = ["Skills", "RAG Chat", "New Skill", "Export", "Settings"];
+const chatReadinessLinkHrefs = [
+  "/skills",
+  "/chat",
+  "/editor",
+  "/export",
+  "/settings",
+  "/export?diagnostics=true",
 ];
 
 const mockTemplates = [
@@ -287,6 +304,7 @@ async function clickButton(page, name) {
   const button = page.getByRole("button", { name }).first();
   await button.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
   assert(!(await button.isDisabled()), `Button is disabled: ${name}`);
+  await markButtonLocatorCovered(button);
   await button.click();
 }
 
@@ -304,6 +322,43 @@ async function waitForRecordedUrl(page, readLatestUrl, label) {
 async function assertCurrentRouteState(page, scope) {
   await assertRouteSemanticState(page, scope);
   await assertRouteInteractionState(page, scope);
+}
+
+async function markAppRouteLinksCovered(locator, extraLabels = []) {
+  await markVisibleLinksCoveredByLabel(locator, appRouteLinkLabels);
+  if (extraLabels.length > 0) {
+    await markVisibleLinksCoveredByLabel(locator, extraLabels, {
+      requireAll: false,
+    });
+  }
+}
+
+async function markChatReadinessLinksCovered(locator) {
+  await markVisibleLinksCoveredByHref(locator, chatReadinessLinkHrefs, {
+    requireAll: false,
+  });
+}
+
+async function assertCurrentRouteDomCoverage(page, scope, options = {}) {
+  const {
+    buttonLabels = [],
+    linkLabels = [],
+    linkHrefs = [],
+    includeChatReadinessLinks = true,
+  } = options;
+
+  if (buttonLabels.length > 0) {
+    await markVisibleButtonsCoveredByLabel(page, buttonLabels, {
+      requireAll: false,
+    });
+  }
+  await markAppRouteLinksCovered(page, linkLabels);
+  if (linkHrefs.length > 0) {
+    await markVisibleLinksCoveredByHref(page, linkHrefs, { requireAll: false });
+  }
+  if (includeChatReadinessLinks) await markChatReadinessLinksCovered(page);
+  await assertVisibleButtonsAccountedFor(page, scope);
+  await assertVisibleLinksAccountedFor(page, scope);
 }
 
 function attachBrowserIssueTracking(page, browserIssues) {
@@ -625,6 +680,22 @@ async function runProductionEditorInteractionSmoke(page, baseUrl) {
     await clickButton(page, /Use Workflow Skill template/i);
     await expectText(page, "Apply Workflow Skill template?");
     await assertCurrentRouteState(page, "production editor template confirmation");
+    await assertCurrentRouteDomCoverage(page, "production editor template confirmation", {
+      buttonLabels: [
+        "Retry status",
+        "Rebuild Index",
+        "Cancel",
+        "Reference Skill Capture stable reference material with clear lookup guidance.",
+        "Workflow Skill Guide a repeated task from intake through verification.",
+        "Learning And Rubric Skill Coach a user through learning with prompts and rubric feedback.",
+        "Edit",
+        "Keep draft",
+        "Apply template",
+        "Desktop Editor",
+        "Mobile Preview",
+        "Save",
+      ],
+    });
     await clickButton(page, "Keep draft");
     await expectTextHidden(page, "Apply Workflow Skill template?");
 
@@ -642,6 +713,19 @@ async function runProductionEditorInteractionSmoke(page, baseUrl) {
     await previewTab.click();
     await expectText(page, "Use this skill when the user needs reliable reference material.");
     await assertCurrentRouteState(page, "production editor preview tab");
+    await assertCurrentRouteDomCoverage(page, "production editor preview tab", {
+      buttonLabels: [
+        "Retry status",
+        "Rebuild Index",
+        "Reference Skill Capture stable reference material with clear lookup guidance.",
+        "Workflow Skill Guide a repeated task from intake through verification.",
+        "Learning And Rubric Skill Coach a user through learning with prompts and rubric feedback.",
+        "Edit",
+        "Desktop Editor",
+        "Mobile Preview",
+        "Save",
+      ],
+    });
   });
 }
 
@@ -658,6 +742,30 @@ async function runProductionGuidedInteractionSmoke(page, baseUrl) {
     await clickButton(page, "Clear draft");
     await expectText(page, "This clears the guided draft from this browser tab.");
     await assertCurrentRouteState(page, "production guided clear confirmation");
+    await assertCurrentRouteDomCoverage(page, "production guided clear confirmation", {
+      buttonLabels: [
+        "Retry status",
+        "Rebuild Index",
+        "1 Purpose",
+        "2 Examples",
+        "3 Boundaries",
+        "4 Review",
+        "Start",
+        "Back",
+        "Next",
+        "Clear draft",
+        "Cancel",
+        "Clear draft now",
+        "Template selected READY Learning And Rubric Skill",
+        "Purpose is concrete READY Task and outcome are named.",
+        "Audience named NEEDS DETAIL Describe who will use this skill.",
+        "Trigger examples NEEDS DETAIL Add at least one realistic user prompt.",
+        "Success criteria NEEDS DETAIL Add at least one measurable quality bar.",
+        "Required inputs OPTIONAL List inputs when the skill depends on source material.",
+        "Boundaries OPTIONAL Add safety or scope limits for higher-quality drafts.",
+        "Rubric feedback NOT RUN Run Review Draft before final editing when possible.",
+      ],
+    });
     await clickButton(page, "Cancel");
     await expectTextHidden(page, "This clears the guided draft from this browser tab.");
     assert(
@@ -703,9 +811,32 @@ async function runProductionChatInteractionSmoke(page, baseUrl) {
     await clickButton(page, /Show citation preview/i);
     await expectText(page, "Production smoke citation preview.");
     await assertCurrentRouteState(page, "production chat expanded citation");
+    await assertCurrentRouteDomCoverage(page, "production chat expanded citation", {
+      buttonLabels: [
+        "Retry status",
+        "Send",
+        "Clear",
+        "Copy",
+        "Copy assistant message",
+        "Hide citation preview",
+        "Rebuild Index",
+      ],
+      linkLabels: ["Open source skill"],
+    });
     await clickButton(page, /Hide citation preview/i);
     await expectTextHidden(page, "Production smoke citation preview.");
     await assertCurrentRouteState(page, "production chat collapsed citation");
+    await assertCurrentRouteDomCoverage(page, "production chat collapsed citation", {
+      buttonLabels: [
+        "Retry status",
+        "Send",
+        "Clear",
+        "Copy",
+        "Copy assistant message",
+        "Show citation preview",
+        "Rebuild Index",
+      ],
+    });
     await clickButton(page, "Copy assistant message");
     await expectText(page, "Copied");
     const copiedText = await page.evaluate(() => window.__smokeCopiedText);
@@ -834,10 +965,66 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     await expectText(page, "Claude/API auth tested");
     await expectText(page, "Manual QA Evidence");
     await assertCurrentRouteState(page, "production settings ready state");
+    await assertCurrentRouteDomCoverage(page, "production settings ready state", {
+      buttonLabels: [
+        "Refresh",
+        "Dismiss",
+        "Import .env file",
+        "Config Fields",
+        "Raw .env Editor",
+        "Use typed",
+        "Choose folder",
+        "Browse app",
+        "Open Login",
+        "Test CLI",
+        "Save Provider",
+        "Save Current",
+        "Show",
+        "+ Add",
+        "Open Export",
+        "Export Diagnostics",
+        "Export",
+        "Rebuild Index",
+        "Save",
+        "Open Chat",
+        "Mark Passed",
+        "Needs Fix",
+        "Reset",
+      ],
+      linkLabels: ["Open Settings"],
+    });
 
     await clickButton(page, "Refresh");
     await expectText(page, "Setup is ready.");
     await assertCurrentRouteState(page, "production settings refreshed state");
+    await assertCurrentRouteDomCoverage(page, "production settings refreshed state", {
+      buttonLabels: [
+        "Refresh",
+        "Dismiss",
+        "Import .env file",
+        "Config Fields",
+        "Raw .env Editor",
+        "Use typed",
+        "Choose folder",
+        "Browse app",
+        "Open Login",
+        "Test CLI",
+        "Save Provider",
+        "Save Current",
+        "Show",
+        "+ Add",
+        "Open Export",
+        "Export Diagnostics",
+        "Export",
+        "Rebuild Index",
+        "Save",
+        "Open Chat",
+        "Mark Passed",
+        "Needs Fix",
+        "Reset",
+      ],
+      linkLabels: ["Open Settings"],
+    });
 
     const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
     await manualQaPanel.waitFor({
@@ -885,6 +1072,34 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     );
     await expectText(page, "Saved and applied to this server session.");
     await assertCurrentRouteState(page, "production settings saved state");
+    await assertCurrentRouteDomCoverage(page, "production settings saved state", {
+      buttonLabels: [
+        "Refresh",
+        "Dismiss",
+        "Import .env file",
+        "Config Fields",
+        "Raw .env Editor",
+        "Use typed",
+        "Choose folder",
+        "Browse app",
+        "Open Login",
+        "Test CLI",
+        "Save Provider",
+        "Save Current",
+        "Show",
+        "+ Add",
+        "Open Export",
+        "Export Diagnostics",
+        "Export",
+        "Rebuild Index",
+        "Save",
+        "Open Chat",
+        "Mark Passed",
+        "Needs Fix",
+        "Reset",
+      ],
+      linkLabels: ["Open Settings"],
+    });
   } finally {
     await page.unroute("**/api/settings/runtime");
     await page.unroute("**/api/chat/status");
@@ -946,6 +1161,21 @@ async function runProductionExportInteractionSmoke(page, baseUrl) {
     await clickButton(page, "Select all");
     await expectText(page, "1 of 1 selected");
     await assertCurrentRouteState(page, "production export selected skill");
+    await assertCurrentRouteDomCoverage(page, "production export selected skill", {
+      buttonLabels: [
+        "Retry status",
+        "Rebuild Index",
+        "Select all",
+        "Clear",
+        "Download All + Diagnostics",
+        "Export Diagnostics",
+        "Download Selected + Diagnostics (1)",
+        "Download .md",
+        "Download 1 selected skills with diagnostics",
+        "Download release-readiness-smoke as Markdown",
+      ],
+      linkLabels: ["Review Settings"],
+    });
     await clickButton(page, "Clear");
     await expectText(page, "0 of 1 selected");
 

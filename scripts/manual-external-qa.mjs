@@ -1,3 +1,7 @@
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
 
@@ -55,6 +59,148 @@ export function normalizeBaseUrl(value) {
     throw new Error(
       `Invalid manual QA base URL: ${value || "(empty)"}. Set MANUAL_QA_BASE_URL, for example http://localhost:3000.`,
     );
+  }
+}
+
+export function parseManualQaArgs(args = process.argv.slice(2), env = process.env) {
+  const options = {
+    baseUrl: env.MANUAL_QA_BASE_URL,
+    startServer: env.MANUAL_QA_START_SERVER === "1",
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--start-server") {
+      options.startServer = true;
+      continue;
+    }
+    if (arg === "--base-url") {
+      if (!args[index + 1] || args[index + 1].startsWith("--")) {
+        throw new Error("Manual QA --base-url requires a URL value.");
+      }
+      options.baseUrl = args[index + 1];
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--base-url=")) {
+      options.baseUrl = arg.slice("--base-url=".length);
+      continue;
+    }
+    if (arg === "--help" || arg === "-h") {
+      options.help = true;
+      continue;
+    }
+    throw new Error(`Unknown manual QA option: ${arg}`);
+  }
+
+  return options;
+}
+
+export function manualQaUsage() {
+  return [
+    "Usage:",
+    "  npm run qa:manual",
+    "  npm run qa:manual -- --base-url http://localhost:3000",
+    "  npm run qa:manual:auto",
+    "",
+    "Options:",
+    "  --base-url <url>     Read sanitized status from an already-running local app.",
+    "  --start-server       Start a temporary localhost dev server, print the report, then stop it.",
+  ].join("\n");
+}
+
+async function getFreePort() {
+  return await new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+async function fetchWithTimeout(url, init = {}, timeoutMs = 2000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function nextDevCommand(port) {
+  return {
+    command: process.execPath,
+    args: [
+      path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next"),
+      "dev",
+      "--webpack",
+      "--hostname",
+      "127.0.0.1",
+      "--port",
+      String(port),
+    ],
+  };
+}
+
+async function waitForManualQaServer(baseUrl, child, logs) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 90000) {
+    if (child.exitCode !== null) {
+      throw new Error(`Temporary dev server exited early.\n${logs.join("\n")}`);
+    }
+    try {
+      const response = await fetchWithTimeout(`${baseUrl}/`, {
+        headers: { host: new URL(baseUrl).host },
+      });
+      if (response.ok) return;
+    } catch {
+      // Still starting.
+    }
+    await delay(1000);
+  }
+
+  throw new Error(`Timed out waiting for temporary dev server.\n${logs.join("\n")}`);
+}
+
+async function withTemporaryManualQaServer(callback) {
+  const port = await getFreePort();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const { command, args } = nextDevCommand(port);
+  const logs = [];
+  const child = spawn(command, args, {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      NEXT_TELEMETRY_DISABLED: "1",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  });
+
+  const pushLog = (chunk) => {
+    for (const line of chunk.toString().split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      logs.push(line);
+    }
+    while (logs.length > 60) logs.shift();
+  };
+  child.stdout.on("data", pushLog);
+  child.stderr.on("data", pushLog);
+
+  try {
+    await waitForManualQaServer(baseUrl, child, logs);
+    return await callback(baseUrl);
+  } finally {
+    child.kill("SIGTERM");
+    await delay(500);
+    if (child.exitCode === null) child.kill("SIGKILL");
   }
 }
 
@@ -193,8 +339,21 @@ export async function runManualQaHelper({
   return formatManualQaReport(baseUrl, entries);
 }
 
+export async function runManualQaCli(options = parseManualQaArgs()) {
+  if (options.help) return manualQaUsage();
+  if (options.startServer) {
+    return await withTemporaryManualQaServer((baseUrl) =>
+      runManualQaHelper({ baseUrl }),
+    );
+  }
+
+  return await runManualQaHelper({
+    baseUrl: normalizeBaseUrl(options.baseUrl),
+  });
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  runManualQaHelper()
+  runManualQaCli()
     .then((report) => {
       console.log(report);
     })
@@ -202,8 +361,8 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(message);
       console.error("");
-      console.error("Start the local app with `npm run dev`, then rerun:");
-      console.error("  npm run qa:manual");
+      console.error("Start the local app with `npm run dev`, or run:");
+      console.error("  npm run qa:manual:auto");
       process.exit(1);
     });
 }

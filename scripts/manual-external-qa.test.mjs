@@ -1,13 +1,58 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   assertManualQaSnapshotSafe,
   formatManualQaReport,
+  manualQaUsage,
   normalizeBaseUrl,
+  parseManualQaArgs,
   runManualQaHelper,
 } from "./manual-external-qa.mjs";
 
+const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+const verifyReleaseSource = readFileSync("scripts/verify-release.mjs", "utf8");
+
+assert.equal(
+  packageJson.scripts["qa:manual:auto"],
+  "node scripts/manual-external-qa.mjs --start-server",
+  "package.json must expose the manual QA auto-server helper",
+);
+assert.match(
+  verifyReleaseSource,
+  /runCommand\("Manual QA helper auto smoke",\s*"npm",\s*\["run",\s*"qa:manual:auto"\]\)/,
+  "verify:release must smoke the manual QA auto-server helper",
+);
+
 assert.equal(normalizeBaseUrl("http://localhost:3000/"), "http://localhost:3000");
 assert.throws(() => normalizeBaseUrl("file:///tmp/app"), /Invalid manual QA base URL/);
+assert.deepEqual(parseManualQaArgs([], {}), {
+  baseUrl: undefined,
+  startServer: false,
+});
+assert.deepEqual(parseManualQaArgs(["--start-server"], {}), {
+  baseUrl: undefined,
+  startServer: true,
+});
+assert.deepEqual(
+  parseManualQaArgs(["--base-url", "http://127.0.0.1:3000/"], {}),
+  {
+    baseUrl: "http://127.0.0.1:3000/",
+    startServer: false,
+  },
+);
+assert.deepEqual(parseManualQaArgs([], { MANUAL_QA_START_SERVER: "1" }), {
+  baseUrl: undefined,
+  startServer: true,
+});
+assert.throws(
+  () => parseManualQaArgs(["--unknown"], {}),
+  /Unknown manual QA option/,
+);
+assert.throws(
+  () => parseManualQaArgs(["--base-url"], {}),
+  /requires a URL value/,
+);
+assert.match(manualQaUsage(), /npm run qa:manual:auto/);
 
 const safeEntries = [
   {

@@ -11,6 +11,9 @@
     "smoke:local": "node scripts/smoke-local.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
     "qa:manual": "node scripts/manual-external-qa.mjs",
+    "qa:manual:auto": "node scripts/manual-external-qa.mjs --start-server",
+    "cleanup:project": "node scripts/cleanup-project-processes.mjs --yes",
+    "cleanup:project:dry-run": "node scripts/cleanup-project-processes.mjs --dry-run",
     "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {

@@ -8,13 +8,14 @@ These checks cover device UI and auth launchers that the automated smoke runner 
 - Open `http://localhost:3000/settings`.
 - Do not paste API keys, account emails, organization names, OAuth paths, or full home paths into screenshots or issue notes.
 
-Optional helper:
+Optional helpers:
 
 ```bash
 npm run qa:manual
+npm run qa:manual:auto
 ```
 
-Set `MANUAL_QA_BASE_URL=http://localhost:3000` if the app is running on a different local port. The helper reads sanitized readiness endpoints and prints this checklist. It does not open native dialogs, launch login, send chat messages, or write evidence files.
+Use `npm run qa:manual` when the app is already running. Set `MANUAL_QA_BASE_URL=http://localhost:3000` if it is running on a different local port. Use `npm run qa:manual:auto` when you want the helper to start a temporary localhost dev server, print the same sanitized readiness report, and stop that server afterward. The helper does not open native dialogs, launch login, send chat messages, or write evidence files.
 
 Settings also includes a `Manual QA Evidence` panel. Use it to mark each check as `Passed`, `Needs fix`, or `Pending` after you run the manual steps. The panel stores only status and timestamp in this browser's local storage; it does not store prompts, screenshots, account names, profile paths, or auth output.
 

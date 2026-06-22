@@ -1,9 +1,13 @@
-const unclickedEnabledButtonPatterns = [];
+const unclickedEnabledButtonPatterns = [
+  /^Retry status$/,
+];
 
 const disabledOrTransientButtonPatterns = [
   /^Type message$/,
+  /^Fix field$/,
   /^Fix fields$/,
   /^No changes$/,
+  /^Back$/,
   /^Clear$/,
   /^Open Login$/,
   /^Test CLI$/,
