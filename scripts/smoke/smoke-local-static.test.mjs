@@ -36,6 +36,12 @@ assert.match(
 
 assert.match(
   source,
+  /assertRouteSemanticState/,
+  "interactive accessibility smoke must reuse the semantic route validator",
+);
+
+assert.match(
+  source,
   /async function keyboardActivateButtonLocator/,
   "local smoke must include a helper for keyboard button activation",
 );

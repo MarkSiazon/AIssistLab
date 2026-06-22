@@ -22,7 +22,7 @@ export function CitationBadge({ citation }: { citation: Citation }) {
         onClick={() => setOpen((value) => !value)}
         className="chat-citation-toggle"
         aria-expanded={open}
-        aria-controls={previewId}
+        aria-controls={open ? previewId : undefined}
         aria-label={`${open ? "Hide" : "Show"} citation preview for ${citation.skillName}.md, ${citation.section}`}
       >
         <span aria-hidden="true">{open ? "▾" : "▸"}</span>

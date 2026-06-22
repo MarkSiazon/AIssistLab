@@ -202,7 +202,7 @@ npm run smoke:production
 npm run qa:manual
 ```
 
-`npm run smoke:local` starts a temporary local Next.js server against a copied demo workspace, rebuilds the index, checks sanitized readiness/diagnostics APIs, and drives Settings, Skills, Chat, Export, Editor, and Guided Builder in Chromium, including keyboard activation paths for key controls. It does not click external auth launchers or native OS folder pickers.
+`npm run smoke:local` starts a temporary local Next.js server against a copied demo workspace, rebuilds the index, checks sanitized readiness/diagnostics APIs, and drives Settings, Skills, Chat, Export, Editor, and Guided Builder in Chromium, including keyboard activation paths, semantic route checks, and interactive ARIA/control audits for key states. It does not click external auth launchers or native OS folder pickers.
 
 `npm run smoke:production` expects `npm run build` to have completed, starts `next start` against the demo workspace, verifies local-device APIs return the intended production guard response, and checks the built Settings, Skills, Chat, Export, Editor, and Guided Builder pages render nonblank desktop/mobile views without horizontal overflow, broken landmarks/headings/ARIA references, missing accessible control names, or unexpected browser errors.
 

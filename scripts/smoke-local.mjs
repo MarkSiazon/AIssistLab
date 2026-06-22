@@ -14,6 +14,7 @@ import {
   markVisibleLinksCoveredByLabel,
 } from "./smoke/dom-coverage.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
+import { assertRouteSemanticState } from "./smoke/semantic-assertions.mjs";
 import { createZip, extractZipEntries } from "./smoke/zip-utils.mjs";
 
 const root = process.cwd();
@@ -95,6 +96,9 @@ function assertExpectedBrowserIssuesConsumed() {
 }
 
 async function assertInteractiveControlsAccessible(page, scope) {
+  const semanticPage = typeof page.page === "function" ? page.page() : page;
+  await assertRouteSemanticState(semanticPage, scope);
+
   const issues = await page
     .locator("button,a,input,select,textarea")
     .evaluateAll((controls) => {
