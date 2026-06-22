@@ -41,6 +41,12 @@ assert.match(
 
 assert.match(
   productionSmokeSource,
+  /assertRouteInteractionState/,
+  "production smoke must assert interaction route state for rendered pages",
+);
+
+assert.match(
+  productionSmokeSource,
   /\["mobile",\s*\{\s*width:\s*390,\s*height:\s*844,\s*isMobile:\s*true\s*\}\]/,
   "production smoke must include a mobile viewport visual pass",
 );

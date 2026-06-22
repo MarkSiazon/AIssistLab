@@ -5,6 +5,7 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
+import { assertRouteInteractionState } from "./smoke/interaction-assertions.mjs";
 import { assertRouteSemanticState } from "./smoke/semantic-assertions.mjs";
 import { assertRouteVisualState } from "./smoke/visual-assertions.mjs";
 
@@ -214,6 +215,7 @@ async function expectPageText(page, baseUrl, route, text, viewportLabel = "deskt
   });
   await assertRouteVisualState(page, `${viewportLabel} ${route}`);
   await assertRouteSemanticState(page, `${viewportLabel} ${route}`);
+  await assertRouteInteractionState(page, `${viewportLabel} ${route}`);
 }
 
 function attachBrowserIssueTracking(page, browserIssues) {

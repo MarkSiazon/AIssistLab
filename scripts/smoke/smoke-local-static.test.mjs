@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync("scripts/smoke-local.mjs", "utf8");
+const interactionSource = readFileSync(
+  "scripts/smoke/interaction-assertions.mjs",
+  "utf8",
+);
 
 assert.match(
   source,
@@ -23,14 +27,14 @@ assert.match(
 );
 
 assert.match(
-  source,
-  /rect\.height\s*<\s*44/,
+  interactionSource,
+  /control\.height\s*<\s*44/,
   "interactive accessibility smoke must enforce 44px minimum target height",
 );
 
 assert.match(
-  source,
-  /rect\.width\s*<\s*44/,
+  interactionSource,
+  /control\.width\s*<\s*44/,
   "interactive accessibility smoke must enforce 44px minimum target width",
 );
 
@@ -38,6 +42,12 @@ assert.match(
   source,
   /assertRouteSemanticState/,
   "interactive accessibility smoke must reuse the semantic route validator",
+);
+
+assert.match(
+  source,
+  /assertRouteInteractionState/,
+  "interactive accessibility smoke must reuse the shared interaction validator",
 );
 
 assert.match(

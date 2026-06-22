@@ -13,6 +13,7 @@ import {
   markVisibleLinksCoveredByHref,
   markVisibleLinksCoveredByLabel,
 } from "./smoke/dom-coverage.mjs";
+import { assertRouteInteractionState } from "./smoke/interaction-assertions.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
 import { assertRouteSemanticState } from "./smoke/semantic-assertions.mjs";
 import { createZip, extractZipEntries } from "./smoke/zip-utils.mjs";
@@ -98,146 +99,7 @@ function assertExpectedBrowserIssuesConsumed() {
 async function assertInteractiveControlsAccessible(page, scope) {
   const semanticPage = typeof page.page === "function" ? page.page() : page;
   await assertRouteSemanticState(semanticPage, scope);
-
-  const issues = await page
-    .locator("button,a,input,select,textarea")
-    .evaluateAll((controls) => {
-      function isFrameworkInjected(element) {
-        const id = element.getAttribute("id") ?? "";
-        return id.startsWith("next-") || Boolean(element.closest("[data-nextjs-toast]"));
-      }
-
-      function isVisible(element) {
-        const style = window.getComputedStyle(element);
-        const rect = element.getBoundingClientRect();
-        return (
-          style.display !== "none" &&
-          style.visibility !== "hidden" &&
-          style.opacity !== "0" &&
-          rect.width > 0 &&
-          rect.height > 0
-        );
-      }
-
-      function joinedText(element) {
-        return (element.textContent ?? "").replace(/\s+/g, " ").trim();
-      }
-
-      function labelFor(element) {
-        const labelledBy = element.getAttribute("aria-labelledby");
-        if (labelledBy) {
-          const labels = labelledBy
-            .split(/\s+/)
-            .map((id) => document.getElementById(id)?.textContent ?? "")
-            .join(" ")
-            .replace(/\s+/g, " ")
-            .trim();
-          if (labels) return labels;
-        }
-
-        const id = element.getAttribute("id");
-        if (id) {
-          const label = Array.from(document.querySelectorAll("label")).find(
-            (candidate) => candidate.htmlFor === id,
-          );
-          const text = label?.textContent?.replace(/\s+/g, " ").trim();
-          if (text) return text;
-        }
-
-        const parentLabel = element.closest("label");
-        const parentText = parentLabel?.textContent?.replace(/\s+/g, " ").trim();
-        return parentText ?? "";
-      }
-
-      function accessibleName(element) {
-        const aria = element.getAttribute("aria-label")?.trim();
-        if (aria) return aria;
-
-        const title = element.getAttribute("title")?.trim();
-        if (title) return title;
-
-        const tag = element.tagName.toLowerCase();
-        if (tag === "button" || tag === "a") {
-          const text = joinedText(element);
-          if (text) return text;
-        }
-
-        const label = labelFor(element);
-        if (label) return label;
-
-        const placeholder = element.getAttribute("placeholder")?.trim();
-        if (placeholder) return placeholder;
-
-        return element.getAttribute("name")?.trim() ?? "";
-      }
-
-      function descriptor(element) {
-        const tag = element.tagName.toLowerCase();
-        const id = element.getAttribute("id");
-        const type = element.getAttribute("type");
-        const text = joinedText(element);
-        return `${tag}${type ? `[type=${type}]` : ""}${id ? `#${id}` : ""}${
-          text ? ` "${text.slice(0, 80)}"` : ""
-        }`;
-      }
-
-      function shouldEnforceTarget(element) {
-        const tag = element.tagName.toLowerCase();
-        if (tag === "button" || tag === "select" || tag === "textarea") return true;
-        if (tag === "input") {
-          const type = (element.getAttribute("type") ?? "text").toLowerCase();
-          return !["checkbox", "radio", "file", "hidden"].includes(type);
-        }
-        if (tag === "a") {
-          return (
-            element.getAttribute("role") === "button" ||
-            element.classList.contains("ui-button") ||
-            element.classList.contains("app-nav-link") ||
-            element.classList.contains("export-readiness-section-action")
-          );
-        }
-        return false;
-      }
-
-      const found = [];
-      for (const element of controls) {
-        if (isFrameworkInjected(element)) continue;
-        if (!isVisible(element)) continue;
-        const name = accessibleName(element);
-        if (!name) {
-          found.push(`${descriptor(element)} is missing an accessible name`);
-        }
-
-        if (shouldEnforceTarget(element)) {
-          const rect = element.getBoundingClientRect();
-          if (rect.height < 44) {
-            found.push(
-              `${descriptor(element)} has small target height ${Math.round(
-                rect.height,
-              )}px`,
-            );
-          }
-          if (
-            (element.tagName.toLowerCase() === "button" ||
-              element.tagName.toLowerCase() === "a") &&
-            rect.width < 44
-          ) {
-            found.push(
-              `${descriptor(element)} has small target width ${Math.round(
-                rect.width,
-              )}px`,
-            );
-          }
-        }
-      }
-
-      return found;
-    });
-
-  assert(
-    issues.length === 0,
-    `${scope} has interactive accessibility issues: ${issues.join(" | ")}`,
-  );
+  await assertRouteInteractionState(page, scope);
 }
 
 async function assertNoHorizontalPageOverflow(page, scope) {
