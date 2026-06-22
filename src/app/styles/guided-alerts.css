@@ -1,0 +1,24 @@
+.guided-alert {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.875rem;
+}
+
+.guided-alert-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.guided-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.guided-inline-status {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  margin-bottom: 1rem;
+}

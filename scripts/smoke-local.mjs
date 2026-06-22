@@ -1,0 +1,2977 @@
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import { chromium } from "playwright";
+import {
+  assertVisibleButtonsAccountedFor,
+  assertVisibleLinksAccountedFor,
+  markButtonLocatorCovered,
+  markLinkLocatorCovered,
+  markVisibleButtonsCoveredByLabel,
+  markVisibleLinksCoveredByHref,
+  markVisibleLinksCoveredByLabel,
+} from "./smoke/dom-coverage.mjs";
+import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
+import { createZip, extractZipEntries } from "./smoke/zip-utils.mjs";
+
+const root = process.cwd();
+const demoWorkspace = path.join(root, "examples", "demo-workspace");
+const envLocalPath = path.join(root, ".env.local");
+const localWorkspaceRoot = path.join(root, ".local-workspace");
+const keepWorkspace = process.env.SMOKE_KEEP_WORKSPACE === "1";
+const liveChatMode = process.env.SMOKE_LIVE_CHAT === "1";
+const expectedBrowserIssuePatterns = [];
+const ignoredBrowserIssuePatterns = [];
+const routeNavigationTimeoutMs = 60000;
+const appRouteLinkLabels = ["Skills", "RAG Chat", "New Skill", "Export", "Settings"];
+const chatReadinessLinkHrefs = [
+  "/skills",
+  "/chat",
+  "/editor",
+  "/export",
+  "/settings",
+  "/export?diagnostics=true",
+];
+
+function stamp() {
+  return new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function expectBrowserIssue(pattern) {
+  expectedBrowserIssuePatterns.push(pattern);
+}
+
+function ignoreBrowserIssue(pattern) {
+  ignoredBrowserIssuePatterns.push(pattern);
+  return () => {
+    const index = ignoredBrowserIssuePatterns.indexOf(pattern);
+    if (index >= 0) ignoredBrowserIssuePatterns.splice(index, 1);
+  };
+}
+
+function ignoreKnownNextDevReloadIssues() {
+  const stopIgnoring = [
+    ignoreBrowserIssue(/http 500: .*\/api\/settings\/path-exists/),
+    ignoreBrowserIssue(/http 500: .*\/settings(?:[?#]|$)/),
+    ignoreBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    ),
+    ignoreBrowserIssue(
+      /^pageerror: (?:SyntaxError: )?Unexpected end of JSON input(?:\n|$)/,
+    ),
+  ];
+
+  return () => {
+    for (const stop of stopIgnoring) stop();
+  };
+}
+
+function consumeExpectedBrowserIssue(message) {
+  const index = expectedBrowserIssuePatterns.findIndex((pattern) =>
+    pattern.test(message),
+  );
+  if (index >= 0) {
+    expectedBrowserIssuePatterns.splice(index, 1);
+    return true;
+  }
+
+  return ignoredBrowserIssuePatterns.some((pattern) => pattern.test(message));
+}
+
+function assertExpectedBrowserIssuesConsumed() {
+  assert(
+    expectedBrowserIssuePatterns.length === 0,
+    `Expected browser issues were not observed: ${expectedBrowserIssuePatterns
+      .map((pattern) => pattern.toString())
+      .join(" | ")}`,
+  );
+}
+
+async function assertInteractiveControlsAccessible(page, scope) {
+  const issues = await page
+    .locator("button,a,input,select,textarea")
+    .evaluateAll((controls) => {
+      function isFrameworkInjected(element) {
+        const id = element.getAttribute("id") ?? "";
+        return id.startsWith("next-") || Boolean(element.closest("[data-nextjs-toast]"));
+      }
+
+      function isVisible(element) {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return (
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          style.opacity !== "0" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      }
+
+      function joinedText(element) {
+        return (element.textContent ?? "").replace(/\s+/g, " ").trim();
+      }
+
+      function labelFor(element) {
+        const labelledBy = element.getAttribute("aria-labelledby");
+        if (labelledBy) {
+          const labels = labelledBy
+            .split(/\s+/)
+            .map((id) => document.getElementById(id)?.textContent ?? "")
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
+          if (labels) return labels;
+        }
+
+        const id = element.getAttribute("id");
+        if (id) {
+          const label = Array.from(document.querySelectorAll("label")).find(
+            (candidate) => candidate.htmlFor === id,
+          );
+          const text = label?.textContent?.replace(/\s+/g, " ").trim();
+          if (text) return text;
+        }
+
+        const parentLabel = element.closest("label");
+        const parentText = parentLabel?.textContent?.replace(/\s+/g, " ").trim();
+        return parentText ?? "";
+      }
+
+      function accessibleName(element) {
+        const aria = element.getAttribute("aria-label")?.trim();
+        if (aria) return aria;
+
+        const title = element.getAttribute("title")?.trim();
+        if (title) return title;
+
+        const tag = element.tagName.toLowerCase();
+        if (tag === "button" || tag === "a") {
+          const text = joinedText(element);
+          if (text) return text;
+        }
+
+        const label = labelFor(element);
+        if (label) return label;
+
+        const placeholder = element.getAttribute("placeholder")?.trim();
+        if (placeholder) return placeholder;
+
+        return element.getAttribute("name")?.trim() ?? "";
+      }
+
+      function descriptor(element) {
+        const tag = element.tagName.toLowerCase();
+        const id = element.getAttribute("id");
+        const type = element.getAttribute("type");
+        const text = joinedText(element);
+        return `${tag}${type ? `[type=${type}]` : ""}${id ? `#${id}` : ""}${
+          text ? ` "${text.slice(0, 80)}"` : ""
+        }`;
+      }
+
+      function shouldEnforceTarget(element) {
+        const tag = element.tagName.toLowerCase();
+        if (tag === "button" || tag === "select" || tag === "textarea") return true;
+        if (tag === "input") {
+          const type = (element.getAttribute("type") ?? "text").toLowerCase();
+          return !["checkbox", "radio", "file", "hidden"].includes(type);
+        }
+        if (tag === "a") {
+          return (
+            element.getAttribute("role") === "button" ||
+            element.classList.contains("ui-button") ||
+            element.classList.contains("app-nav-link") ||
+            element.classList.contains("export-readiness-section-action")
+          );
+        }
+        return false;
+      }
+
+      const found = [];
+      for (const element of controls) {
+        if (isFrameworkInjected(element)) continue;
+        if (!isVisible(element)) continue;
+        const name = accessibleName(element);
+        if (!name) {
+          found.push(`${descriptor(element)} is missing an accessible name`);
+        }
+
+        if (shouldEnforceTarget(element)) {
+          const rect = element.getBoundingClientRect();
+          if (rect.height < 40) {
+            found.push(
+              `${descriptor(element)} has small target height ${Math.round(
+                rect.height,
+              )}px`,
+            );
+          }
+          if (
+            (element.tagName.toLowerCase() === "button" ||
+              element.tagName.toLowerCase() === "a") &&
+            rect.width < 40
+          ) {
+            found.push(
+              `${descriptor(element)} has small target width ${Math.round(
+                rect.width,
+              )}px`,
+            );
+          }
+        }
+      }
+
+      return found;
+    });
+
+  assert(
+    issues.length === 0,
+    `${scope} has interactive accessibility issues: ${issues.join(" | ")}`,
+  );
+}
+
+async function assertNoHorizontalPageOverflow(page, scope) {
+  const result = await page.evaluate(() => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const scrollWidth = Math.max(
+      document.documentElement.scrollWidth,
+      document.body?.scrollWidth ?? 0,
+    );
+    const offenders = Array.from(document.querySelectorAll("body *"))
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        return (
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          style.opacity !== "0" &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          (rect.left < -2 || rect.right > viewportWidth + 2)
+        );
+      })
+      .slice(0, 8)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName.toLowerCase(),
+          className:
+            typeof element.className === "string" ? element.className : "",
+          text: (
+            element.textContent ||
+            element.getAttribute("aria-label") ||
+            ""
+          )
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 80),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+        };
+      });
+    return { viewportWidth, scrollWidth, offenders };
+  });
+
+  assert(
+    result.scrollWidth <= result.viewportWidth + 2,
+    `${scope} has horizontal overflow: viewport=${result.viewportWidth}, scroll=${result.scrollWidth}, offenders=${JSON.stringify(
+      result.offenders,
+    )}`,
+  );
+}
+
+async function waitForButtonHidden(page, label, timeout = 15000) {
+  await page
+    .getByRole("button", { name: label, exact: true })
+    .waitFor({ state: "hidden", timeout });
+}
+
+async function waitForEnabledButton(page, label, timeout = 60000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeout) {
+    const button = page.getByRole("button", { name: label, exact: true }).first();
+    if (await locatorIsVisibleAndEnabled(button)) {
+      return;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  throw new Error(`Button did not become enabled: ${label}`);
+}
+
+async function waitForEnabledLocator(locator, label, timeout = 60000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeout) {
+    if (await locatorIsVisibleAndEnabled(locator)) {
+      return;
+    }
+    await locator.page().waitForTimeout(250);
+  }
+
+  throw new Error(`${label} did not become enabled`);
+}
+
+async function locatorIsDisabled(locator) {
+  const nativeDisabled = await locator
+    .isDisabled({ timeout: 1000 })
+    .catch(() => false);
+  const ariaDisabled = await locator
+    .getAttribute("aria-disabled", { timeout: 1000 })
+    .catch(() => null);
+  return nativeDisabled || ariaDisabled === "true";
+}
+
+async function locatorIsVisibleAndEnabled(locator) {
+  const count = await locator.count().catch(() => 0);
+  if (count <= 0) return false;
+  const visible = await locator.isVisible({ timeout: 1000 }).catch(() => false);
+  if (!visible) return false;
+  return !(await locatorIsDisabled(locator));
+}
+
+async function waitForDevRenderingSettled(page, timeout = 30000) {
+  await page
+    .getByRole("button", { name: "Rendering . . .", exact: true })
+    .waitFor({ state: "hidden", timeout })
+    .catch(() => undefined);
+}
+
+async function waitForApiResponse(page, predicate) {
+  const callsite = new Error().stack
+    ?.split("\n")
+    .slice(2, 6)
+    .map((line) => line.trim())
+    .join(" | ");
+  try {
+    return await page.waitForResponse(predicate, { timeout: 60000 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Timed out waiting for API response";
+    throw new Error(
+      `${message}${callsite ? `\nwaitForApiResponse callsite: ${callsite}` : ""}`,
+    );
+  }
+}
+
+async function settleSidebarIndexState(page) {
+  if (page.isClosed()) return;
+  const retryStatus = page
+    .getByRole("button", { name: "Retry status", exact: true })
+    .first();
+  if (await locatorIsVisibleAndEnabled(retryStatus)) {
+    const clicked = await retryStatus
+      .evaluate(
+        (button) => {
+          button.__smokeCovered = true;
+        },
+        undefined,
+        { timeout: 2000 },
+      )
+      .then(() => retryStatus.click({ timeout: 2000 }))
+      .then(() => true)
+      .catch(() => false);
+    if (clicked) {
+      await page
+        .waitForResponse(
+          (response) =>
+            response.url().includes("/api/index") &&
+            response.request().method() === "GET",
+          { timeout: 10000 },
+        )
+        .catch(() => undefined);
+    }
+  }
+  await waitForButtonHidden(page, "Checking...", 15000).catch(() => undefined);
+}
+
+async function exists(filePath) {
+  return Boolean(await stat(filePath).catch(() => null));
+}
+
+async function readOptionalText(filePath) {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch (error) {
+    if (error && error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+function smokeEnvPathValue(filePath) {
+  return filePath.replace(/\\/g, "/");
+}
+
+function buildSmokeEnvLocal(workspacePath) {
+  return [
+    `WORKSPACE_ROOT=${smokeEnvPathValue(workspacePath)}`,
+    "SKILLS_DIR=.claude/skills",
+    "NEXT_PUBLIC_APP_TITLE=Skill Workshop RAG",
+    "LLM_PROVIDER=anthropic_api",
+    "ENABLE_LOCAL_CLAUDE_CLI=false",
+    "CLAUDE_CLI_PATH=auto",
+    "CLAUDE_LOGIN_COMMAND=auto",
+    "CLAUDE_CONFIG_DIR=",
+    "ANTHROPIC_API_KEY=",
+    "",
+  ].join("\n");
+}
+
+async function restoreOptionalText(filePath, content) {
+  if (content === null) {
+    await rm(filePath, { force: true });
+    return;
+  }
+  await writeFile(filePath, content, "utf8");
+}
+
+async function getFreePort() {
+  return await new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+function pushLog(lines, chunk) {
+  const text = chunk.toString();
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    lines.push(line);
+  }
+  while (lines.length > 80) lines.shift();
+}
+
+async function waitForServer(baseUrl, child, logs) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 90000) {
+    if (child.exitCode !== null) {
+      throw new Error(`Next dev server exited early.\n${logs.join("\n")}`);
+    }
+    try {
+      const response = await fetch(`${baseUrl}/api/chat/status`, {
+        headers: { host: new URL(baseUrl).host },
+      });
+      if (response.ok) return;
+    } catch {
+      // Server is still starting.
+    }
+    await delay(1000);
+  }
+  throw new Error(`Timed out waiting for Next dev server.\n${logs.join("\n")}`);
+}
+
+async function jsonFetch(baseUrl, pathName, init = {}) {
+  const response = await fetch(`${baseUrl}${pathName}`, {
+    ...init,
+    headers: {
+      host: new URL(baseUrl).host,
+      ...(init.headers ?? {}),
+    },
+  });
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = text;
+  }
+  assert(
+    response.ok,
+    `${init.method ?? "GET"} ${pathName} failed: ${response.status} ${text}`,
+  );
+  return payload;
+}
+
+async function binaryFetch(baseUrl, pathName) {
+  const response = await fetch(`${baseUrl}${pathName}`, {
+    headers: { host: new URL(baseUrl).host },
+  });
+  const buffer = Buffer.from(await response.arrayBuffer());
+  assert(response.ok, `GET ${pathName} failed: ${response.status}`);
+  return buffer;
+}
+
+function assertDiagnosticsZipEntries(entries, label) {
+  const requiredDiagnostics = [
+    "diagnostics/manifest.json",
+    "diagnostics/readiness.json",
+    "diagnostics/index.json",
+    "diagnostics/skill-quality.json",
+    "diagnostics/claude-project.json",
+    "diagnostics/settings-summary.json",
+  ];
+
+  for (const expected of requiredDiagnostics) {
+    assert(typeof entries[expected] === "string", `${label} missing ${expected}`);
+  }
+
+  const manifest = JSON.parse(entries["diagnostics/manifest.json"]);
+  assert(manifest.schemaVersion === 1, `${label} manifest schema mismatch`);
+  assert(
+    Array.isArray(manifest.diagnostics),
+    `${label} manifest diagnostics list missing`,
+  );
+
+  const readiness = JSON.parse(entries["diagnostics/readiness.json"]);
+  assert(readiness.schemaVersion === 1, `${label} readiness schema mismatch`);
+  assert(
+    typeof readiness.summary?.status === "string",
+    `${label} readiness status missing`,
+  );
+  assert(
+    typeof readiness.summary?.score === "number",
+    `${label} readiness score missing`,
+  );
+  assert(
+    Array.isArray(readiness.sections),
+    `${label} readiness sections missing`,
+  );
+
+  const index = JSON.parse(entries["diagnostics/index.json"]);
+  assert(typeof index.status === "string", `${label} index status missing`);
+
+  const skillQuality = JSON.parse(entries["diagnostics/skill-quality.json"]);
+  assert(
+    typeof skillQuality.totalSkills === "number",
+    `${label} skill quality total missing`,
+  );
+  assert(
+    typeof skillQuality.issueCount === "number",
+    `${label} skill quality issue count missing`,
+  );
+  assert(
+    Array.isArray(skillQuality.issues),
+    `${label} skill quality issues missing`,
+  );
+
+  const claudeProject = JSON.parse(entries["diagnostics/claude-project.json"]);
+  assert(
+    typeof claudeProject.counts === "object" && claudeProject.counts,
+    `${label} Claude project counts missing`,
+  );
+
+  const settingsSummary = JSON.parse(entries["diagnostics/settings-summary.json"]);
+  assert(
+    settingsSummary.workspaceRootConfigured === true,
+    `${label} settings summary workspace flag missing`,
+  );
+  assertNoUnsafe(
+    `${label} diagnostic content`,
+    Object.entries(entries)
+      .filter(([name]) => name.startsWith("diagnostics/"))
+      .map(([, content]) => content)
+      .join("\n"),
+  );
+}
+
+async function clickButton(page, label, options = {}) {
+  const timeout = options.timeout ?? 10000;
+  const exact = options.exact !== false;
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeout) {
+    const index = await page.locator("button").evaluateAll(
+      (buttons, input) => {
+        const { labelText, exactMatch } = input;
+        const pattern = exactMatch ? null : new RegExp(labelText, "i");
+        return buttons.findIndex((button) => {
+          const labels = [
+            button.innerText,
+            button.getAttribute("aria-label"),
+            button.getAttribute("title"),
+          ]
+            .filter(Boolean)
+            .map((value) => value.replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const visible = Boolean(
+            button.offsetWidth ||
+              button.offsetHeight ||
+              button.getClientRects().length,
+          );
+          const disabled =
+            button.disabled || button.getAttribute("aria-disabled") === "true";
+          if (!visible || disabled) return false;
+          return labels.some((text) =>
+            exactMatch ? text === labelText : pattern.test(text),
+          );
+        });
+      },
+      { labelText: String(label), exactMatch: exact },
+    );
+
+    if (index >= 0) {
+      const button = page.locator("button").nth(index);
+      await markButtonLocatorCovered(button);
+      await button.click({ timeout: 15000 });
+      return;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  const available = await page.locator("button").evaluateAll((buttons) =>
+    buttons
+      .flatMap((button) => [
+        button.innerText,
+        button.getAttribute("aria-label"),
+        button.getAttribute("title"),
+      ])
+      .filter(Boolean)
+      .map((value) => value.replace(/\s+/g, " ").trim())
+      .filter(Boolean),
+  );
+  throw new Error(
+    `Button not found: ${label}. Available buttons: ${available.join(" | ")}`,
+  );
+}
+
+async function clickLink(page, label, options = {}) {
+  const timeout = options.timeout ?? 10000;
+  const exact = options.exact !== false;
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeout) {
+    const index = await page.locator("a").evaluateAll(
+      (links, input) => {
+        const { labelText, exactMatch } = input;
+        const pattern = exactMatch ? null : new RegExp(labelText, "i");
+        return links.findIndex((link) => {
+          const labels = [
+            link.innerText,
+            link.getAttribute("aria-label"),
+            link.getAttribute("title"),
+          ]
+            .filter(Boolean)
+            .map((value) => value.replace(/\s+/g, " ").trim())
+            .filter(Boolean);
+          const visible = Boolean(
+            link.offsetWidth ||
+              link.offsetHeight ||
+              link.getClientRects().length,
+          );
+          if (!visible) return false;
+          return labels.some((text) =>
+            exactMatch ? text === labelText : pattern.test(text),
+          );
+        });
+      },
+      { labelText: String(label), exactMatch: exact },
+    );
+
+    if (index >= 0) {
+      const link = page.locator("a").nth(index);
+      await markLinkLocatorCovered(link);
+      await link.click({ timeout: 15000 });
+      return;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  const available = await page.locator("a").evaluateAll((links) =>
+    links
+      .flatMap((link) => [
+        link.innerText,
+        link.getAttribute("aria-label"),
+        link.getAttribute("title"),
+      ])
+      .filter(Boolean)
+      .map((value) => value.replace(/\s+/g, " ").trim())
+      .filter(Boolean),
+  );
+  throw new Error(
+    `Link not found: ${label}. Available links: ${available.join(" | ")}`,
+  );
+}
+
+async function clickNavigationLink(page, label, urlPattern) {
+  await clickLink(page, label, { timeout: routeNavigationTimeoutMs });
+  await waitForPageUrl(page, urlPattern, label);
+  await page
+    .waitForLoadState("networkidle", {
+      timeout: routeNavigationTimeoutMs,
+    })
+    .catch(() => undefined);
+}
+
+async function clickLinkIn(locator, label) {
+  const link = locator.getByRole("link", { name: label, exact: true }).first();
+  await link.waitFor({ state: "visible", timeout: 15000 });
+  await markLinkLocatorCovered(link);
+  await link.click();
+}
+
+async function clickButtonIn(locator, label) {
+  const button = locator.getByRole("button", { name: label, exact: true }).first();
+  await clickButtonLocator(button, `${label} button`);
+}
+
+async function clickButtonLocator(button, label = "button") {
+  await button.waitFor({ state: "visible", timeout: 15000 });
+  assert(!(await locatorIsDisabled(button)), `${label} is disabled`);
+  await markButtonLocatorCovered(button);
+  await button.click({ timeout: 15000 });
+}
+
+async function clickAllButtons(page, selector) {
+  const locator = page.locator(selector);
+  const count = await locator.count();
+  for (let index = 0; index < count; index += 1) {
+    const button = locator.nth(index);
+    await clickButtonLocator(button, `${selector} ${index + 1}`);
+    await page.waitForTimeout(150);
+  }
+}
+
+async function markAppRouteLinksCovered(locator, extraLabels = []) {
+  await markVisibleLinksCoveredByLabel(locator, appRouteLinkLabels);
+  if (extraLabels.length > 0) {
+    await markVisibleLinksCoveredByLabel(locator, extraLabels, {
+      requireAll: false,
+    });
+  }
+}
+
+async function markChatReadinessLinksCovered(locator) {
+  await markAppRouteLinksCovered(locator, [
+    "Open Settings",
+    "Export Diagnostics",
+  ]);
+  await markVisibleLinksCoveredByHref(locator, chatReadinessLinkHrefs, {
+    requireAll: false,
+  });
+}
+
+async function setInputValue(page, selector, value) {
+  await page.locator(selector).fill(value, { timeout: 10000 });
+}
+
+async function expectText(page, text, label = text, timeout = 90000) {
+  await page
+    .getByText(text, { exact: false })
+    .first()
+    .waitFor({ state: "visible", timeout })
+    .catch(() => {
+      throw new Error(`Expected page text was missing: ${label}`);
+    });
+}
+
+async function waitForPageUrl(page, matcher, label, timeout = routeNavigationTimeoutMs) {
+  const startedAt = Date.now();
+  let current = "";
+
+  while (Date.now() - startedAt < timeout) {
+    current = page.url();
+    const url = new URL(current);
+    const matched =
+      typeof matcher === "function" ? matcher(url) : matcher.test(current);
+    if (matched) return;
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Expected URL ${label}. Current URL: ${current}`);
+}
+
+async function gotoAndExpectText(page, url, text, label = text) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const response = await page
+      .goto(url, { waitUntil: "networkidle" })
+      .catch((error) => {
+        lastError = error;
+        return null;
+      });
+
+    if (!response || response.status() < 500) {
+      try {
+        await expectText(page, text, label, 20000);
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    } else {
+      lastError = new Error(`Page returned HTTP ${response.status()}: ${url}`);
+    }
+
+    await page.waitForTimeout(1000 * attempt);
+  }
+
+  throw lastError ?? new Error(`Unable to load ${url}`);
+}
+
+async function gotoSettingsAndExpectText(page, baseUrl, text, label = text) {
+  const stopIgnoringReloadIssues = ignoreKnownNextDevReloadIssues();
+  try {
+    await gotoAndExpectText(page, `${baseUrl}/settings`, text, label);
+  } finally {
+    stopIgnoringReloadIssues();
+  }
+}
+
+async function expectInputValue(page, selector, expectedValue) {
+  await waitForLocatorInputValue(
+    page.locator(selector).first(),
+    expectedValue,
+    `Expected ${selector} to contain "${expectedValue}"`,
+  );
+}
+
+async function waitForLocatorInputValue(
+  locator,
+  expectedValue,
+  message,
+  timeout = 15000,
+) {
+  const startedAt = Date.now();
+  let actualValue = "";
+  while (Date.now() - startedAt < timeout) {
+    actualValue = await locator.inputValue().catch(() => "");
+    if (actualValue === expectedValue) return;
+    await delay(100);
+  }
+  throw new Error(`${message}. Got "${actualValue}".`);
+}
+
+function documentText(html) {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+}
+
+async function runApiSmoke(baseUrl, workspacePath) {
+  const index = await jsonFetch(baseUrl, "/api/index", { method: "POST" });
+  assert(index.status === "ready", `Index did not rebuild to ready: ${index.status}`);
+  assert(index.skillCount >= 1, "Index rebuilt with no skills");
+
+  const checks = [
+    ["/api/index", "index"],
+    ["/api/chat/status", "chat status"],
+    ["/api/release/readiness", "release readiness"],
+    ["/api/settings/doctor", "setup doctor"],
+    ["/api/settings/runtime", "runtime status"],
+    [
+      `/api/settings/path-exists?path=${encodeURIComponent(workspacePath)}`,
+      "path validation",
+    ],
+    ["/api/settings/claude-cli/profiles", "claude profiles"],
+    ["/api/settings/claude-project", "claude project"],
+    ["/api/skills/validation", "skill validation"],
+    ["/api/skills/templates", "skill templates"],
+    ["/api/skills", "skills list"],
+  ];
+
+  for (const [pathName, label] of checks) {
+    const payload = await jsonFetch(baseUrl, pathName);
+    assertNoUnsafe(label, payload);
+  }
+
+  const zip = await binaryFetch(baseUrl, "/api/export/zip?diagnostics=true");
+  const entries = extractZipEntries(zip);
+  for (const expected of [
+    "diagnostics/manifest.json",
+    "diagnostics/readiness.json",
+    "diagnostics/index.json",
+    "diagnostics/skill-quality.json",
+    "diagnostics/claude-project.json",
+    "diagnostics/settings-summary.json",
+  ]) {
+    assert(typeof entries[expected] === "string", `Diagnostics ZIP missing ${expected}`);
+  }
+  assertDiagnosticsZipEntries(entries, "diagnostics API ZIP");
+  assertNoUnsafe("diagnostics zip names", Object.keys(entries).join("\n"));
+
+  const singleSkillExport = await binaryFetch(
+    baseUrl,
+    "/api/export?skill=release-readiness-smoke",
+  );
+  const singleSkillExportText = singleSkillExport.toString("utf-8");
+  assert(
+    singleSkillExportText.includes("Skill Workshop V1 release candidate is ready."),
+    "Individual skill export did not include the expected demo skill content",
+  );
+  assertNoUnsafe("individual skill export", singleSkillExportText);
+}
+
+async function runNavigationSmoke(page, baseUrl) {
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+  await clickNavigationLink(page, "RAG Chat", /\/chat(?:[?#].*)?$/);
+  await expectText(page, "Chat Readiness");
+  await clickNavigationLink(page, "Settings", /\/settings(?:[?#].*)?$/);
+  await expectText(page, "Setup Doctor");
+  await clickNavigationLink(page, "Export", /\/export(?:[?#].*)?$/);
+  await expectText(page, "Export");
+  await clickNavigationLink(page, "New Skill", /\/editor(?:[?#].*)?$/);
+  await expectText(page, "Template Gallery");
+  await clickNavigationLink(page, "Skills", /\/skills(?:[?#].*)?$/);
+  await expectText(page, "Library Readiness");
+}
+
+async function runPathPickerSmoke(page, workspacePath) {
+  const workspaceInput = page.locator("#settings-workspace-root");
+  await workspaceInput.waitFor({ state: "visible", timeout: 15000 });
+  await workspaceInput.fill(workspacePath);
+
+  await clickButton(page, "Use typed");
+  await expectText(
+    page,
+    "Path selected. Save Settings to persist this value.",
+    "typed path picker feedback",
+  );
+  await waitForLocatorInputValue(
+    workspaceInput,
+    workspacePath,
+    "Use typed did not keep the typed workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Browse app"),
+  ]);
+  await expectText(page, "Choose a local folder path", "path picker dialog");
+
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  const addressInput = dialog.getByRole("textbox", { name: "Folder path" });
+  await addressInput.waitFor({ state: "visible", timeout: 15000 });
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker did not open at the typed workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Go"),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker Go did not keep the current workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Up"),
+  ]);
+  const parentPath = path.dirname(workspacePath);
+  await waitForLocatorInputValue(
+    addressInput,
+    parentPath,
+    "Path picker Up did not navigate to the parent folder",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Current value"),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker Current value did not return to the workspace path",
+  );
+
+  await clickButton(page, "Select folder");
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+  await waitForLocatorInputValue(
+    workspaceInput,
+    workspacePath,
+    "Path picker Select folder did not apply the workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Browse app"),
+  ]);
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  await clickButton(page, "Cancel");
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+}
+
+async function runMockedNativeFolderPickerSmoke(page, workspacePath) {
+  const workspaceInput = page.locator("#settings-workspace-root");
+  await workspaceInput.waitFor({ state: "visible", timeout: 15000 });
+  await workspaceInput.fill("");
+
+  await page.route("**/api/settings/native-folder**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ path: workspacePath }),
+    });
+  });
+
+  try {
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings/native-folder") &&
+        response.request().method() === "GET",
+      ),
+      clickButton(page, "Choose folder"),
+    ]);
+    await expectText(
+      page,
+      "Path selected. Save Settings to persist this value.",
+      "native folder picker selected path feedback",
+    );
+    await waitForLocatorInputValue(
+      workspaceInput,
+      workspacePath,
+      "Native folder picker did not apply the selected workspace path",
+    );
+  } finally {
+    await page.unroute("**/api/settings/native-folder**");
+  }
+}
+
+async function importSettingsEnvFile(page, buttonLabel, importPath) {
+  const importButton = page
+    .getByRole("button", { name: buttonLabel, exact: true })
+    .first();
+  await importButton.waitFor({ state: "visible", timeout: 15000 });
+  assert(!(await locatorIsDisabled(importButton)), `${buttonLabel} button is disabled`);
+  const [fileChooser] = await Promise.all([
+    page.waitForEvent("filechooser", { timeout: 30000 }),
+    clickButtonLocator(importButton, `${buttonLabel} button`),
+  ]);
+  await fileChooser.setFiles(importPath);
+  await expectText(page, "Imported \"smoke-settings.env\". Review and save.");
+  const rawText = await page.locator("textarea").first().inputValue();
+  assert(
+    rawText.includes("NEXT_PUBLIC_APP_TITLE=Smoke Imported Settings"),
+    `${buttonLabel} did not load the imported env file into the raw editor`,
+  );
+}
+
+async function runSettingsWorkspaceProfileSmoke(page, workspacePath) {
+  await page.locator("#settings-workspace-profile-name").fill("Smoke Profile");
+  await clickButton(page, "Save Current");
+  await expectText(page, "Workspace profile saved locally.");
+  await clickButton(page, "Dismiss");
+  await expectText(page, "Smoke Profile");
+
+  await clickButtonLocator(
+    page.getByRole("button", { name: "Apply", exact: true }).last(),
+    "Apply button",
+  );
+  await expectText(page, "Workspace profile applied. Save settings, then rebuild the index.");
+  assert(
+    (await page.locator("#settings-workspace-root").inputValue()) === workspacePath,
+    "Workspace profile apply did not restore the saved workspace path",
+  );
+  await clickButton(page, "Dismiss");
+
+  await clickButtonLocator(
+    page.getByRole("button", { name: "Remove", exact: true }).last(),
+    "Remove button",
+  );
+  await expectText(page, "Save common workspace path pairs here");
+}
+
+async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath) {
+  await gotoSettingsAndExpectText(
+    page,
+    baseUrl,
+    "V1 Release Readiness",
+    "settings readiness panel",
+  );
+  await expectText(page, "V1 Release Readiness");
+  await expectText(page, "Manual external QA");
+  await expectText(page, "npm run qa:manual");
+  await expectText(page, "First Run Checklist");
+  await expectText(page, "Setup Doctor");
+  const firstRunPanel = page.locator(".settings-first-run-panel").first();
+  await firstRunPanel.waitFor({ state: "visible", timeout: 15000 });
+
+  await clickButtonIn(firstRunPanel, "Export");
+  await waitForPageUrl(
+    page,
+    (url) =>
+      url.pathname === "/export" && url.searchParams.get("diagnostics") === "true",
+    "first-run diagnostics export route",
+  );
+  await expectText(page, "Export Skills");
+  await gotoSettingsAndExpectText(
+    page,
+    baseUrl,
+    "First Run Checklist",
+    "settings first run checklist after diagnostics action",
+  );
+  await expectText(page, "Diagnostics export was opened in this session.");
+
+  await clickButtonIn(firstRunPanel, "Open Export");
+  await waitForPageUrl(
+    page,
+    (url) =>
+      url.pathname === "/export" && url.searchParams.get("diagnostics") === "true",
+    "first-run open export route",
+  );
+  await expectText(page, "Export Skills");
+  await gotoSettingsAndExpectText(
+    page,
+    baseUrl,
+    "First Run Checklist",
+    "settings first run checklist after open export action",
+  );
+
+  await clickButtonIn(firstRunPanel, "Open Chat");
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/chat",
+    "first-run open chat route",
+  );
+  await expectText(page, "Chat Readiness");
+  await gotoSettingsAndExpectText(
+    page,
+    baseUrl,
+    "First Run Checklist",
+    "settings first run checklist after open chat action",
+  );
+
+  await importSettingsEnvFile(page, "Import .env file", settingsImportPath);
+  await clickButton(page, "Dismiss");
+
+  await clickButton(page, "Raw .env Editor");
+  await page
+    .locator("textarea")
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 })
+    .catch(() => {
+      throw new Error("Raw env textarea did not render");
+    });
+  await importSettingsEnvFile(page, "Import file", settingsImportPath);
+  await clickButton(page, "Dismiss");
+
+  await clickButton(page, "Config Fields");
+
+  const extraInputCountBefore = await page.locator("input").count();
+  await clickButton(page, "+ Add");
+  const extraInputCountAfterAdd = await page.locator("input").count();
+  assert(extraInputCountAfterAdd > extraInputCountBefore, "Extra env row was not added");
+  await clickButtonLocator(
+    page.locator("button[aria-label*='Remove']").last(),
+    "Remove extra env row button",
+  );
+  await page.waitForTimeout(300);
+  const extraInputCountAfterRemove = await page.locator("input").count();
+  assert(extraInputCountAfterRemove <= extraInputCountBefore, "Extra env row was not removed");
+
+  const showButton = page.getByRole("button", { name: "Show", exact: true }).first();
+  if (await showButton.count()) {
+    await showButton.click();
+    await clickButton(page, "Hide");
+  }
+
+  await runMockedNativeFolderPickerSmoke(page, workspacePath);
+  await runPathPickerSmoke(page, workspacePath);
+  await runSettingsWorkspaceProfileSmoke(page, workspacePath);
+
+  const stopIgnoringReloadIssues = ignoreKnownNextDevReloadIssues();
+  try {
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings") &&
+        response.request().method() === "POST",
+      ),
+      clickButton(page, "^Save( Changes)?$", { exact: false }),
+    ]);
+    await expectText(page, "Saved and applied to this server session.");
+
+    await waitForEnabledButton(page, "Refresh");
+    await clickButton(page, "Refresh");
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/index") &&
+        response.request().method() === "POST",
+      ),
+      clickButton(page, "Rebuild Index"),
+    ]);
+    await waitForButtonHidden(page, "Rebuilding...");
+    await waitForButtonHidden(page, "Rendering . . .");
+    await waitForDevRenderingSettled(page);
+  } finally {
+    stopIgnoringReloadIssues();
+  }
+  try {
+    await clickButton(page, "Show", { timeout: 1000 });
+    await clickButton(page, "Hide");
+  } catch {
+    // No visible secret toggle is present in this state.
+  }
+  const stopIgnoringFinalReloadIssues = ignoreKnownNextDevReloadIssues();
+  try {
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings") &&
+        response.request().method() === "POST",
+      ),
+      clickButton(page, "Save"),
+    ]);
+    await expectText(page, "Saved and applied to this server session.");
+    const readinessStrip = page.locator(".settings-readiness-strip").first();
+    const readinessOpenSettings = readinessStrip
+      .getByRole("link", { name: /^Open Settings:/ })
+      .first();
+    if (
+      (await readinessOpenSettings.count()) > 0 &&
+      (await readinessOpenSettings.isVisible())
+    ) {
+      await markLinkLocatorCovered(readinessOpenSettings);
+      await readinessOpenSettings.click();
+      await waitForPageUrl(
+        page,
+        (url) => url.pathname === "/settings",
+        "settings readiness Open Settings route",
+      );
+      await expectText(page, "Setup Doctor");
+    }
+  } finally {
+    stopIgnoringFinalReloadIssues();
+  }
+  await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
+  await markVisibleButtonsCoveredByLabel(page, [
+    "Use typed",
+    "Choose folder",
+    "Browse app",
+    "Open Login",
+    "Test CLI",
+    "Save Provider",
+    "Open Export",
+    "Rebuild Index",
+    "Save",
+    "Open Chat",
+  ]);
+  await markAppRouteLinksCovered(page, ["Open Settings"]);
+  await assertVisibleButtonsAccountedFor(page, "Settings");
+  await assertVisibleLinksAccountedFor(page, "Settings");
+  await assertInteractiveControlsAccessible(page, "Settings");
+}
+
+function mockClaudeCliStatusPayload(lastCliSmokeTest = null) {
+  const selectedProfile = {
+    id: "default",
+    label: "Default profile",
+    source: "default",
+    displayPath: "~\\.claude",
+    selected: true,
+    exists: true,
+    auth: {
+      checked: true,
+      loggedIn: true,
+      method: "Subscription",
+      error: null,
+    },
+  };
+
+  return {
+    provider: "claude_code_cli",
+    enabled: true,
+    cliPath: "claude",
+    configuredCliPath: "auto",
+    cliPathSource: "path",
+    loginCommand: "claude auth login",
+    loginCommandSource: "path",
+    loginHelperAvailable: false,
+    canOpenLogin: true,
+    configDirConfigured: false,
+    installed: true,
+    version: "smoke",
+    profiles: [selectedProfile],
+    selectedProfile,
+    selectedProfileFingerprint: "smoke-default-profile",
+    lastCliSmokeTest,
+    auth: {
+      checked: true,
+      loggedIn: true,
+      method: "Subscription",
+      error: null,
+    },
+  };
+}
+
+async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
+  let lastCliSmokeTest = null;
+
+  await page.route("**/api/settings/claude-cli**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+
+    if (pathname === "/api/settings/claude-cli/test") {
+      lastCliSmokeTest = {
+        checked: true,
+        ok: true,
+        output: "OK",
+        error: null,
+        provider: "claude_code_cli",
+        profileId: "default",
+        configFingerprint: "smoke-default-profile",
+      };
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(lastCliSmokeTest),
+      });
+      return;
+    }
+
+    if (pathname === "/api/settings/claude-cli" && request.method() === "POST") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ loginCommand: "claude auth login" }),
+      });
+      return;
+    }
+
+    if (pathname === "/api/settings/claude-cli" && request.method() === "GET") {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(mockClaudeCliStatusPayload(lastCliSmokeTest)),
+      });
+      return;
+    }
+
+    await route.continue();
+  });
+
+  try {
+    await gotoSettingsAndExpectText(
+      page,
+      baseUrl,
+      "Claude CLI",
+      "settings Claude CLI panel",
+    );
+    await expectText(page, "Claude CLI");
+    const claudePanel = page.locator(".settings-claude-panel").first();
+    const claudeRefreshButton = claudePanel
+      .locator(".settings-claude-refresh")
+      .first();
+    await waitForEnabledLocator(
+      claudeRefreshButton,
+      "Claude status refresh button",
+    );
+    await Promise.all([
+      waitForApiResponse(page, (response) =>
+        response.url().includes("/api/settings/claude-cli") &&
+        response.request().method() === "GET",
+      ),
+      clickButtonLocator(claudeRefreshButton, "Claude status refresh button"),
+    ]);
+    await clickButton(page, "Open Login");
+    await expectText(page, "Opened claude auth login.");
+    await clickButton(page, "Dismiss");
+    await clickButton(page, "Test CLI");
+    await expectText(page, "Claude CLI test passed.");
+    await expectText(page, "Test passed: OK");
+    await markButtonLocatorCovered(
+      claudePanel.locator(".settings-claude-refresh").first(),
+    );
+    await markButtonLocatorCovered(
+      claudePanel.getByRole("button", { name: "Open Login", exact: true }).first(),
+    );
+    await markButtonLocatorCovered(
+      claudePanel.getByRole("button", { name: "Test CLI", exact: true }).first(),
+    );
+    await assertVisibleButtonsAccountedFor(
+      claudePanel,
+      "Mocked Settings Claude Actions",
+    );
+    await assertVisibleLinksAccountedFor(
+      claudePanel,
+      "Mocked Settings Claude Actions",
+    );
+    await assertInteractiveControlsAccessible(
+      claudePanel,
+      "Mocked Settings Claude Actions",
+    );
+  } finally {
+    await page.unroute("**/api/settings/claude-cli**");
+  }
+}
+
+async function runMockedSettingsSaveFailureSmoke(page, baseUrl) {
+  await gotoSettingsAndExpectText(
+    page,
+    baseUrl,
+    "Config Fields",
+    "settings config tab",
+  );
+  await page.route("**/api/settings", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    expectBrowserIssue(/http 500: .*\/api\/settings$/);
+    expectBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    );
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Smoke settings save failed." }),
+    });
+  });
+
+  try {
+    const configFieldsTab = page.getByRole("tab", {
+      name: "Config Fields",
+      exact: true,
+    });
+    await configFieldsTab.click();
+    const appTitleInput = page.locator("#settings-next-public-app-title");
+    await appTitleInput.waitFor({ state: "visible", timeout: 15000 });
+    await appTitleInput.fill(
+      "Smoke Settings Save Failure",
+    );
+    await clickButton(page, "^Save( Changes)?$", { exact: false });
+    await expectText(page, "Smoke settings save failed.");
+    const firstRunPanel = page.locator(".settings-first-run-panel").first();
+    const firstRunRebuild = firstRunPanel
+      .getByRole("button", { name: "Rebuild", exact: true })
+      .first();
+    if (await locatorIsVisibleAndEnabled(firstRunRebuild)) {
+      const indexPost = page
+        .waitForResponse(
+          (response) =>
+            response.url().includes("/api/index") &&
+            response.request().method() === "POST",
+          { timeout: 10000 },
+        )
+        .then(() => true)
+        .catch(() => false);
+      const clicked = await clickButtonLocator(
+        firstRunRebuild,
+        "First run Rebuild button",
+      )
+        .then(() => true)
+        .catch(() => false);
+      if (clicked && (await indexPost)) {
+        await waitForButtonHidden(page, "Rebuilding...");
+      }
+      await markVisibleButtonsCoveredByLabel(firstRunPanel, ["Rebuild"], {
+        requireAll: false,
+      });
+    }
+    await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
+    await markVisibleButtonsCoveredByLabel(page, [
+      "Rebuild Index",
+      "Import .env file",
+      "Config Fields",
+      "Raw .env Editor",
+      "Save Current",
+      "Show",
+      "Use typed",
+      "Choose folder",
+      "Browse app",
+      "Open Login",
+      "Test CLI",
+      "+ Add",
+      "Open Export",
+      "Save",
+      "Open Chat",
+    ]);
+    await markVisibleButtonsCoveredByLabel(page, ["Refresh", "Save Provider"], {
+      requireAll: false,
+    });
+    await markAppRouteLinksCovered(page, ["Open Settings"]);
+    await assertVisibleButtonsAccountedFor(page, "Mocked Settings Save Failure");
+    await assertVisibleLinksAccountedFor(page, "Mocked Settings Save Failure");
+    await assertInteractiveControlsAccessible(page, "Mocked Settings Save Failure");
+  } finally {
+    await page.unroute("**/api/settings");
+  }
+}
+
+function mockReleaseReadinessPayload(mode) {
+  const sectionDefaults = [
+    {
+      id: "workspace",
+      label: "Workspace",
+      status: "ready",
+      message: "Workspace paths are ready.",
+    },
+    {
+      id: "provider",
+      label: "Provider",
+      status: "ready",
+      message: "Provider is ready.",
+    },
+    {
+      id: "index",
+      label: "Index",
+      status: "ready",
+      message: "Index is ready.",
+      actionLabel: "Rebuild Index",
+      actionHref: "/settings",
+    },
+    {
+      id: "skills",
+      label: "Skills",
+      status: "ready",
+      message: "Skill quality is ready.",
+    },
+    {
+      id: "claude_project",
+      label: "Claude Project",
+      status: "ready",
+      message: "Claude project inventory is ready.",
+    },
+    {
+      id: "chat",
+      label: "Chat",
+      status: "ready",
+      message: "Chat is ready.",
+      actionLabel: "Go to Chat",
+      actionHref: "/chat",
+    },
+    {
+      id: "diagnostics",
+      label: "Diagnostics",
+      status: "ready",
+      message: "Diagnostics export is ready.",
+      actionLabel: "Go to Export",
+      actionHref: "/export?diagnostics=true",
+    },
+  ];
+
+  const overrides = {
+    workspace: {
+      status: "blocked",
+      message: "Workspace paths need review.",
+      actionLabel: "Open Settings",
+      actionHref: "/settings",
+    },
+    provider: {
+      status: "blocked",
+      message: "Provider settings need review.",
+      actionLabel: "Open Settings",
+      actionHref: "/settings",
+    },
+    chat: {
+      status: "blocked",
+      message: "Chat needs setup.",
+      actionLabel: "Go to Chat",
+      actionHref: "/chat",
+    },
+    diagnostics: {
+      status: "needs_action",
+      message: "Export diagnostics.",
+      actionLabel: "Go to Export",
+      actionHref: "/export?diagnostics=true",
+    },
+  };
+
+  const sections = sectionDefaults.map((section) =>
+    section.id === mode ? { ...section, ...overrides[mode] } : section,
+  );
+  const status = mode === "diagnostics" ? "needs_action" : "blocked";
+  const topAction =
+    mode === "workspace"
+      ? "Review workspace paths."
+      : mode === "provider"
+        ? "Review provider settings."
+        : null;
+
+  return {
+    schemaVersion: 1,
+    generatedAt: "2026-06-20T00:00:00.000Z",
+    summary: {
+      status,
+      score: mode === "diagnostics" ? 92 : 70,
+      topAction,
+      canChat: mode !== "chat",
+      canExportDiagnostics: true,
+    },
+    sections,
+  };
+}
+
+async function runMockedSettingsReleaseActionsSmoke(page, baseUrl) {
+  let mode = "workspace";
+  let settingsSaveCount = 0;
+
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockReleaseReadinessPayload(mode)),
+    });
+  });
+  await page.route("**/api/settings", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+
+    settingsSaveCount += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        raw: "LLM_PROVIDER=anthropic_api\n",
+        parsed: { LLM_PROVIDER: "anthropic_api" },
+        activeRuntime: {
+          provider: "anthropic_api",
+          claudeCliEnabled: false,
+          configDirConfigured: false,
+          source: "runtime",
+        },
+      }),
+    });
+  });
+
+  try {
+    await gotoSettingsAndExpectText(
+      page,
+      baseUrl,
+      "Review workspace paths.",
+      "mocked release workspace action",
+    );
+    await clickButton(page, "Save Paths");
+    await expectText(page, "Saved and applied to this server session.");
+    assert(settingsSaveCount === 1, "Save Paths did not POST settings once");
+    await clickButton(page, "Dismiss");
+
+    mode = "provider";
+    await gotoSettingsAndExpectText(
+      page,
+      baseUrl,
+      "Review provider settings.",
+      "mocked release provider action",
+    );
+    await clickButton(page, "Save Provider");
+    await expectText(page, "Saved and applied to this server session.");
+    assert(settingsSaveCount === 2, "Save Provider did not POST settings once");
+    await clickButton(page, "Dismiss");
+
+    mode = "chat";
+    await gotoSettingsAndExpectText(
+      page,
+      baseUrl,
+      "Chat needs setup.",
+      "mocked release chat action",
+    );
+    await clickButton(page, "Go to Chat");
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/chat",
+      "release readiness chat route",
+    );
+    await expectText(page, "Chat Readiness");
+
+    mode = "diagnostics";
+    await gotoSettingsAndExpectText(
+      page,
+      baseUrl,
+      "Export diagnostics.",
+      "mocked release diagnostics action",
+    );
+    await clickButton(page, "Go to Export");
+    await waitForPageUrl(
+      page,
+      (url) =>
+        url.pathname === "/export" &&
+        url.searchParams.get("diagnostics") === "true",
+      "release readiness export route",
+    );
+    await expectText(page, "Export Skills");
+  } finally {
+    await page.unroute("**/api/release/readiness");
+    await page.unroute("**/api/settings");
+  }
+}
+
+async function runMockedSkillsImportFailureSmoke(page, baseUrl) {
+  let previewShouldFail = true;
+  await page.route("**/api/skills/import/preview", async (route) => {
+    if (previewShouldFail) {
+      previewShouldFail = false;
+      expectBrowserIssue(/http 500: .*\/api\/skills\/import\/preview$/);
+      expectBrowserIssue(
+        /console: Failed to load resource: the server responded with a status of 500/,
+      );
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Smoke import preview failed." }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        previewId: "smoke-import-preview-failure",
+        sourceType: "folder",
+        sourceDisplay: "Smoke source",
+        skills: [
+          {
+            name: "smoke-failure-import-skill",
+            displayName: "smoke-failure-import-skill.md",
+            validationErrors: [],
+            qualityWarnings: [],
+            duplicate: false,
+          },
+        ],
+        warnings: [],
+      }),
+    });
+  });
+  await page.route("**/api/skills/import/apply", async (route) => {
+    expectBrowserIssue(/http 500: .*\/api\/skills\/import\/apply$/);
+    expectBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    );
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Smoke import apply failed." }),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "Library Readiness");
+    await setInputValue(page, "#skills-import-folder", "C:\\smoke-import-source");
+    await clickButton(page, "Preview Folder");
+    await expectText(page, "Smoke import preview failed.");
+    await clickButton(page, "Preview Folder");
+    await expectText(page, "smoke-failure-import-skill");
+    await clickButton(page, "Import 1 skill", { timeout: 60000 });
+    await expectText(page, "Smoke import apply failed.");
+    const importPanel = page.locator(".skills-import-preview-card").first();
+    await assertVisibleButtonsAccountedFor(
+      importPanel,
+      "Mocked Skills Import Failure",
+    );
+    await assertVisibleLinksAccountedFor(
+      importPanel,
+      "Mocked Skills Import Failure",
+    );
+    await assertInteractiveControlsAccessible(
+      importPanel,
+      "Mocked Skills Import Failure",
+    );
+  } finally {
+    await page.unroute("**/api/skills/import/preview");
+    await page.unroute("**/api/skills/import/apply");
+  }
+}
+
+async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+  await clickLink(page, "New");
+  await page.waitForURL("**/editor", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+  await expectText(page, "Template Gallery");
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+  await clickLink(page, "Guided");
+  await page.waitForURL("**/editor/guided", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+  await expectText(page, "Guided Skill Builder");
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+  await setInputValue(page, "#skills-import-folder", importSource);
+  await clickButton(page, "Preview Folder", { timeout: 60000 });
+  await expectText(page, "smoke-imported-skill");
+  await clickButton(page, "Import \\d+ skill", {
+    exact: false,
+    timeout: 60000,
+  });
+  await expectText(page, "smoke-imported-skill");
+
+  const demoSkillButton = page
+    .locator(".skills-list-scroll button")
+    .filter({ hasText: "release-readiness-smoke" })
+    .first();
+  await clickButtonLocator(demoSkillButton, "release readiness skill button");
+  await expectText(page, "release-readiness-smoke.md");
+
+  const importedSkillButton = page
+    .locator(".skills-list-scroll button")
+    .filter({ hasText: "smoke-imported-skill" })
+    .first();
+  await clickButtonLocator(importedSkillButton, "imported skill button");
+  await expectText(page, "smoke-imported-skill.md");
+  await clickButton(page, "Delete");
+  await setInputValue(page, "#skills-delete-confirm", "smoke-imported-skill");
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/skills/smoke-imported-skill") &&
+      response.request().method() === "DELETE",
+    ),
+    clickButton(page, "Delete .*\\.md", { exact: false }),
+  ]);
+  await expectText(page, "Backup available");
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/skills/smoke-imported-skill/restore") &&
+      response.request().method() === "POST",
+    ),
+    clickButton(page, "Restore smoke-imported-skill"),
+  ]);
+  await page
+    .getByRole("button", { name: "Restoring...", exact: true })
+    .waitFor({ state: "hidden", timeout: 10000 });
+  await expectText(page, "smoke-imported-skill");
+
+  await page.locator("#skills-import-source").selectOption("archive");
+  await page.locator("#skills-import-archive").setInputFiles(archivePath);
+  await clickButton(page, "Preview Zip", { timeout: 60000 });
+  await expectText(page, "smoke-zip-imported-skill");
+  await clickButton(page, "Import \\d+ skill", {
+    exact: false,
+    timeout: 60000,
+  });
+  await expectText(page, "smoke-zip-imported-skill");
+
+  const zipImportedSkillButton = page
+    .locator(".skills-list-scroll button")
+    .filter({ hasText: "smoke-zip-imported-skill" })
+    .first();
+  await clickButtonLocator(zipImportedSkillButton, "zip imported skill button");
+  await expectText(page, "smoke-zip-imported-skill.md");
+  const selectedSkillExportPromise = page.waitForEvent("download");
+  await clickLink(page, "Export .md");
+  const selectedSkillExport = await selectedSkillExportPromise;
+  const selectedSkillExportPath = path.join(
+    path.dirname(archivePath),
+    "selected-skill-export.md",
+  );
+  await selectedSkillExport.saveAs(selectedSkillExportPath);
+  const selectedSkillExportText = await readFile(selectedSkillExportPath, "utf8");
+  assert(
+    selectedSkillExportText.includes("Smoke Zip Imported Skill"),
+    "Selected skill .md export did not include the expected smoke skill",
+  );
+  assertNoUnsafe("selected skill .md export", selectedSkillExportText);
+  await clickLink(page, "Edit");
+  await page.waitForURL("**/editor/smoke-zip-imported-skill", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+  await expectText(page, "Edit: smoke-zip-imported-skill.md");
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+  const previewEmptyActions = page.locator(".skills-preview-empty-actions").first();
+  if (
+    (await previewEmptyActions.count()) > 0 &&
+    (await previewEmptyActions.isVisible())
+  ) {
+    await clickLinkIn(previewEmptyActions, "Import Skills");
+    assert(
+      new URL(page.url()).hash === "#skills-import-panel",
+      "Skills preview Import Skills link did not target the import panel",
+    );
+    await Promise.all([
+      page.waitForURL("**/editor/guided", {
+        timeout: routeNavigationTimeoutMs,
+        waitUntil: "commit",
+      }),
+      clickLinkIn(previewEmptyActions, "Guided Builder"),
+    ]);
+    await expectText(page, "Guided Skill Builder");
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "Library Readiness");
+  }
+
+  await page.locator("#skills-search").fill("no-such-smoke-skill");
+  await expectText(page, "No matching skills");
+  await clickButton(page, "Clear Search");
+  await expectText(page, "release-readiness-smoke");
+  await markVisibleButtonsCoveredByLabel(page, [
+    "Rebuild Index",
+    "Restore smoke-imported-skill",
+  ]);
+  await page.locator(".skills-list-scroll button").evaluateAll((buttons) => {
+    for (const button of buttons) {
+      const visible = Boolean(
+        button.offsetWidth ||
+          button.offsetHeight ||
+          button.getClientRects().length,
+      );
+      if (visible) {
+        button.__smokeCovered = true;
+      }
+    }
+  });
+  await markAppRouteLinksCovered(page, [
+    "Guided",
+    "New",
+    "Guided Builder",
+    "Import Skills",
+  ]);
+
+  await assertVisibleButtonsAccountedFor(page, "Skills");
+  await assertVisibleLinksAccountedFor(page, "Skills");
+  await assertInteractiveControlsAccessible(page, "Skills");
+}
+
+async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
+  await page.route("**/api/skills", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        skills: [],
+        total: 0,
+        latestDeleted: null,
+      }),
+    });
+  });
+  await page.route("**/api/index", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "missing",
+        skillCount: 0,
+        chunkCount: 0,
+        staleReason: "Smoke empty state has no skills.",
+      }),
+    });
+  });
+  await page.route("**/api/skills/validation", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        totalSkills: 0,
+        issueCount: 0,
+        issues: [],
+      }),
+    });
+  });
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        summary: {
+          status: "needs_action",
+          score: 65,
+          topAction: "Create or import a skill.",
+          canChat: false,
+          canExportDiagnostics: true,
+        },
+        sections: [],
+      }),
+    });
+  });
+  await page.route("**/api/export/zip**", async (route) => {
+    await route.fulfill({
+      headers: {
+        "content-disposition": 'attachment; filename="smoke-empty-diagnostics.zip"',
+        "content-type": "application/zip",
+      },
+      body: createZip({
+        "diagnostics/readiness.json": JSON.stringify({
+          status: "needs_action",
+        }),
+      }),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "No skills yet");
+    await expectText(page, "Start with the guided builder");
+    const skillsEmptyActions = page.locator(".skills-list-empty-actions").first();
+    await clickLinkIn(skillsEmptyActions, "Import Skills");
+    assert(
+      new URL(page.url()).hash === "#skills-import-panel",
+      "Skills empty-state Import Skills link did not target the import panel",
+    );
+    await clickLinkIn(skillsEmptyActions, "New Skill");
+    await page.waitForURL("**/editor", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    });
+    await expectText(page, "Template Gallery");
+
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "No skills yet");
+    await clickLinkIn(page.locator(".skills-list-empty-actions").first(), "Guided Builder");
+    await page.waitForURL("**/editor/guided", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    });
+    await expectText(page, "Guided Skill Builder");
+
+    await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
+    await expectText(page, "No skills are ready to export");
+    const exportDownloadPromise = page.waitForEvent("download");
+    await clickButton(page, "Export Diagnostics");
+    const exportDownload = await exportDownloadPromise;
+    const exportDownloadPath = path.join(smokeRoot, "empty-diagnostics.zip");
+    await exportDownload.saveAs(exportDownloadPath);
+    const exportEntries = extractZipEntries(await readFile(exportDownloadPath));
+    assert(
+      typeof exportEntries["diagnostics/readiness.json"] === "string",
+      "Empty export diagnostics ZIP did not contain readiness diagnostics",
+    );
+
+    const exportEmptyActions = page.locator(".export-empty-actions").first();
+    await clickLinkIn(exportEmptyActions, "Open Skills");
+    await page.waitForURL("**/skills", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    });
+    await expectText(page, "No skills yet");
+
+    await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
+    await expectText(page, "No skills are ready to export");
+    await clickLinkIn(page.locator(".export-empty-actions").first(), "Guided Builder");
+    await page.waitForURL("**/editor/guided", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    });
+    await expectText(page, "Guided Skill Builder");
+
+    await assertInteractiveControlsAccessible(page, "Mocked Empty States");
+  } finally {
+    await page.unroute("**/api/skills");
+    await page.unroute("**/api/index");
+    await page.unroute("**/api/skills/validation");
+    await page.unroute("**/api/release/readiness");
+    await page.unroute("**/api/export/zip**");
+  }
+}
+
+async function verifyChatDiagnosticsLink(page, baseUrl) {
+  const diagnosticsLink = page
+    .getByRole("link", { name: "Export Diagnostics", exact: true })
+    .first();
+  if (
+    (await diagnosticsLink.count()) > 0 &&
+    (await diagnosticsLink.isVisible())
+  ) {
+    await markLinkLocatorCovered(diagnosticsLink);
+    await diagnosticsLink.click();
+    await waitForPageUrl(
+      page,
+      (url) =>
+        url.pathname === "/export" &&
+        url.searchParams.get("diagnostics") === "true",
+      "chat Export Diagnostics route",
+    );
+    await expectText(page, "Export");
+    await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+    await expectText(page, "Chat Readiness");
+    await settleSidebarIndexState(page);
+  }
+}
+
+async function runChatSmoke(page, baseUrl) {
+  const status = await jsonFetch(baseUrl, "/api/chat/status");
+  await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+  await expectText(page, "Chat Readiness");
+  await page
+    .locator(".chat-suggestion-button")
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 })
+    .catch(() => undefined);
+  const suggestions = await page
+    .locator(".chat-suggestion-button")
+    .evaluateAll((buttons) => buttons.map((button) => button.textContent?.trim() ?? ""));
+  for (const suggestion of suggestions.filter(Boolean)) {
+    await clickButton(page, suggestion);
+    await expectText(page, suggestion);
+  }
+
+  if (status.canSend && liveChatMode) {
+    const rebuildButton = page.getByRole("button", {
+      name: "Rebuild Index",
+      exact: true,
+    });
+    const firstRebuildButton = rebuildButton.first();
+    if (
+      (await rebuildButton.count()) > 0 &&
+      (await firstRebuildButton.isVisible()) &&
+      !(await locatorIsDisabled(firstRebuildButton))
+    ) {
+      await clickButton(page, "Rebuild Index", { timeout: 60000 });
+      await expectText(page, "Ready");
+    }
+    await page.locator("textarea").fill(
+      "Use the release readiness smoke skill. What exact phrase proves this workspace is indexed?",
+    );
+    await clickButton(page, "^Send( anyway)?$", { exact: false });
+    await expectText(page, "Skill Workshop V1 release candidate is ready.");
+    await assertInteractiveControlsAccessible(page, "Chat");
+    return;
+  }
+
+  if (status.canSend) {
+    await page.locator("textarea").fill("");
+    await waitForButtonHidden(page, "Send anyway");
+    await expectText(page, "Ready");
+    await verifyChatDiagnosticsLink(page, baseUrl);
+    await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
+    await markChatReadinessLinksCovered(page);
+    await assertVisibleButtonsAccountedFor(page, "Chat");
+    await assertVisibleLinksAccountedFor(page, "Chat");
+    await assertInteractiveControlsAccessible(page, "Chat");
+    return;
+  }
+
+  const text = documentText(await page.content());
+  assert(
+    text.includes("Settings") || text.includes("Rebuild"),
+    "Blocked chat state did not show an actionable path",
+  );
+  await verifyChatDiagnosticsLink(page, baseUrl);
+  await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
+  await markChatReadinessLinksCovered(page);
+  await assertVisibleButtonsAccountedFor(page, "Chat");
+  await assertVisibleLinksAccountedFor(page, "Chat");
+  await assertInteractiveControlsAccessible(page, "Chat");
+}
+
+function mockChatStatusPayload() {
+  return {
+    provider: "anthropic_api",
+    runtimeSource: "runtime",
+    canSend: true,
+    blockingReason: null,
+    suggestedAction: null,
+    claudeCliEnabled: false,
+    suggestedQuestions: ["What should I test in smoke chat?"],
+    index: {
+      status: "ready",
+      skillCount: 1,
+      chunkCount: 2,
+      staleReason: null,
+      error: null,
+    },
+    lastCliSmokeTest: null,
+  };
+}
+
+function mockStaleChatStatusPayload(status = "stale") {
+  return {
+    ...mockChatStatusPayload(),
+    suggestedAction: "Rebuild Index to refresh citations.",
+    index: {
+      status,
+      skillCount: 1,
+      chunkCount: 2,
+      staleReason:
+        status === "stale" ? "Smoke test changed the index state." : null,
+      error: null,
+    },
+  };
+}
+
+function mockChatStreamBody(kind) {
+  const citations = {
+    type: "citations",
+    sources: [
+      {
+        skillName: "release-readiness-smoke",
+        section: "1-8",
+        score: 0.91,
+        preview: "Mock citation preview for chat UI smoke.",
+      },
+    ],
+  };
+
+  if (kind === "error") {
+    return [
+      JSON.stringify(citations),
+      JSON.stringify({ type: "error", message: "Mock provider failure" }),
+      "",
+    ].join("\n");
+  }
+
+  return [
+    JSON.stringify(citations),
+    JSON.stringify({ type: "text", text: "Mock assistant " }),
+    JSON.stringify({ type: "text", text: "response." }),
+    "",
+  ].join("\n");
+}
+
+async function openFirstChatCitationPreview(page) {
+  const citationButton = page
+    .getByRole("button", { name: /Show citation preview/i })
+    .first();
+  await citationButton.waitFor({ state: "visible", timeout: 15000 });
+  await markButtonLocatorCovered(citationButton);
+  await citationButton.click();
+  const expandedCitationButton = page
+    .getByRole("button", { name: /Hide citation preview/i })
+    .first();
+  await expandedCitationButton.waitFor({ state: "visible", timeout: 15000 });
+  await markButtonLocatorCovered(expandedCitationButton);
+  await expectText(page, "Mock citation preview for chat UI smoke.");
+  await expectText(page, "Open source skill");
+}
+
+async function runMockedChatInteractionSmoke(page, baseUrl) {
+  let chatRequestCount = 0;
+
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value) => {
+          window.__smokeCopiedText = value;
+        },
+      },
+    });
+  });
+
+  await page.route("**/api/chat/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockChatStatusPayload()),
+    });
+  });
+  await page.route("**/api/chat", async (route) => {
+    chatRequestCount += 1;
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: mockChatStreamBody(chatRequestCount === 2 ? "error" : "success"),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+    await expectText(page, "Ready");
+
+    await page.locator("textarea").fill("Mock successful chat request");
+    await clickButton(page, "Send");
+    await expectText(page, "Mock assistant response.");
+    await expectText(page, "release-readiness-smoke");
+    await openFirstChatCitationPreview(page);
+
+    await clickButton(page, "Copy assistant message");
+    await expectText(page, "Copied");
+    const copiedText = await page.evaluate(() => window.__smokeCopiedText);
+    assert(
+      copiedText === "Mock assistant response.",
+      "Chat Copy did not write the assistant message text",
+    );
+
+    await clickButton(page, "Clear");
+    await expectText(page, "What should I test in smoke chat?");
+    await clickButton(page, "What should I test in smoke chat?");
+    await expectInputValue(
+      page,
+      "textarea",
+      "What should I test in smoke chat?",
+    );
+
+    await page.locator("textarea").fill("Mock failed chat request");
+    await clickButton(page, "Send");
+    await expectText(page, "Error: Mock provider failure");
+    await clickButton(page, "Retry");
+    await expectText(page, "Mock assistant response.");
+    await openFirstChatCitationPreview(page);
+
+    await clickAllButtons(page, ".chat-message-action");
+    await expectText(page, "Copied");
+    await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index", "Clear"]);
+    await assertVisibleButtonsAccountedFor(page, "Mocked Chat");
+    const sourceSkillLink = page
+      .getByRole("link", { name: "Open source skill", exact: true })
+      .first();
+    await markLinkLocatorCovered(sourceSkillLink);
+    await markChatReadinessLinksCovered(page);
+    await assertVisibleLinksAccountedFor(page, "Mocked Chat");
+    await assertInteractiveControlsAccessible(page, "Mocked Chat");
+    await sourceSkillLink.click();
+    await page.waitForURL("**/editor/release-readiness-smoke", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    });
+    await expectText(page, "release-readiness-smoke.md");
+  } finally {
+    await page.unroute("**/api/chat/status");
+    await page.unroute("**/api/chat");
+  }
+}
+
+async function runMockedChatReadinessFailureSmoke(page, baseUrl) {
+  await page.route("**/api/chat/status", async (route) => {
+    expectBrowserIssue(/http 500: .*\/api\/chat\/status$/);
+    expectBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    );
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Smoke chat status failed." }),
+    });
+  });
+
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        summary: {
+          status: "blocked",
+          topAction: "Open Settings.",
+          canExportDiagnostics: true,
+        },
+      }),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+    await expectText(page, "Readiness unavailable");
+    await expectText(page, "Smoke chat status failed.");
+    await expectText(page, "Chat readiness is unavailable");
+    const settingsLink = page
+      .getByRole("link", { name: "Settings", exact: true })
+      .first();
+    const exportLink = page
+      .getByRole("link", { name: "Export Diagnostics", exact: true })
+      .first();
+    await settingsLink.waitFor({ state: "visible", timeout: 15000 });
+    await exportLink.waitFor({ state: "visible", timeout: 15000 });
+    await markLinkLocatorCovered(settingsLink);
+    await markLinkLocatorCovered(exportLink);
+    const chatAlert = page.locator(".chat-alert").first();
+    await assertVisibleButtonsAccountedFor(
+      chatAlert,
+      "Mocked Chat Readiness Failure",
+    );
+    await assertVisibleLinksAccountedFor(
+      chatAlert,
+      "Mocked Chat Readiness Failure",
+    );
+    await assertInteractiveControlsAccessible(
+      chatAlert,
+      "Mocked Chat Readiness Failure",
+    );
+  } finally {
+    await page.unroute("**/api/chat/status");
+    await page.unroute("**/api/release/readiness");
+  }
+}
+
+async function runMockedChatRebuildSmoke(page, baseUrl) {
+  let indexRebuilt = false;
+
+  await page.route("**/api/chat/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(
+        indexRebuilt
+          ? mockChatStatusPayload()
+          : mockStaleChatStatusPayload("stale"),
+      ),
+    });
+  });
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        summary: {
+          status: indexRebuilt ? "ready" : "needs_action",
+          topAction: indexRebuilt ? null : "Rebuild Index.",
+          canExportDiagnostics: true,
+        },
+      }),
+    });
+  });
+  await page.route("**/api/index", async (route) => {
+    if (route.request().method() === "POST") {
+      indexRebuilt = true;
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: indexRebuilt ? "ready" : "stale",
+        skillCount: 1,
+        chunkCount: 2,
+        staleReason: indexRebuilt ? null : "Smoke test changed the index state.",
+      }),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+    await expectText(page, "Index stale");
+    await clickButton(page, "Rebuild Index");
+    await expectText(page, "Ready");
+    assert(indexRebuilt, "Chat Rebuild Index did not call the index POST route");
+    await clickButton(page, "What should I test in smoke chat?");
+    await expectInputValue(
+      page,
+      "textarea",
+      "What should I test in smoke chat?",
+    );
+    await page.locator("textarea").fill("");
+    await waitForButtonHidden(page, "Send anyway");
+    await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
+    await markChatReadinessLinksCovered(page);
+    await assertVisibleButtonsAccountedFor(page, "Mocked Chat Rebuild");
+    await assertVisibleLinksAccountedFor(page, "Mocked Chat Rebuild");
+    await assertInteractiveControlsAccessible(page, "Mocked Chat Rebuild");
+  } finally {
+    await page.unroute("**/api/chat/status");
+    await page.unroute("**/api/release/readiness");
+    await page.unroute("**/api/index");
+  }
+}
+
+async function verifyExportReadinessSectionLink(
+  page,
+  baseUrl,
+  label,
+  urlPredicate,
+  expectedText,
+) {
+  const exportReadinessPanel = page.locator(".export-readiness").first();
+  await exportReadinessPanel.waitFor({ state: "visible", timeout: 10000 });
+  const link = exportReadinessPanel
+    .locator("a.export-readiness-section-action")
+    .filter({ hasText: label })
+    .first();
+  await link.waitFor({ state: "visible", timeout: 5000 }).catch(() => undefined);
+  if ((await link.count()) === 0 || !(await link.isVisible())) return;
+
+  await markLinkLocatorCovered(link);
+  await link.click();
+  await waitForPageUrl(page, urlPredicate, `export readiness ${label} route`);
+  await expectText(page, expectedText);
+  await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
+  await expectText(page, "Export");
+}
+
+async function verifyExportReadinessSectionLinks(page, baseUrl) {
+  await verifyExportReadinessSectionLink(
+    page,
+    baseUrl,
+    "Rebuild Index",
+    (url) => url.pathname === "/settings",
+    "Setup Doctor",
+  );
+  await verifyExportReadinessSectionLink(
+    page,
+    baseUrl,
+    "Open Export",
+    (url) =>
+      url.pathname === "/export" &&
+      url.searchParams.get("diagnostics") === "true",
+    "Export",
+  );
+}
+
+async function markExportReadinessLinksCovered(page) {
+  await markVisibleLinksCoveredByLabel(
+    page,
+    ["Open Settings", "Open Export", "Rebuild Index"],
+    { requireAll: false },
+  );
+  await markVisibleLinksCoveredByHref(
+    page,
+    ["/settings", "/export?diagnostics=true"],
+    { requireAll: false },
+  );
+}
+
+async function runExportSmoke(page, baseUrl, smokeRoot) {
+  await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
+  await expectText(page, "Export");
+  await verifyExportReadinessSectionLinks(page, baseUrl);
+  await clickButton(page, "Select all");
+  await clickButton(page, "Clear");
+  await expectText(page, "0 of", "export selection cleared");
+  await clickButton(page, "Select all");
+  const singleDownloadPromise = page.waitForEvent("download");
+  await clickButton(page, "Download .md");
+  const singleDownload = await singleDownloadPromise;
+  const singleDownloadPath = path.join(smokeRoot, "single-skill.md");
+  await singleDownload.saveAs(singleDownloadPath);
+  const singleDownloadText = await readFile(singleDownloadPath, "utf8");
+  assert(
+    singleDownloadText.includes("Skill Workshop V1 release candidate is ready."),
+    "Single-skill browser export did not include the expected demo skill content",
+  );
+  assertNoUnsafe("single-skill browser export", singleDownloadText);
+  const downloadPromise = page.waitForEvent("download");
+  await clickButton(page, "Download Selected \\+ Diagnostics", { exact: false });
+  const download = await downloadPromise;
+  const downloadPath = path.join(smokeRoot, "downloaded-skills.zip");
+  await download.saveAs(downloadPath);
+  assert(await exists(downloadPath), "ZIP download was not saved");
+  assertDiagnosticsZipEntries(
+    extractZipEntries(await readFile(downloadPath)),
+    "selected export ZIP",
+  );
+  const allDownloadPromise = page.waitForEvent("download");
+  await clickButton(page, "Download All \\+ Diagnostics", { exact: false });
+  const allDownload = await allDownloadPromise;
+  const allDownloadPath = path.join(smokeRoot, "downloaded-all-skills.zip");
+  await allDownload.saveAs(allDownloadPath);
+  assert(await exists(allDownloadPath), "All-skills ZIP download was not saved");
+  assertDiagnosticsZipEntries(
+    extractZipEntries(await readFile(allDownloadPath)),
+    "all-skills export ZIP",
+  );
+  await verifyExportReadinessSectionLinks(page, baseUrl);
+  const selectAllAfterReadinessLinks = page
+    .getByRole("button", { name: "Select all", exact: true })
+    .first();
+  if (
+    (await selectAllAfterReadinessLinks.count()) > 0 &&
+    (await selectAllAfterReadinessLinks.isVisible()) &&
+    !(await locatorIsDisabled(selectAllAfterReadinessLinks))
+  ) {
+    await clickButton(page, "Select all");
+  }
+  await settleSidebarIndexState(page);
+  await markVisibleButtonsCoveredByLabel(page, [
+    "Rebuild Index",
+    "Download All + Diagnostics",
+    "Export Diagnostics",
+    "Select all",
+    "Clear",
+    "Download .md",
+  ]);
+  await page.locator("button").evaluateAll((buttons) => {
+    for (const button of buttons) {
+      const label = (button.innerText || "").replace(/\s+/g, " ").trim();
+      const visible = Boolean(
+        button.offsetWidth ||
+          button.offsetHeight ||
+          button.getClientRects().length,
+      );
+      if (visible && /^Download Selected \+ Diagnostics/.test(label)) {
+        button.__smokeCovered = true;
+      }
+    }
+  });
+  await markAppRouteLinksCovered(page, [
+    "Open Settings",
+    "Open Export",
+    "Rebuild Index",
+  ]);
+  await assertVisibleButtonsAccountedFor(page, "Export");
+  await markExportReadinessLinksCovered(page);
+  await assertVisibleLinksAccountedFor(page, "Export");
+  await assertInteractiveControlsAccessible(page, "Export");
+}
+
+async function runMockedEditorSaveFailureSmoke(page, baseUrl) {
+  await page.route("**/api/skills", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    expectBrowserIssue(/http 500: .*\/api\/skills$/);
+    expectBrowserIssue(
+      /console: Failed to load resource: the server responded with a status of 500/,
+    );
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "Smoke editor save failed.",
+        validationErrors: [
+          {
+            field: "name",
+            code: "smoke_server_validation",
+            message: "Smoke server validation failed.",
+          },
+        ],
+      }),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/editor`, { waitUntil: "networkidle" });
+    await expectText(page, "Template Gallery");
+    await clickButton(page, "Workflow Skill", { exact: false });
+    await page
+      .locator("input[placeholder='my-skill-name']")
+      .fill("browser-smoke-server-failure");
+    await page
+      .locator("input[placeholder='What does this skill do?']")
+      .fill("Used to verify server-side save failure handling.");
+    await page.locator("input[placeholder='git, pr, review']").fill("smoke, qa");
+    await clickButton(page, "Save changes");
+    await expectText(page, "Smoke editor save failed.");
+    await expectText(page, "Smoke server validation failed.");
+    assert(
+      new URL(page.url()).pathname === "/editor",
+      "Editor save failure should not navigate to a skill page",
+    );
+    await assertInteractiveControlsAccessible(page, "Mocked Editor Save Failure");
+  } finally {
+    await page.unroute("**/api/skills");
+  }
+}
+
+async function runEditorSmoke(page, baseUrl) {
+  await page.goto(`${baseUrl}/editor`, { waitUntil: "networkidle" });
+  await expectText(page, "Template Gallery");
+  await clickButton(page, "Workflow Skill", { exact: false });
+  await page.locator("input[placeholder='my-skill-name']").fill("browser-smoke-skill");
+  await page
+    .locator("input[placeholder='What does this skill do?']")
+    .fill("Used to verify the local smoke runner editor save path.");
+  await page.locator("input[placeholder='git, pr, review']").fill("smoke, qa");
+  await clickButton(page, "Save changes");
+  await page.waitForURL("**/editor/browser-smoke-skill", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+  await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
+  await markAppRouteLinksCovered(page);
+  await assertVisibleButtonsAccountedFor(page, "Editor");
+  await assertVisibleLinksAccountedFor(page, "Editor");
+  await assertInteractiveControlsAccessible(page, "Editor");
+
+  await page.goto(`${baseUrl}/editor`, { waitUntil: "networkidle" });
+  await clickButton(page, "Reference Skill", { exact: false });
+  await page.locator("input[placeholder='my-skill-name']").fill("discard-browser-smoke");
+  await clickButton(page, "Cancel");
+  await expectText(page, "Discard unsaved changes?");
+  await clickButton(page, "Stay");
+  await clickButton(page, "Cancel");
+  await clickButton(page, "Discard");
+  await page.waitForURL("**/skills", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+}
+
+async function runGuidedAutosaveClearSmoke(page) {
+  const purposeInput = page.locator("#guided-purpose");
+  await purposeInput.fill("Temporary autosave draft for clear smoke.");
+  await clickButton(page, "Clear draft");
+  await expectText(page, "This clears the guided draft from this browser tab.");
+  await clickButton(page, "Cancel");
+  assert(
+    (await purposeInput.inputValue()) === "Temporary autosave draft for clear smoke.",
+    "Guided clear cancel did not preserve the draft",
+  );
+
+  await clickButton(page, "Clear draft");
+  const confirmGroup = page.getByRole("group", {
+    name: "Confirm clear guided draft",
+  });
+  await clickButtonIn(confirmGroup, "Clear draft");
+  await expectText(page, "Draft cleared from this tab.");
+  assert((await purposeInput.inputValue()) === "", "Guided clear did not reset the form");
+}
+
+async function runGuidedSmoke(page, baseUrl) {
+  await page.goto(`${baseUrl}/editor/guided`, { waitUntil: "networkidle" });
+  await runGuidedAutosaveClearSmoke(page);
+  await page.locator("#guided-template").waitFor({
+    state: "visible",
+    timeout: 15000,
+  });
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll("#guided-template option")).some(
+      (option) => option.value === "learning-rubric",
+    ),
+  );
+  await page.locator("#guided-template").selectOption("learning-rubric");
+  await setInputValue(
+    page,
+    "#guided-purpose",
+    "Help release owners turn local readiness evidence into a concise release decision.",
+  );
+  await setInputValue(
+    page,
+    "#guided-audience",
+    "Solo developers preparing a local Claude-first RAG tool for first users.",
+  );
+  await clickButton(page, "Next");
+  await setInputValue(
+    page,
+    "#guided-trigger-examples",
+    "Summarize readiness blockers before I ship.\nTurn diagnostics findings into release notes.",
+  );
+  await setInputValue(
+    page,
+    "#guided-required-inputs",
+    "Setup Doctor summary\nRelease readiness panel\nDiagnostics export notes",
+  );
+  await clickButton(page, "Next");
+  await setInputValue(
+    page,
+    "#guided-boundaries",
+    "Do not invent test evidence that was not run.\nDo not expose local paths, account names, or tokens.",
+  );
+  await setInputValue(
+    page,
+    "#guided-success-criteria",
+    "The answer separates verified evidence from remaining blockers.\nThe final recommendation names the next concrete action.",
+  );
+  await clickButton(page, "Next");
+  await clickButton(page, "Review Draft");
+  await expectText(page, "Rubric score");
+  await clickButton(page, "Build Draft");
+  await expectText(page, "Draft preview");
+  await clickButton(page, "1 Purpose");
+  await clickButton(page, "2 Examples");
+  await clickButton(page, "3 Boundaries");
+  await clickButton(page, "4 Review");
+  await clickAllButtons(page, ".guided-checklist-item");
+  await clickButton(page, "4 Review");
+  await clickButton(page, "Back");
+  await clickButton(page, "Next");
+  await markButtonLocatorCovered(
+    page.getByRole("button", { name: "Open in Editor", exact: true }).first(),
+  );
+  await markVisibleButtonsCoveredByLabel(page, [
+    "Rebuild Index",
+    "Review Draft",
+    "Build Draft",
+  ]);
+  await markAppRouteLinksCovered(page);
+  await assertVisibleButtonsAccountedFor(page, "Guided Builder");
+  await assertVisibleLinksAccountedFor(page, "Guided Builder");
+  await assertInteractiveControlsAccessible(page, "Guided Builder");
+  await clickButton(page, "Open in Editor");
+  await page.waitForURL("**/editor?guidedDraft=1", {
+    timeout: routeNavigationTimeoutMs,
+    waitUntil: "commit",
+  });
+  await expectText(page, "release owners");
+}
+
+async function runMobileLayoutSmoke(page, baseUrl) {
+  const originalViewport = page.viewportSize();
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  const routes = [
+    { path: "/settings", text: "V1 Release Readiness" },
+    { path: "/skills", text: "Library Readiness" },
+    { path: "/chat", text: "Chat Readiness" },
+    { path: "/export", text: "Export" },
+    { path: "/editor", text: "Template Gallery" },
+    { path: "/editor/guided", text: "Guided Skill Builder" },
+  ];
+
+  for (const route of routes) {
+    const stopIgnoringReloadIssues =
+      route.path === "/settings" ? ignoreKnownNextDevReloadIssues() : () => {};
+    try {
+      await gotoAndExpectText(
+        page,
+        `${baseUrl}${route.path}`,
+        route.text,
+        `mobile ${route.path}`,
+      );
+      await assertNoHorizontalPageOverflow(page, `Mobile ${route.path}`);
+      await assertInteractiveControlsAccessible(page, `Mobile ${route.path}`);
+    } finally {
+      stopIgnoringReloadIssues();
+    }
+  }
+
+  if (originalViewport) {
+    await page.setViewportSize(originalViewport);
+  }
+}
+
+async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
+  expectedBrowserIssuePatterns.length = 0;
+  const browser = await chromium.launch({
+    headless: process.env.SMOKE_HEADLESS !== "false",
+  });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(60000);
+  const browserIssues = [];
+  await page.addInitScript(() => {
+    function disableNextDevOverlayPointerEvents() {
+      if (!document.documentElement) return;
+      if (document.getElementById("smoke-next-dev-overlay-style")) return;
+      const style = document.createElement("style");
+      style.id = "smoke-next-dev-overlay-style";
+      style.textContent =
+        "nextjs-portal,[data-nextjs-dev-overlay]{pointer-events:none!important;}";
+      document.documentElement.appendChild(style);
+    }
+
+    disableNextDevOverlayPointerEvents();
+    document.addEventListener(
+      "DOMContentLoaded",
+      disableNextDevOverlayPointerEvents,
+      { once: true },
+    );
+  });
+  page.on("pageerror", (error) => {
+    const stack = error.stack || error.message;
+    const issue = `pageerror: ${stack}`;
+    if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      const issue = `console: ${message.text()}`;
+      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+    }
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 500) {
+      const issue = `http ${response.status()}: ${response.url()}`;
+      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+    }
+  });
+
+  try {
+    await runNavigationSmoke(page, baseUrl);
+    await runMockedSettingsReleaseActionsSmoke(page, baseUrl);
+    await runMockedSettingsClaudeActionsSmoke(page, baseUrl);
+    await runSettingsSmoke(
+      page,
+      baseUrl,
+      path.join(smokeRoot, "workspace"),
+      path.join(smokeRoot, "smoke-settings.env"),
+    );
+    await runMockedSettingsSaveFailureSmoke(page, baseUrl);
+    await runMockedSkillsImportFailureSmoke(page, baseUrl);
+    await runSkillsSmoke(page, baseUrl, importSource, archivePath);
+    await runMockedEmptyStateSmoke(page, baseUrl, smokeRoot);
+    await runChatSmoke(page, baseUrl);
+    await runMockedChatInteractionSmoke(page, baseUrl);
+    await runMockedChatReadinessFailureSmoke(page, baseUrl);
+    await runMockedChatRebuildSmoke(page, baseUrl);
+    await runExportSmoke(page, baseUrl, smokeRoot);
+    await runMockedEditorSaveFailureSmoke(page, baseUrl);
+    await runEditorSmoke(page, baseUrl);
+    await runGuidedSmoke(page, baseUrl);
+    await runMobileLayoutSmoke(page, baseUrl);
+    assert(browserIssues.length === 0, `Browser issues:\n${browserIssues.join("\n")}`);
+    assertExpectedBrowserIssuesConsumed();
+  } finally {
+    await browser.close();
+  }
+}
+
+async function main() {
+  assert(await exists(demoWorkspace), "examples/demo-workspace was not found.");
+  const originalEnvLocal = await readOptionalText(envLocalPath);
+  await mkdir(localWorkspaceRoot, { recursive: true });
+
+  const runRoot = path.join(localWorkspaceRoot, `smoke-local-${stamp()}`);
+  const workspace = path.join(runRoot, "workspace");
+  const importSource = path.join(runRoot, "import-source");
+  const archivePath = path.join(runRoot, "smoke-archive-skills.zip");
+  const settingsImportPath = path.join(runRoot, "smoke-settings.env");
+  await cp(demoWorkspace, workspace, { recursive: true });
+  await mkdir(importSource, { recursive: true });
+  await writeFile(
+    settingsImportPath,
+    "NEXT_PUBLIC_APP_TITLE=Smoke Imported Settings\n",
+    "utf8",
+  );
+  await writeFile(
+    path.join(importSource, "smoke-imported-skill.md"),
+    `---\ndescription: Imported by the local smoke runner to verify import, delete, and restore flows.\ntags:\n  - smoke\n  - qa\nwhen_to_use: Use only during local smoke testing.\n---\n\n# Smoke Imported Skill\n\nUse this fixture to verify import preview, apply, delete, and restore flows in a temporary workspace.\n`,
+    "utf8",
+  );
+  await writeFile(
+    archivePath,
+    createZip({
+      "skills/smoke-zip-imported-skill.md": [
+        "---",
+        "description: Imported from a zip archive by the local smoke runner.",
+        "tags:",
+        "  - smoke",
+        "  - archive",
+        "when_to_use: Use only during local smoke testing of zip archive imports.",
+        "---",
+        "",
+        "# Smoke Zip Imported Skill",
+        "",
+        "Use this fixture to verify zip archive preview and import without touching real workspace files.",
+      ].join("\n"),
+    }),
+  );
+  await writeFile(
+    envLocalPath,
+    buildSmokeEnvLocal(workspace),
+    "utf8",
+  );
+
+  const port = Number(process.env.SMOKE_PORT) || (await getFreePort());
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
+  const logs = [];
+  const child = spawn(
+    process.execPath,
+    [nextBin, "dev", "--webpack", "-H", "127.0.0.1", "-p", String(port)],
+    {
+      cwd: root,
+      env: {
+        ...process.env,
+        WORKSPACE_ROOT: workspace,
+        SKILLS_DIR: ".claude/skills",
+        NEXT_PUBLIC_APP_TITLE: "Skill Workshop RAG",
+        LLM_PROVIDER: "anthropic_api",
+        ENABLE_LOCAL_CLAUDE_CLI: "false",
+        CLAUDE_CLI_PATH: "auto",
+        CLAUDE_LOGIN_COMMAND: "auto",
+        CLAUDE_CONFIG_DIR: "",
+        ANTHROPIC_API_KEY: "",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  child.stdout.on("data", (chunk) => pushLog(logs, chunk));
+  child.stderr.on("data", (chunk) => pushLog(logs, chunk));
+
+  try {
+    await waitForServer(baseUrl, child, logs);
+    await runApiSmoke(baseUrl, workspace);
+    await runBrowserSmoke(baseUrl, runRoot, importSource, archivePath);
+    console.log(`Local smoke passed at ${baseUrl}`);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    console.error("\nRecent server output:");
+    console.error(logs.join("\n"));
+    process.exitCode = 1;
+  } finally {
+    child.kill("SIGTERM");
+    await delay(500);
+    if (!child.killed && child.exitCode === null) child.kill("SIGKILL");
+    if (!keepWorkspace) {
+      const relativeRunRoot = path.relative(localWorkspaceRoot, runRoot);
+      if (!relativeRunRoot.startsWith("..") && relativeRunRoot !== "") {
+        await rm(runRoot, { recursive: true, force: true });
+      }
+    } else {
+      console.log(`Smoke workspace preserved: ${runRoot}`);
+    }
+    await restoreOptionalText(envLocalPath, originalEnvLocal);
+  }
+}
+
+await main();

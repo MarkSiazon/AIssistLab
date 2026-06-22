@@ -1,0 +1,73 @@
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+  }
+
+  .app-brand {
+    align-items: baseline;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 0.5rem;
+  }
+
+  .app-brand-subtitle {
+    margin-top: 0;
+  }
+
+  .app-nav {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 0.25rem;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-nav-link {
+    flex-direction: column;
+    gap: 0.25rem;
+    justify-content: center;
+    min-width: 0;
+    padding: 0.45rem 0.25rem;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .app-nav-link span {
+    font-size: 0.6875rem;
+    line-height: 1.1;
+  }
+
+  .app-sidebar-footer {
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .app-sidebar-index {
+    flex: 1 1 12rem;
+    margin-bottom: 0;
+    min-width: min(100%, 12rem);
+  }
+
+  .app-sidebar-footer > .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .app-sidebar-status {
+    align-self: center;
+    flex: 1 1 100%;
+    margin-bottom: 0;
+  }
+
+}

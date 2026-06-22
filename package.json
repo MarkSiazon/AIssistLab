@@ -1,0 +1,47 @@
+{
+  "name": "rag-interface",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node scripts/run-tests.mjs",
+    "smoke:local": "node scripts/smoke-local.mjs",
+    "qa:manual": "node scripts/manual-external-qa.mjs",
+    "verify:release": "node scripts/verify-release.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "archiver": "^7.0.1",
+    "clsx": "^2.1.1",
+    "js-yaml": "^4.2.0",
+    "natural": "^8.1.1",
+    "next": "16.2.9",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "swr": "^2.4.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/natural": "^5.1.5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.2.9",
+    "playwright": "^1.61.0",
+    "postcss": "8.5.15",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.22.4",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.15"
+  }
+}

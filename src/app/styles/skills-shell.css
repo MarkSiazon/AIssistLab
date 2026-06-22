@@ -1,0 +1,81 @@
+.skills-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.skills-list-pane {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex: 0 0 18rem;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  width: 18rem;
+}
+
+.skills-list-header {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.skills-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.skills-list-scroll {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow-y: visible;
+}
+
+.skills-list-empty {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+
+.skills-list-empty-title {
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.skills-list-empty-copy {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+.skills-list-empty-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.skills-list-empty-actions .ui-button {
+  width: 100%;
+}
+
+.skills-list-pane input,
+.skills-list-pane select {
+  min-height: 44px;
+}
+
+.skills-list-pane input[type="file"] {
+  padding-block: 0.5rem;
+}

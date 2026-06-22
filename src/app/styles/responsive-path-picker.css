@@ -1,0 +1,93 @@
+@media (max-width: 768px) {
+  .path-picker-control {
+    flex-direction: column;
+  }
+
+  .path-picker-control-actions {
+    flex-wrap: wrap;
+  }
+
+  .path-picker-control-actions .ui-button {
+    flex: 1 1 6rem;
+  }
+
+  .path-picker-backdrop {
+    align-items: stretch;
+    padding: 0.5rem;
+  }
+
+  .path-picker-dialog {
+    height: calc(100dvh - 1rem);
+    width: 100%;
+  }
+
+  .path-picker-header {
+    padding: 0.75rem;
+  }
+
+  .path-picker-address-form {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .path-picker-address-form input {
+    flex-basis: 100%;
+    order: -1;
+  }
+
+  .path-picker-address-form .ui-button {
+    flex: 1 1 5rem;
+  }
+
+  .path-picker-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .path-picker-sidebar {
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .path-picker-sidebar .ui-button {
+    flex: 1 1 9rem;
+    min-width: 0;
+    overflow: hidden;
+    white-space: normal;
+  }
+
+  .path-picker-list {
+    flex: 1 1 auto;
+    min-height: 18rem;
+    overflow-y: auto;
+  }
+
+  .path-picker-entry {
+    grid-template-columns: 4rem minmax(0, 1fr) 3.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .path-picker-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .path-picker-selected {
+    max-height: 4.5rem;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .path-picker-footer-actions {
+    width: 100%;
+  }
+
+  .path-picker-footer-actions .ui-button {
+    flex: 1 1 0;
+  }
+}

@@ -1,0 +1,165 @@
+.guided-builder-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.guided-builder-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.guided-builder-content {
+  margin: 0 auto;
+  max-width: 56rem;
+  padding: 1.5rem;
+}
+
+.guided-builder-header {
+  margin-bottom: 1.25rem;
+}
+
+.guided-builder-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.guided-builder-subtitle {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-top: 0.35rem;
+  max-width: 46rem;
+}
+
+.guided-autosave-panel {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+}
+
+.guided-autosave-copy {
+  min-width: 0;
+}
+
+.guided-autosave-label {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.guided-autosave-message {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.guided-autosave-clear {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.625rem 0.875rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.guided-autosave-clear:hover:not(:disabled) {
+  background: rgba(88, 166, 255, 0.08);
+  border-color: rgba(88, 166, 255, 0.35);
+  color: var(--text);
+}
+
+.guided-autosave-clear:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.guided-autosave-confirm {
+  align-items: center;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex: 1 0 100%;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+}
+
+.guided-autosave-confirm-copy {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  min-width: 0;
+}
+
+.guided-autosave-confirm-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.guided-autosave-confirm-cancel,
+.guided-autosave-confirm-delete {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.guided-autosave-confirm-cancel {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.guided-autosave-confirm-cancel:hover {
+  background: var(--surface-1);
+  color: var(--text);
+}
+
+.guided-autosave-confirm-delete {
+  background: rgba(248, 81, 73, 0.12);
+  border-color: rgba(248, 81, 73, 0.4);
+  color: var(--red);
+}
+
+.guided-autosave-confirm-delete:hover {
+  background: rgba(248, 81, 73, 0.18);
+  border-color: rgba(248, 81, 73, 0.55);
+}

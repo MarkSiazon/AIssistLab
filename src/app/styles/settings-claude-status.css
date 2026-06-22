@@ -1,0 +1,264 @@
+.settings-claude-panel,
+.settings-active-values-panel {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.settings-active-values-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.settings-claude-header,
+.settings-active-values-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.settings-claude-title,
+.settings-active-values-title {
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.settings-claude-subtitle,
+.settings-active-values-subtitle {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  margin-top: 0.2rem;
+  overflow-wrap: anywhere;
+}
+
+.settings-claude-refresh {
+  flex: 0 0 auto;
+  padding-inline: 0.75rem;
+}
+
+.settings-claude-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settings-claude-status-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-claude-status-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  min-width: 0;
+  padding: 0.625rem;
+}
+
+.settings-claude-status-card-ok {
+  border-color: rgba(63, 185, 80, 0.34);
+}
+
+.settings-claude-status-card-warn {
+  border-color: rgba(210, 153, 34, 0.42);
+}
+
+.settings-claude-status-card-error {
+  border-color: rgba(248, 81, 73, 0.42);
+}
+
+.settings-claude-status-label {
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.settings-claude-status-value {
+  align-items: center;
+  color: var(--text);
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.4rem;
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  min-width: 0;
+}
+
+.settings-claude-status-dot {
+  background: var(--text-muted);
+  border-radius: 999px;
+  flex: 0 0 auto;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+.settings-claude-status-card-ok .settings-claude-status-dot {
+  background: var(--green);
+}
+
+.settings-claude-status-card-warn .settings-claude-status-dot {
+  background: var(--yellow);
+}
+
+.settings-claude-status-card-error .settings-claude-status-dot {
+  background: var(--red);
+}
+
+.settings-claude-status-detail {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.settings-claude-detail-list,
+.settings-active-values-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-claude-detail-row,
+.settings-active-value-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  min-width: 0;
+  padding: 0.625rem;
+}
+
+.settings-claude-detail-label,
+.settings-active-value-key {
+  color: var(--accent);
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.settings-claude-detail-value,
+.settings-active-value-text {
+  color: var(--text);
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.settings-claude-detail-meta {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.settings-claude-alert {
+  background: rgba(210, 153, 34, 0.08);
+  border: 1px solid rgba(210, 153, 34, 0.32);
+  border-radius: 0.5rem;
+  color: var(--yellow);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  padding: 0.625rem 0.75rem;
+}
+
+.settings-claude-alert-ok {
+  background: rgba(63, 185, 80, 0.08);
+  border-color: rgba(63, 185, 80, 0.28);
+  color: var(--green);
+}
+
+.settings-claude-alert-error {
+  background: rgba(248, 81, 73, 0.08);
+  border-color: rgba(248, 81, 73, 0.32);
+  color: var(--red);
+}
+
+.settings-claude-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.settings-claude-action {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.settings-claude-loading {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.settings-active-value-row-ok {
+  border-color: rgba(63, 185, 80, 0.26);
+}
+
+.settings-active-value-row-warn {
+  border-color: rgba(210, 153, 34, 0.34);
+}
+
+.settings-active-value-row-error {
+  border-color: rgba(248, 81, 73, 0.34);
+}
+
+.settings-active-value-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.settings-active-value-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.settings-active-value-name {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+
+.settings-active-value-status {
+  color: var(--text-muted);
+  flex: 0 0 auto;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.settings-active-value-row-ok .settings-active-value-status {
+  color: var(--green);
+}
+
+.settings-active-value-row-warn .settings-active-value-status {
+  color: var(--yellow);
+}
+
+.settings-active-value-row-error .settings-active-value-status {
+  color: var(--red);
+}
+
+.settings-active-value-row-error .settings-active-value-text {
+  color: var(--red);
+}

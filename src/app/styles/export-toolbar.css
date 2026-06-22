@@ -1,0 +1,104 @@
+.export-score,
+.export-selection-count,
+.export-diagnostics-toggle,
+.export-skill-date {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.export-loading {
+  padding: 1.5rem;
+}
+
+.export-empty {
+  max-width: 56rem;
+}
+
+.export-empty-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.export-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  max-width: 56rem;
+}
+
+.export-toolbar-copy {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.export-toolbar-hint {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.export-diagnostics-toggle {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.export-diagnostics-toggle-hint {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.25;
+}
+
+.export-diagnostics-toggle:hover {
+  background: var(--surface-2);
+  border-color: rgba(88, 166, 255, 0.45);
+  color: var(--text);
+}
+
+.export-diagnostics-toggle:active {
+  background: rgba(88, 166, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.export-diagnostics-toggle:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.22);
+  color: var(--text);
+}
+
+.export-checkbox {
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.export-checkbox:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.export-toolbar-actions {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}

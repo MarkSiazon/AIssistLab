@@ -1,0 +1,81 @@
+.export-skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.export-skill-row {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.75rem 1rem;
+}
+
+.export-skill-select {
+  align-items: center;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0.125rem 0.25rem;
+}
+
+.export-skill-select:hover .export-skill-name {
+  color: var(--accent);
+}
+
+.export-skill-select:active .export-skill-name {
+  color: var(--accent);
+}
+
+.export-skill-select:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.export-skill-checkbox {
+  margin-inline-start: 0.125rem;
+}
+
+.export-skill-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.export-skill-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.export-skill-description {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.export-skill-meta {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+}
+
+.export-usage {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.export-command-block {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,142 @@
+@media (max-width: 768px) {
+  .settings-workspace {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .settings-main-pane {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .settings-editor-scroll {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .settings-side-pane {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    flex: 0 0 auto;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .settings-readiness-action-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-readiness-primary-action {
+    width: 100%;
+  }
+
+  .settings-first-run-header,
+  .settings-first-run-item-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-first-run-progress {
+    align-self: flex-start;
+  }
+
+  .settings-first-run-action {
+    width: 100%;
+  }
+
+  .settings-claude-header,
+  .settings-active-values-header,
+  .settings-active-value-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-claude-refresh,
+  .settings-claude-action {
+    width: 100%;
+  }
+
+  .settings-claude-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-claude-actions {
+    flex-direction: column;
+  }
+
+  .settings-active-values-panel {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .settings-side-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-side-subtitle {
+    max-width: none;
+  }
+
+  .settings-side-refresh {
+    width: 100%;
+  }
+
+  .settings-readiness-strip-row {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .settings-readiness-strip-item {
+    width: 100%;
+  }
+
+  .settings-readiness-strip-action-btn {
+    width: 100%;
+    justify-content: center;
+    text-wrap: wrap;
+    min-height: 44px;
+  }
+
+  .settings-raw-pane {
+    flex: 0 0 auto;
+    min-height: 32rem;
+  }
+
+  .settings-inline-field {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .settings-inline-field .settings-form-label,
+  .settings-inline-field .settings-form-help,
+  .settings-inline-field-input,
+  .settings-inline-field .ui-button,
+  .settings-inline-field button {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .settings-extra-row {
+    align-items: stretch;
+    grid-template-columns: 1fr auto;
+  }
+
+  .settings-extra-row .settings-form-label:first-child,
+  .settings-extra-row .settings-form-label:nth-of-type(2),
+  .settings-extra-key,
+  .settings-extra-value {
+    grid-column: 1 / -1;
+  }
+
+  .settings-extra-equals {
+    display: none;
+  }
+
+  .settings-extra-row > button {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    width: 100%;
+  }
+
+}

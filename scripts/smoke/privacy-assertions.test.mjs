@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import {
+  assertNoUnsafe,
+  privacyScanPattern,
+} from "./privacy-assertions.mjs";
+
+const privacyScanRegex = new RegExp(privacyScanPattern, "i");
+
+for (const safeValue of [
+  "~/.claude-profiles/<profile>",
+  ".claude-profiles/<hidden>",
+  "ANTHROPIC_API_KEY=[configured]",
+]) {
+  assert.doesNotThrow(() => assertNoUnsafe("safe value", safeValue));
+  assert.equal(privacyScanRegex.test(safeValue), false);
+}
+
+for (const unsafeValue of [
+  String.raw`C:\Users\Example\.claude\oauth.json`,
+  "~/.claude-profiles/work-profile",
+  "Bearer abcdefghijklmnopqrstuvwxyz",
+  "sk-ant-not-a-real-key-but-secret-shaped",
+]) {
+  assert.throws(() => assertNoUnsafe("unsafe value", unsafeValue));
+  assert.equal(privacyScanRegex.test(unsafeValue), true);
+}
+
+console.log("Privacy assertion helper tests passed");

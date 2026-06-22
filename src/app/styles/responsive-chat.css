@@ -1,0 +1,106 @@
+@media (max-width: 768px) {
+  .chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .chat-alert {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-alert-actions .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .chat-composer-status-card {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .chat-composer-status-actions {
+    justify-content: stretch;
+  }
+
+  .chat-composer-status-actions .ui-button {
+    flex: 1 1 100%;
+  }
+
+  .chat-index-alert {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chat-message-list {
+    padding: 1rem;
+  }
+
+  .chat-empty-state {
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0.75rem 0;
+  }
+
+  .chat-empty-state > .empty-state-icon {
+    display: none;
+  }
+
+  .chat-empty-title,
+  .chat-empty-copy {
+    text-align: left;
+  }
+
+  .chat-empty-actions .ui-button {
+    flex: 1 1 10rem;
+  }
+
+  .chat-readiness-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chat-readiness-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-message-width {
+    max-width: 100%;
+  }
+
+  .chat-message-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chat-message-meta-user {
+    align-items: flex-end;
+  }
+
+  .chat-message-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .chat-message-meta-user .chat-message-actions {
+    justify-content: flex-end;
+  }
+
+  .chat-message-action {
+    flex: 1 1 7rem;
+  }
+
+  .chat-composer {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .chat-composer-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chat-composer-row .ui-button {
+    width: 100%;
+  }
+
+}

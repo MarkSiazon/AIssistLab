@@ -1,0 +1,101 @@
+@media (max-width: 768px) {
+  .export-shell {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .export-header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .export-primary-action {
+    width: 100%;
+  }
+
+  .export-content {
+    overflow: visible;
+    padding: 1rem;
+  }
+
+  .export-readiness {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .export-readiness-status {
+    align-items: flex-start;
+  }
+
+  .export-readiness-actions .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .export-readiness-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .export-readiness-section-list {
+    grid-template-columns: 1fr;
+  }
+
+  .export-readiness-section-header,
+  .export-diagnostics-contents-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .export-readiness-section-action {
+    align-items: center;
+    width: 100%;
+  }
+
+  .export-bundle-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .export-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .export-toolbar-copy {
+    flex: 0 0 auto;
+  }
+
+  .export-diagnostics-toggle {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .export-toolbar-actions {
+    justify-content: stretch;
+  }
+
+  .export-toolbar-actions .ui-button,
+  .export-empty-actions .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .export-skill-row {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .export-skill-description {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .export-skill-meta {
+    align-items: stretch;
+    justify-content: space-between;
+  }
+
+  .export-skill-meta .ui-button {
+    flex: 0 0 auto;
+  }
+
+}

@@ -1,0 +1,135 @@
+@media (max-width: 768px) {
+  .skills-shell {
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .skills-list-pane {
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+    flex: 0 0 auto;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .skills-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skills-header-actions {
+    width: 100%;
+  }
+
+  .skills-header-actions .ui-button {
+    flex: 1 1 0;
+  }
+
+  .skills-readiness-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .skills-readiness-action {
+    width: 100%;
+  }
+
+  .skills-quality-summary-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skills-quality-summary-status {
+    text-align: left;
+  }
+
+  .skills-import-preview-header,
+  .skills-import-summary,
+  .skills-import-skill-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .skills-import-summary-action {
+    align-self: flex-start;
+    max-width: 100%;
+  }
+
+  .skills-import-overall-chip,
+  .skills-import-chip {
+    align-self: flex-start;
+  }
+
+  .skills-import-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skills-import-skill-title {
+    white-space: normal;
+  }
+
+  .skills-list-scroll {
+    flex: 0 0 auto;
+    max-height: 22rem;
+    overflow-y: auto;
+  }
+
+  .skills-preview-pane {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .skills-preview-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .skills-preview-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .skills-preview-actions > .ui-button,
+  .skills-preview-actions > a {
+    flex: 1 1 8rem;
+  }
+
+  .skills-delete-confirm {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .skills-delete-confirm .ui-button,
+  .skills-delete-confirm input {
+    width: 100%;
+  }
+
+  .skills-preview-scroll {
+    min-height: 24rem;
+    overflow: visible;
+    padding: 1rem;
+  }
+
+  .skills-preview-empty {
+    min-height: 22rem;
+  }
+
+  .skills-preview-empty-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-preview-empty-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .skills-preview-empty-actions .ui-button {
+    width: 100%;
+  }
+
+}

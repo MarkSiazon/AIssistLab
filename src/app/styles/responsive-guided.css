@@ -1,0 +1,89 @@
+@media (max-width: 768px) {
+  .guided-builder-shell {
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .guided-builder-main {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .guided-builder-content {
+    padding: 1rem;
+  }
+
+  .guided-autosave-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .guided-autosave-clear {
+    width: 100%;
+  }
+
+  .guided-autosave-confirm {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .guided-autosave-confirm-actions {
+    width: 100%;
+  }
+
+  .guided-autosave-confirm-cancel,
+  .guided-autosave-confirm-delete {
+    flex: 1 1 8rem;
+  }
+
+  .guided-progress-panel {
+    flex-direction: column;
+  }
+
+  .guided-progress-meter-wrap {
+    flex: 0 0 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .guided-progress-meter-label {
+    text-align: left;
+  }
+
+  .guided-step-tab {
+    flex: 1 1 9rem;
+  }
+
+  .guided-review-actions .ui-button {
+    flex: 1 1 10rem;
+  }
+
+  .guided-builder-actions {
+    flex-direction: column;
+  }
+
+  .guided-builder-side {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    flex: 0 0 auto;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .guided-summary-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guided-checklist-header,
+  .guided-checklist-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .guided-checklist-status {
+    text-align: left;
+  }
+
+}

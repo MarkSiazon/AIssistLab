@@ -1,0 +1,82 @@
+@media (max-width: 768px) {
+  .skill-editor-shell {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .skill-editor-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .skill-editor-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .skill-editor-actions .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .skill-editor-workspace {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .skill-editor-pane {
+    flex: 0 0 auto;
+    min-height: 28rem;
+    overflow: visible;
+  }
+
+  .skill-editor-pane-left {
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+  }
+
+  .skill-editor-metadata {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .skill-editor-template-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-editor-template-confirm {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-editor-template-confirm-actions .ui-button {
+    flex: 1 1 9rem;
+  }
+
+  .skill-editor-setup-header {
+    flex-direction: column;
+  }
+
+  .skill-editor-setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-editor-tab {
+    flex: 1 1 8rem;
+  }
+
+  .skill-editor-line-count {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .skill-editor-body {
+    min-height: 24rem;
+  }
+
+  .skill-editor-preview-scroll {
+    min-height: 24rem;
+    overflow: visible;
+  }
+
+}
