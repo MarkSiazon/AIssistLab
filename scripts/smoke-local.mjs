@@ -746,6 +746,68 @@ async function clickButtonLocator(button, label = "button") {
   await button.click({ timeout: 15000 });
 }
 
+async function assertLocatorFocused(locator, label) {
+  const focused = await locator.evaluate((element) => document.activeElement === element);
+  assert(focused, `${label} did not receive keyboard focus`);
+}
+
+async function activeElementLabel(page) {
+  return await page.evaluate(() => {
+    function byLabelledBy(element) {
+      const labelledBy = element.getAttribute("aria-labelledby");
+      if (!labelledBy) return "";
+      return labelledBy
+        .split(/\s+/)
+        .map((id) => document.getElementById(id)?.textContent ?? "")
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    const element = document.activeElement;
+    if (!element) return "";
+    return (
+      element.getAttribute("aria-label") ||
+      byLabelledBy(element) ||
+      element.textContent ||
+      element.getAttribute("placeholder") ||
+      element.getAttribute("title") ||
+      ""
+    )
+      .replace(/\s+/g, " ")
+      .trim();
+  });
+}
+
+async function assertActiveElementLabel(page, pattern, label) {
+  const text = await activeElementLabel(page);
+  assert(pattern.test(text), `${label} focused "${text}"`);
+}
+
+async function assertFocusInside(locator, label) {
+  const inside = await locator.evaluate((element) =>
+    element.contains(document.activeElement),
+  );
+  assert(inside, `${label} did not keep focus inside the expected container`);
+}
+
+async function keyboardActivateButtonLocator(button, label = "button", key = "Enter") {
+  await button.waitFor({ state: "visible", timeout: 15000 });
+  assert(!(await locatorIsDisabled(button)), `${label} is disabled`);
+  await markButtonLocatorCovered(button);
+  await button.focus();
+  await assertLocatorFocused(button, label);
+  await button.press(key, { timeout: 15000 });
+}
+
+async function keyboardActivateLinkLocator(link, label = "link") {
+  await link.waitFor({ state: "visible", timeout: 15000 });
+  await markLinkLocatorCovered(link);
+  await link.focus();
+  await assertLocatorFocused(link, label);
+  await link.press("Enter", { timeout: 15000 });
+}
+
 async function clickAllButtons(page, selector) {
   const locator = page.locator(selector);
   const count = await locator.count();
@@ -941,6 +1003,33 @@ async function runNavigationSmoke(page, baseUrl) {
   await expectText(page, "Template Gallery");
   await clickNavigationLink(page, "Skills", /\/skills(?:[?#].*)?$/);
   await expectText(page, "Library Readiness");
+}
+
+async function runKeyboardNavigationSmoke(page, baseUrl) {
+  await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+  await expectText(page, "Library Readiness");
+
+  const chatLink = page.getByRole("link", { name: "RAG Chat", exact: true }).first();
+  await Promise.all([
+    page.waitForURL("**/chat", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    }),
+    keyboardActivateLinkLocator(chatLink, "RAG Chat navigation link"),
+  ]);
+  await expectText(page, "Chat Readiness");
+
+  const settingsLink = page
+    .getByRole("link", { name: "Settings", exact: true })
+    .first();
+  await Promise.all([
+    page.waitForURL("**/settings", {
+      timeout: routeNavigationTimeoutMs,
+      waitUntil: "commit",
+    }),
+    keyboardActivateLinkLocator(settingsLink, "Settings navigation link"),
+  ]);
+  await expectText(page, "Setup Doctor");
 }
 
 async function runPathPickerSmoke(page, workspacePath) {
@@ -1190,6 +1279,66 @@ async function runPathPickerSmoke(page, workspacePath) {
   await dialog.focus();
   await dialog.press("Escape");
   await dialog.waitFor({ state: "hidden", timeout: 15000 });
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    keyboardActivateButtonLocator(
+      page.getByRole("button", { name: "Browse app", exact: true }).first(),
+      "Path picker Browse app button",
+    ),
+  ]);
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  await assertLocatorFocused(addressInput, "Path picker address input");
+  await clickButtonLocator(
+    sidebar.getByRole("button", { name: "Current value", exact: true }).first(),
+    "Path picker keyboard Current value reset",
+  );
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker keyboard reopen did not restore the workspace path",
+  );
+
+  const closeButton = dialog.getByRole("button", { name: "Close", exact: true }).first();
+  await closeButton.focus();
+  await assertLocatorFocused(closeButton, "Path picker close button");
+  await page.keyboard.press("Shift+Tab");
+  await assertActiveElementLabel(
+    page,
+    /^Select folder$/,
+    "Path picker Shift+Tab focus wrap",
+  );
+  await assertFocusInside(dialog, "Path picker Shift+Tab focus trap");
+  await page.keyboard.press("Tab");
+  await assertActiveElementLabel(page, /^Close$/, "Path picker Tab focus wrap");
+  await assertFocusInside(dialog, "Path picker Tab focus trap");
+  await page.keyboard.press("Escape");
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    keyboardActivateButtonLocator(
+      page.getByRole("button", { name: "Browse app", exact: true }).first(),
+      "Path picker Browse app button for keyboard select",
+    ),
+  ]);
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  await keyboardActivateButtonLocator(
+    dialog.getByRole("button", { name: "Select folder", exact: true }).first(),
+    "Path picker Select folder button",
+  );
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+  await waitForLocatorInputValue(
+    workspaceInput,
+    workspacePath,
+    "Path picker keyboard Select folder did not apply the workspace path",
+  );
 }
 
 async function runRelativePathPickerSmoke(page, workspacePath) {
@@ -2194,18 +2343,16 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
   await clickLink(page, "New");
-  await page.waitForURL("**/editor", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
+  await waitForPageUrl(page, (url) => url.pathname === "/editor", "skills New route");
   await expectText(page, "Template Gallery");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
   await clickLink(page, "Guided");
-  await page.waitForURL("**/editor/guided", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/editor/guided",
+    "skills Guided route",
+  );
   await expectText(page, "Guided Skill Builder");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
@@ -2250,14 +2397,30 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await skillPreviewPane
     .locator("#skills-delete-confirm")
     .waitFor({ state: "hidden", timeout: 5000 });
-  await clickButtonIn(skillPreviewPane, "Delete");
+  await keyboardActivateButtonLocator(
+    skillPreviewPane.getByRole("button", { name: "Delete", exact: true }).first(),
+    "Skill delete button",
+    "Enter",
+  );
   await setInputValue(page, "#skills-delete-confirm", "smoke-imported-skill");
+  const deleteConfirmButton = skillPreviewPane
+    .locator("button")
+    .filter({ hasText: /^(Confirm delete|Delete .*\.md)$/ })
+    .first();
+  await waitForEnabledLocator(
+    deleteConfirmButton,
+    "Skill delete confirmation button",
+  );
   await Promise.all([
     waitForApiResponse(page, (response) =>
       response.url().includes("/api/skills/smoke-imported-skill") &&
       response.request().method() === "DELETE",
     ),
-    clickButton(page, "Delete .*\\.md", { exact: false }),
+    keyboardActivateButtonLocator(
+      deleteConfirmButton,
+      "Skill delete confirmation button",
+      "Enter",
+    ),
   ]);
   await expectText(page, "Backup available");
   await Promise.all([
@@ -2303,10 +2466,11 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   );
   assertNoUnsafe("selected skill .md export", selectedSkillExportText);
   await clickLink(page, "Edit");
-  await page.waitForURL("**/editor/smoke-zip-imported-skill", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/editor/smoke-zip-imported-skill",
+    "selected skill Edit route",
+  );
   await expectText(page, "Edit: smoke-zip-imported-skill.md");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
@@ -2321,10 +2485,11 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
       "Skills preview Import Skills link did not target the import panel",
     );
     await Promise.all([
-      page.waitForURL("**/editor/guided", {
-        timeout: routeNavigationTimeoutMs,
-        waitUntil: "commit",
-      }),
+      waitForPageUrl(
+        page,
+        (url) => url.pathname === "/editor/guided",
+        "skills preview Guided Builder route",
+      ),
       clickLinkIn(previewEmptyActions, "Guided Builder"),
     ]);
     await expectText(page, "Guided Skill Builder");
@@ -2440,19 +2605,21 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
       "Skills empty-state Import Skills link did not target the import panel",
     );
     await clickLinkIn(skillsEmptyActions, "New Skill");
-    await page.waitForURL("**/editor", {
-      timeout: routeNavigationTimeoutMs,
-      waitUntil: "commit",
-    });
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/editor",
+      "skills empty New Skill route",
+    );
     await expectText(page, "Template Gallery");
 
     await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
     await expectText(page, "No skills yet");
     await clickLinkIn(page.locator(".skills-list-empty-actions").first(), "Guided Builder");
-    await page.waitForURL("**/editor/guided", {
-      timeout: routeNavigationTimeoutMs,
-      waitUntil: "commit",
-    });
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/editor/guided",
+      "skills empty Guided Builder route",
+    );
     await expectText(page, "Guided Skill Builder");
 
     await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
@@ -2470,19 +2637,21 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
 
     const exportEmptyActions = page.locator(".export-empty-actions").first();
     await clickLinkIn(exportEmptyActions, "Open Skills");
-    await page.waitForURL("**/skills", {
-      timeout: routeNavigationTimeoutMs,
-      waitUntil: "commit",
-    });
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/skills",
+      "export empty Open Skills route",
+    );
     await expectText(page, "No skills yet");
 
     await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
     await expectText(page, "No skills are ready to export");
     await clickLinkIn(page.locator(".export-empty-actions").first(), "Guided Builder");
-    await page.waitForURL("**/editor/guided", {
-      timeout: routeNavigationTimeoutMs,
-      waitUntil: "commit",
-    });
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/editor/guided",
+      "export empty Guided Builder route",
+    );
     await expectText(page, "Guided Skill Builder");
 
     await assertInteractiveControlsAccessible(page, "Mocked Empty States");
@@ -2697,8 +2866,15 @@ async function runMockedChatInteractionSmoke(page, baseUrl) {
     await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
     await expectText(page, "Ready");
 
-    await page.locator("textarea").fill("Mock successful chat request");
-    await clickButton(page, "Send");
+    const chatInput = page.locator("textarea");
+    await chatInput.fill("Mock successful chat request");
+    await chatInput.press("Shift+Enter");
+    await chatInput.type("sent from keyboard");
+    assert(
+      (await chatInput.inputValue()).includes("\n"),
+      "Chat Shift+Enter did not insert a newline",
+    );
+    await chatInput.press("Enter");
     await expectText(page, "Mock assistant response.");
     await expectText(page, "release-readiness-smoke");
     await openFirstChatCitationPreview(page);
@@ -2739,10 +2915,11 @@ async function runMockedChatInteractionSmoke(page, baseUrl) {
     await assertVisibleLinksAccountedFor(page, "Mocked Chat");
     await assertInteractiveControlsAccessible(page, "Mocked Chat");
     await sourceSkillLink.click();
-    await page.waitForURL("**/editor/release-readiness-smoke", {
-      timeout: routeNavigationTimeoutMs,
-      waitUntil: "commit",
-    });
+    await waitForPageUrl(
+      page,
+      (url) => url.pathname === "/editor/release-readiness-smoke",
+      "chat source skill route",
+    );
     await expectText(page, "release-readiness-smoke.md");
   } finally {
     await page.unroute("**/api/chat/status");
@@ -3139,12 +3316,37 @@ async function runEditorSmoke(page, baseUrl) {
     "## Purpose\n\nUse this skill when the user needs reliable reference material about a focused topic.\n\n## Source Notes\n\n- Add the canonical source or folder this skill summarizes.\n- Keep examples short and concrete.\n- Prefer stable facts over broad commentary.\n\n## Answering Guidance\n\n- Cite the relevant section when responding.\n- Say when the answer is not covered by this reference.\n",
     "Template Apply should replace the custom body",
   );
+  const editTab = page.getByRole("tab", { name: "Edit", exact: true }).first();
+  const previewTab = page
+    .getByRole("tab", { name: "Mobile Preview", exact: true })
+    .first();
+  await editTab.focus();
+  await assertLocatorFocused(editTab, "Editor Edit tab");
+  await editTab.press("ArrowRight");
+  await assertLocatorFocused(previewTab, "Editor Mobile Preview tab");
+  assert(
+    (await previewTab.getAttribute("aria-selected")) === "true",
+    "Editor ArrowRight did not select the Mobile Preview tab",
+  );
+  await previewTab.press("Home");
+  await assertLocatorFocused(editTab, "Editor Edit tab after Home");
+  assert(
+    (await editTab.getAttribute("aria-selected")) === "true",
+    "Editor Home key did not return to the Edit tab",
+  );
   await clickButton(page, "Save changes");
-  await page.waitForURL("**/editor/browser-smoke-skill", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
-  await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/editor/browser-smoke-skill",
+    "editor save route",
+  );
+  await expectText(page, "Edit: browser-smoke-skill.md");
+  await markVisibleButtonsCoveredByLabel(page, [
+    "Rebuild Index",
+    "Cancel",
+    "Edit",
+    "Mobile Preview",
+  ]);
   await markAppRouteLinksCovered(page);
   await assertVisibleButtonsAccountedFor(page, "Editor");
   await assertVisibleLinksAccountedFor(page, "Editor");
@@ -3158,10 +3360,11 @@ async function runEditorSmoke(page, baseUrl) {
   await clickButton(page, "Stay");
   await clickButton(page, "Cancel");
   await clickButton(page, "Discard");
-  await page.waitForURL("**/skills", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/skills",
+    "editor discard route",
+  );
 }
 
 async function runGuidedAutosaveClearSmoke(page) {
@@ -3187,6 +3390,23 @@ async function runGuidedAutosaveClearSmoke(page) {
 async function runGuidedSmoke(page, baseUrl) {
   await page.goto(`${baseUrl}/editor/guided`, { waitUntil: "networkidle" });
   await runGuidedAutosaveClearSmoke(page);
+  const firstStepButton = page
+    .getByRole("button", { name: /Step 1 of 4: Purpose, current step\./i })
+    .first();
+  await firstStepButton.focus();
+  await assertLocatorFocused(firstStepButton, "Guided first step button");
+  await firstStepButton.press("End");
+  await assertActiveElementLabel(
+    page,
+    /Step 4 of 4: Review, current step\./i,
+    "Guided End key step navigation",
+  );
+  await page.keyboard.press("Home");
+  await assertActiveElementLabel(
+    page,
+    /Step 1 of 4: Purpose, current step\./i,
+    "Guided Home key step navigation",
+  );
   await page.locator("#guided-template").waitFor({
     state: "visible",
     timeout: 15000,
@@ -3255,10 +3475,11 @@ async function runGuidedSmoke(page, baseUrl) {
   await assertVisibleLinksAccountedFor(page, "Guided Builder");
   await assertInteractiveControlsAccessible(page, "Guided Builder");
   await clickButton(page, "Open in Editor");
-  await page.waitForURL("**/editor?guidedDraft=1", {
-    timeout: routeNavigationTimeoutMs,
-    waitUntil: "commit",
-  });
+  await waitForPageUrl(
+    page,
+    (url) => url.pathname === "/editor" && url.searchParams.get("guidedDraft") === "1",
+    "guided Open in Editor route",
+  );
   await expectText(page, "release owners");
 }
 
@@ -3510,6 +3731,7 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
 
   try {
     await runNavigationSmoke(page, baseUrl);
+    await runKeyboardNavigationSmoke(page, baseUrl);
     await runMockedSettingsReleaseActionsSmoke(page, baseUrl);
     await runMockedSettingsClaudeActionsSmoke(page, baseUrl);
     await runSettingsSmoke(

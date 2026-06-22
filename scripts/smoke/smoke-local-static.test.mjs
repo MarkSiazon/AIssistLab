@@ -36,6 +36,48 @@ assert.match(
 
 assert.match(
   source,
+  /async function keyboardActivateButtonLocator/,
+  "local smoke must include a helper for keyboard button activation",
+);
+
+assert.match(
+  source,
+  /async function keyboardActivateLinkLocator/,
+  "local smoke must include a helper for keyboard link activation",
+);
+
+assert.match(
+  source,
+  /runKeyboardNavigationSmoke/,
+  "local smoke must verify keyboard navigation across primary routes",
+);
+
+assert.match(
+  source,
+  /Path picker Shift\+Tab focus wrap/,
+  "settings smoke must verify path picker keyboard focus wrapping",
+);
+
+assert.match(
+  source,
+  /Chat Shift\+Enter did not insert a newline/,
+  "chat smoke must verify keyboard newline behavior before Enter submit",
+);
+
+assert.match(
+  source,
+  /Editor ArrowRight did not select the Mobile Preview tab/,
+  "editor smoke must verify keyboard tablist navigation",
+);
+
+assert.match(
+  source,
+  /Guided End key step navigation/,
+  "guided builder smoke must verify keyboard step navigation",
+);
+
+assert.match(
+  source,
   /expectText\(page,\s*"Manual QA Evidence"\)/,
   "settings smoke must verify the manual QA evidence panel is visible",
 );
