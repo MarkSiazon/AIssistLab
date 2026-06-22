@@ -65,6 +65,7 @@ function ignoreKnownNextDevReloadIssues() {
     ignoreBrowserIssue(
       /^pageerror: (?:SyntaxError: )?Unexpected end of JSON input(?:\n|$)/,
     ),
+    ignoreBrowserIssue(/^pageerror: Error: Manifest file is empty(?:\n|$)/),
   ];
 
   return () => {
@@ -316,6 +317,24 @@ async function waitForEnabledLocator(locator, label, timeout = 60000) {
   }
 
   throw new Error(`${label} did not become enabled`);
+}
+
+async function clickEnabledLocator(locator, label, timeout = 60000) {
+  const startedAt = Date.now();
+  let lastError = null;
+
+  while (Date.now() - startedAt < timeout) {
+    try {
+      await waitForEnabledLocator(locator, label, Math.min(5000, timeout));
+      await clickButtonLocator(locator, label);
+      return;
+    } catch (error) {
+      lastError = error;
+      await locator.page().waitForTimeout(250);
+    }
+  }
+
+  throw lastError ?? new Error(`${label} could not be clicked while enabled`);
 }
 
 async function locatorIsDisabled(locator) {
@@ -715,6 +734,11 @@ async function clickButtonIn(locator, label) {
   await clickButtonLocator(button, `${label} button`);
 }
 
+async function clickNavigationButtonIn(locator, label) {
+  const button = locator.getByRole("button", { name: label, exact: true }).first();
+  await clickButtonLocator(button, `${label} navigation button`);
+}
+
 async function clickButtonLocator(button, label = "button") {
   await button.waitFor({ state: "visible", timeout: 15000 });
   assert(!(await locatorIsDisabled(button)), `${label} is disabled`);
@@ -901,6 +925,10 @@ async function runApiSmoke(baseUrl, workspacePath) {
 }
 
 async function runNavigationSmoke(page, baseUrl) {
+  await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+  await waitForPageUrl(page, /\/skills(?:[?#].*)?$/, "home redirect to skills");
+  await expectText(page, "Library Readiness");
+
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
   await clickNavigationLink(page, "RAG Chat", /\/chat(?:[?#].*)?$/);
@@ -917,6 +945,8 @@ async function runNavigationSmoke(page, baseUrl) {
 
 async function runPathPickerSmoke(page, workspacePath) {
   const workspaceInput = page.locator("#settings-workspace-root");
+  const pickerChildName = "smoke-picker-child";
+  const pickerChildPath = path.join(workspacePath, pickerChildName);
   await workspaceInput.waitFor({ state: "visible", timeout: 15000 });
   await workspaceInput.fill(workspacePath);
 
@@ -945,6 +975,9 @@ async function runPathPickerSmoke(page, workspacePath) {
   await dialog.waitFor({ state: "visible", timeout: 15000 });
   const addressInput = dialog.getByRole("textbox", { name: "Folder path" });
   await addressInput.waitFor({ state: "visible", timeout: 15000 });
+  const sidebar = dialog.locator(".path-picker-sidebar").first();
+  const addressForm = dialog.locator(".path-picker-address-form").first();
+  const entryList = dialog.locator(".path-picker-list").first();
   await waitForLocatorInputValue(
     addressInput,
     workspacePath,
@@ -962,6 +995,108 @@ async function runPathPickerSmoke(page, workspacePath) {
     addressInput,
     workspacePath,
     "Path picker Go did not keep the current workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      entryList.locator(".path-picker-entry").filter({ hasText: pickerChildName }).first(),
+      "Path picker child folder entry",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    pickerChildPath,
+    "Path picker folder entry did not navigate to the selected child folder",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      dialog
+        .locator(".path-picker-breadcrumbs")
+        .getByRole("button", {
+          name: path.basename(workspacePath),
+          exact: true,
+        })
+        .first(),
+      "Path picker workspace breadcrumb",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker breadcrumb did not navigate back to the workspace folder",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      sidebar.getByRole("button", { name: "This PC", exact: true }).first(),
+      "Path picker sidebar This PC button",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    "",
+    "Path picker sidebar This PC did not navigate to the root view",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      sidebar.getByRole("button", { name: "Current value", exact: true }).first(),
+      "Path picker sidebar Current value button",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker sidebar Current value did not return to the workspace path",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      addressForm.getByRole("button", { name: "This PC", exact: true }).first(),
+      "Path picker address This PC button",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    "",
+    "Path picker address This PC did not navigate to the root view",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      sidebar.getByRole("button", { name: "Current value", exact: true }).first(),
+      "Path picker sidebar Current value button after root",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker Current value did not return from root to the workspace path",
   );
 
   await Promise.all([
@@ -1008,6 +1143,133 @@ async function runPathPickerSmoke(page, workspacePath) {
   ]);
   await dialog.waitFor({ state: "visible", timeout: 15000 });
   await clickButton(page, "Cancel");
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Browse app"),
+  ]);
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  await clickButtonLocator(
+    dialog.getByRole("button", { name: "Close", exact: true }).first(),
+    "Path picker header Close button",
+  );
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButton(page, "Browse app"),
+  ]);
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  const recentShortcut = dialog
+    .locator(".path-picker-sidebar button")
+    .filter({ hasText: "workspace" })
+    .last();
+  assert(
+    (await recentShortcut.count()) > 0,
+    "Path picker recent shortcut for the selected workspace was not rendered",
+  );
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(recentShortcut, "Path picker recent workspace shortcut"),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    workspacePath,
+    "Path picker recent shortcut did not navigate to the selected workspace path",
+  );
+  await dialog.focus();
+  await dialog.press("Escape");
+  await dialog.waitFor({ state: "hidden", timeout: 15000 });
+}
+
+async function runRelativePathPickerSmoke(page, workspacePath) {
+  const skillsInput = page.locator("#settings-skills-dir");
+  const skillsBrowsePath = path.join(workspacePath, ".claude", "skills");
+  await skillsInput.waitFor({ state: "visible", timeout: 15000 });
+  await skillsInput.fill(".claude/skills");
+
+  const control = skillsInput
+    .locator(
+      "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' path-picker-control ')]",
+    )
+    .first();
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      control.getByRole("button", { name: "Browse app", exact: true }).first(),
+      "SKILLS_DIR Browse app button",
+    ),
+  ]);
+
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor({ state: "visible", timeout: 15000 });
+  const addressInput = dialog.getByRole("textbox", { name: "Folder path" });
+  await waitForLocatorInputValue(
+    addressInput,
+    skillsBrowsePath,
+    "Relative path picker did not open at the resolved skills folder",
+  );
+
+  const sidebar = dialog.locator(".path-picker-sidebar").first();
+  assert(
+    (await sidebar
+      .getByRole("button", { name: "Current value", exact: true })
+      .count()) === 0,
+    "Relative path picker should not expose a raw relative Current value shortcut",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      dialog
+        .locator(".path-picker-address-form")
+        .getByRole("button", { name: "This PC", exact: true })
+        .first(),
+      "Relative path picker address This PC button",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    "",
+    "Relative path picker This PC did not navigate to the root view",
+  );
+
+  await Promise.all([
+    waitForApiResponse(page, (response) =>
+      response.url().includes("/api/settings/browse") &&
+      response.request().method() === "GET",
+    ),
+    clickButtonLocator(
+      sidebar.getByRole("button", { name: "Start folder", exact: true }).first(),
+      "Relative path picker Start folder button",
+    ),
+  ]);
+  await waitForLocatorInputValue(
+    addressInput,
+    skillsBrowsePath,
+    "Relative path picker Start folder did not restore the resolved skills path",
+  );
+
+  await clickButtonLocator(
+    dialog.getByRole("button", { name: "Cancel", exact: true }).first(),
+    "Relative path picker Cancel button",
+  );
   await dialog.waitFor({ state: "hidden", timeout: 15000 });
 }
 
@@ -1066,6 +1328,10 @@ async function importSettingsEnvFile(page, buttonLabel, importPath) {
 }
 
 async function runSettingsWorkspaceProfileSmoke(page, workspacePath) {
+  await clickButton(page, "Save Current");
+  await expectText(page, "Enter a workspace profile name first.");
+  await clickButton(page, "Dismiss");
+
   await page.locator("#settings-workspace-profile-name").fill("Smoke Profile");
   await clickButton(page, "Save Current");
   await expectText(page, "Workspace profile saved locally.");
@@ -1098,14 +1364,35 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "settings readiness panel",
   );
   await expectText(page, "V1 Release Readiness");
-  await expectText(page, "Manual external QA");
+  await expectText(page, "Manual QA Evidence");
   await expectText(page, "npm run qa:manual");
+  const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
+  await manualQaPanel.waitFor({ state: "visible", timeout: 15000 });
+  await expectText(page, "Stores only status and timestamp in this browser.");
+  await clickButtonIn(manualQaPanel, "Mark Passed");
+  await manualQaPanel
+    .locator(".settings-manual-qa-item-status")
+    .filter({ hasText: "Passed" })
+    .first()
+    .waitFor({ state: "visible", timeout: 5000 });
+  await clickButtonIn(manualQaPanel, "Needs Fix");
+  await manualQaPanel
+    .locator(".settings-manual-qa-item-status")
+    .filter({ hasText: "Needs fix" })
+    .first()
+    .waitFor({ state: "visible", timeout: 5000 });
+  await clickButtonIn(manualQaPanel, "Reset");
+  await manualQaPanel
+    .locator(".settings-manual-qa-item-status")
+    .filter({ hasText: "Pending" })
+    .first()
+    .waitFor({ state: "visible", timeout: 5000 });
   await expectText(page, "First Run Checklist");
   await expectText(page, "Setup Doctor");
   const firstRunPanel = page.locator(".settings-first-run-panel").first();
   await firstRunPanel.waitFor({ state: "visible", timeout: 15000 });
 
-  await clickButtonIn(firstRunPanel, "Export");
+  await clickNavigationButtonIn(firstRunPanel, "Export");
   await waitForPageUrl(
     page,
     (url) =>
@@ -1121,7 +1408,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
   );
   await expectText(page, "Diagnostics export was opened in this session.");
 
-  await clickButtonIn(firstRunPanel, "Open Export");
+  await clickNavigationButtonIn(firstRunPanel, "Open Export");
   await waitForPageUrl(
     page,
     (url) =>
@@ -1136,7 +1423,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "settings first run checklist after open export action",
   );
 
-  await clickButtonIn(firstRunPanel, "Open Chat");
+  await clickNavigationButtonIn(firstRunPanel, "Open Chat");
   await waitForPageUrl(
     page,
     (url) => url.pathname === "/chat",
@@ -1186,6 +1473,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
 
   await runMockedNativeFolderPickerSmoke(page, workspacePath);
   await runPathPickerSmoke(page, workspacePath);
+  await runRelativePathPickerSmoke(page, workspacePath);
   await runSettingsWorkspaceProfileSmoke(page, workspacePath);
 
   const stopIgnoringReloadIssues = ignoreKnownNextDevReloadIssues();
@@ -1262,6 +1550,9 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "Rebuild Index",
     "Save",
     "Open Chat",
+    "Mark Passed",
+    "Needs Fix",
+    "Reset",
   ]);
   await markAppRouteLinksCovered(page, ["Open Settings"]);
   await assertVisibleButtonsAccountedFor(page, "Settings");
@@ -1375,7 +1666,7 @@ async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
         response.url().includes("/api/settings/claude-cli") &&
         response.request().method() === "GET",
       ),
-      clickButtonLocator(claudeRefreshButton, "Claude status refresh button"),
+      clickEnabledLocator(claudeRefreshButton, "Claude status refresh button"),
     ]);
     await clickButton(page, "Open Login");
     await expectText(page, "Opened claude auth login.");
@@ -1489,6 +1780,9 @@ async function runMockedSettingsSaveFailureSmoke(page, baseUrl) {
       "Open Export",
       "Save",
       "Open Chat",
+      "Mark Passed",
+      "Needs Fix",
+      "Reset",
     ]);
     await markVisibleButtonsCoveredByLabel(page, ["Refresh", "Save Provider"], {
       requireAll: false,
@@ -1777,6 +2071,125 @@ async function runMockedSkillsImportFailureSmoke(page, baseUrl) {
   }
 }
 
+async function runMockedSkillsImportDuplicateSmoke(page, baseUrl) {
+  const applyStrategies = [];
+
+  await page.route("**/api/skills/import/preview", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        previewId: "smoke-duplicate-import-preview",
+        sourceType: "folder",
+        sourceDisplay: "Smoke duplicate source",
+        skills: [
+          {
+            name: "release-readiness-smoke",
+            displayName: "release-readiness-smoke.md",
+            validationErrors: [],
+            qualityWarnings: ["Smoke duplicate has updated content."],
+            duplicate: true,
+          },
+        ],
+        warnings: ["Smoke duplicate preview warning."],
+      }),
+    });
+  });
+
+  await page.route("**/api/skills/import/apply", async (route) => {
+    const payload = route.request().postDataJSON();
+    assert(
+      payload.previewId === "smoke-duplicate-import-preview",
+      "Duplicate import apply used the wrong preview id",
+    );
+    assert(payload.confirm === true, "Duplicate import apply did not confirm");
+    assert(
+      payload.duplicateStrategy === "rename" ||
+        payload.duplicateStrategy === "overwrite",
+      `Unexpected duplicate strategy ${payload.duplicateStrategy}`,
+    );
+    applyStrategies.push(payload.duplicateStrategy);
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(
+        payload.duplicateStrategy === "rename"
+          ? {
+              skipped: [],
+              renamed: [{ from: "release-readiness-smoke", to: "release-readiness-smoke-2" }],
+              written: ["release-readiness-smoke-2"],
+            }
+          : {
+              skipped: [],
+              renamed: [],
+              written: ["release-readiness-smoke"],
+            },
+      ),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "Library Readiness");
+    await setInputValue(page, "#skills-import-folder", "C:\\smoke-duplicate-source");
+    await clickButton(page, "Preview Folder");
+    await expectText(page, "Smoke duplicate preview warning.");
+    await expectText(page, "release-readiness-smoke.md");
+    await expectText(
+      page,
+      "All previewed skills are duplicates. Choose Rename or Overwrite to import changes.",
+    );
+    const importPanel = page.locator(".skills-import-preview-card").first();
+    const applyButton = importPanel.locator(".skills-import-apply").first();
+    assert(
+      await locatorIsDisabled(applyButton),
+      "Duplicate import should not be applyable while skip would import nothing",
+    );
+
+    await page.locator("#skills-duplicate-strategy").selectOption("rename");
+    await expectText(page, "Rename duplicates and import 1");
+    await clickButtonIn(importPanel, "Rename duplicates and import 1");
+    await expectText(page, "Imported 1 skill, renamed 1. Index marked stale.");
+
+    await clickButton(page, "Preview Folder");
+    await expectText(page, "release-readiness-smoke.md");
+    await page.locator("#skills-duplicate-strategy").selectOption("overwrite");
+    await expectText(page, "Type overwrite to confirm replacement.");
+    const overwriteApplyButton = page
+      .locator(".skills-import-preview-card")
+      .first()
+      .locator(".skills-import-apply")
+      .first();
+    assert(
+      await locatorIsDisabled(overwriteApplyButton),
+      "Overwrite import should stay disabled before typed confirmation",
+    );
+    await page.locator("#skills-overwrite-confirm").fill("overwrite");
+    await expectText(page, "Overwrite and import 1");
+    await clickButtonIn(importPanel, "Overwrite and import 1");
+    await expectText(page, "Imported 1 skill. Index marked stale.");
+
+    assert(
+      JSON.stringify(applyStrategies) === JSON.stringify(["rename", "overwrite"]),
+      "Duplicate import did not send expected apply strategies",
+    );
+    await assertVisibleButtonsAccountedFor(
+      importPanel,
+      "Mocked Skills Import Duplicates",
+    );
+    await assertVisibleLinksAccountedFor(
+      importPanel,
+      "Mocked Skills Import Duplicates",
+    );
+    await assertInteractiveControlsAccessible(
+      importPanel,
+      "Mocked Skills Import Duplicates",
+    );
+  } finally {
+    await page.unroute("**/api/skills/import/preview");
+    await page.unroute("**/api/skills/import/apply");
+  }
+}
+
 async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
@@ -1818,7 +2231,26 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
     .first();
   await clickButtonLocator(importedSkillButton, "imported skill button");
   await expectText(page, "smoke-imported-skill.md");
-  await clickButton(page, "Delete");
+  const skillPreviewPane = page.locator(".skills-preview-pane").first();
+  await clickButtonIn(skillPreviewPane, "Delete");
+  await expectText(page, "Type the exact skill name to enable delete.");
+  const disabledDeleteConfirm = skillPreviewPane
+    .getByRole("button", {
+      name: "Type smoke-imported-skill to confirm deletion",
+      exact: true,
+    })
+    .first();
+  assert(
+    await locatorIsDisabled(disabledDeleteConfirm),
+    "Delete confirm button should stay disabled until the exact skill name is typed",
+  );
+  await setInputValue(page, "#skills-delete-confirm", "smoke-imported");
+  await expectText(page, "Typed name does not match smoke-imported-skill.");
+  await clickButtonIn(skillPreviewPane, "Cancel");
+  await skillPreviewPane
+    .locator("#skills-delete-confirm")
+    .waitFor({ state: "hidden", timeout: 5000 });
+  await clickButtonIn(skillPreviewPane, "Delete");
   await setInputValue(page, "#skills-delete-confirm", "smoke-imported-skill");
   await Promise.all([
     waitForApiResponse(page, (response) =>
@@ -2318,6 +2750,50 @@ async function runMockedChatInteractionSmoke(page, baseUrl) {
   }
 }
 
+async function runMockedChatClipboardFailureSmoke(browser, browserIssues, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(60000);
+  attachBrowserIssueTracking(page, browserIssues);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new DOMException("Clipboard blocked by smoke test", "NotAllowedError");
+        },
+      },
+    });
+    document.execCommand = () => false;
+  });
+
+  await page.route("**/api/chat/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockChatStatusPayload()),
+    });
+  });
+  await page.route("**/api/chat", async (route) => {
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: mockChatStreamBody("success"),
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
+    await expectText(page, "Ready");
+    await page.locator("textarea").fill("Mock clipboard failure request");
+    await clickButton(page, "Send");
+    await expectText(page, "Mock assistant response.");
+    await clickButton(page, "Copy assistant message");
+    await expectText(page, "Copy failed. Select the message text manually.");
+    await assertInteractiveControlsAccessible(page, "Mocked Chat Clipboard Failure");
+  } finally {
+    await page.close();
+  }
+}
+
 async function runMockedChatReadinessFailureSmoke(page, baseUrl) {
   await page.route("**/api/chat/status", async (route) => {
     expectBrowserIssue(/http 500: .*\/api\/chat\/status$/);
@@ -2540,6 +3016,7 @@ async function runExportSmoke(page, baseUrl, smokeRoot) {
     "all-skills export ZIP",
   );
   await verifyExportReadinessSectionLinks(page, baseUrl);
+  await waitForEnabledButton(page, "Select all");
   const selectAllAfterReadinessLinks = page
     .getByRole("button", { name: "Select all", exact: true })
     .first();
@@ -2642,6 +3119,26 @@ async function runEditorSmoke(page, baseUrl) {
     .locator("input[placeholder='What does this skill do?']")
     .fill("Used to verify the local smoke runner editor save path.");
   await page.locator("input[placeholder='git, pr, review']").fill("smoke, qa");
+  const editorBody = page.getByLabel("Skill markdown body");
+  await editorBody.fill(
+    "## Custom Draft\n\nThis custom body should survive Keep draft.",
+  );
+  await clickButton(page, "Reference Skill", { exact: false });
+  await expectText(page, "Apply Reference Skill template?");
+  await clickButton(page, "Keep draft");
+  await waitForLocatorInputValue(
+    editorBody,
+    "## Custom Draft\n\nThis custom body should survive Keep draft.",
+    "Template Keep draft should preserve the custom body",
+  );
+  await clickButton(page, "Reference Skill", { exact: false });
+  await expectText(page, "Apply Reference Skill template?");
+  await clickButton(page, "Apply template");
+  await waitForLocatorInputValue(
+    editorBody,
+    "## Purpose\n\nUse this skill when the user needs reliable reference material about a focused topic.\n\n## Source Notes\n\n- Add the canonical source or folder this skill summarizes.\n- Keep examples short and concrete.\n- Prefer stable facts over broad commentary.\n\n## Answering Guidance\n\n- Cite the relevant section when responding.\n- Say when the answer is not covered by this reference.\n",
+    "Template Apply should replace the custom body",
+  );
   await clickButton(page, "Save changes");
   await page.waitForURL("**/editor/browser-smoke-skill", {
     timeout: routeNavigationTimeoutMs,
@@ -2800,6 +3297,188 @@ async function runMobileLayoutSmoke(page, baseUrl) {
   }
 }
 
+function attachBrowserIssueTracking(page, browserIssues) {
+  page.on("pageerror", (error) => {
+    const stack = error.stack || error.message;
+    const issue = `pageerror: ${stack}`;
+    if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      const issue = `console: ${message.text()}`;
+      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+    }
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 500) {
+      const issue = `http ${response.status()}: ${response.url()}`;
+      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
+    }
+  });
+}
+
+async function runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 900 } });
+  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(60000);
+  attachBrowserIssueTracking(page, browserIssues);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get() {
+        throw new DOMException("Storage blocked by smoke test", "SecurityError");
+      },
+    });
+  });
+
+  try {
+    await gotoAndExpectText(
+      page,
+      `${baseUrl}/settings`,
+      "Manual QA Evidence",
+      "settings manual QA storage fallback",
+    );
+    const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
+    await manualQaPanel.waitFor({ state: "visible", timeout: 15000 });
+    await expectText(
+      page,
+      "Browser storage is unavailable, so evidence is kept in memory for this page only.",
+    );
+    await page
+      .locator("#settings-workspace-profile-name")
+      .fill("Blocked Storage Smoke");
+    await clickButton(page, "Save Current");
+    await expectText(
+      page,
+      "Workspace profile is available in this tab, but browser storage is unavailable.",
+    );
+    await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
+    await clickButtonIn(manualQaPanel, "Mark Passed");
+    await manualQaPanel
+      .locator(".settings-manual-qa-item-status")
+      .filter({ hasText: "Passed" })
+      .first()
+      .waitFor({ state: "visible", timeout: 5000 });
+    await clickButtonIn(manualQaPanel, "Needs Fix");
+    await manualQaPanel
+      .locator(".settings-manual-qa-item-status")
+      .filter({ hasText: "Needs fix" })
+      .first()
+      .waitFor({ state: "visible", timeout: 5000 });
+    await clickButtonIn(manualQaPanel, "Reset");
+    await manualQaPanel
+      .locator(".settings-manual-qa-item-status")
+      .filter({ hasText: "Pending" })
+      .first()
+      .waitFor({ state: "visible", timeout: 5000 });
+    await assertInteractiveControlsAccessible(
+      page,
+      "Settings Manual QA blocked storage",
+    );
+  } finally {
+    await page.close();
+  }
+}
+
+async function runGuidedBlockedSessionStorageSmoke(browser, browserIssues, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
+  page.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(60000);
+  attachBrowserIssueTracking(page, browserIssues);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "sessionStorage", {
+      configurable: true,
+      value: {
+        getItem() {
+          throw new DOMException(
+            "Session storage blocked by smoke test",
+            "SecurityError",
+          );
+        },
+        setItem() {
+          throw new DOMException(
+            "Session storage blocked by smoke test",
+            "SecurityError",
+          );
+        },
+        removeItem() {
+          throw new DOMException(
+            "Session storage blocked by smoke test",
+            "SecurityError",
+          );
+        },
+      },
+    });
+  });
+
+  try {
+    await gotoAndExpectText(
+      page,
+      `${baseUrl}/editor/guided`,
+      "Guided Skill Builder",
+      "guided builder session storage fallback",
+    );
+    await expectText(page, "Autosave is unavailable in this browser session.");
+    await page.locator("#guided-template").waitFor({
+      state: "visible",
+      timeout: 15000,
+    });
+    await page.locator("#guided-template").selectOption("learning-rubric");
+    await setInputValue(
+      page,
+      "#guided-purpose",
+      "Verify guided builder remains usable when browser session storage is blocked.",
+    );
+    await setInputValue(
+      page,
+      "#guided-audience",
+      "Local release owners testing private browser storage behavior.",
+    );
+    await clickButton(page, "Next");
+    await setInputValue(
+      page,
+      "#guided-trigger-examples",
+      "Create a skill without relying on browser storage.\nExplain storage fallback behavior.",
+    );
+    await setInputValue(
+      page,
+      "#guided-required-inputs",
+      "Current readiness panel\nManual QA Evidence panel",
+    );
+    await clickButton(page, "Next");
+    await setInputValue(
+      page,
+      "#guided-boundaries",
+      "Do not assume browser session storage is available.",
+    );
+    await setInputValue(
+      page,
+      "#guided-success-criteria",
+      "The builder shows an actionable handoff failure instead of crashing.",
+    );
+    await clickButton(page, "Next");
+    await clickButton(page, "Review Draft");
+    await expectText(page, "Rubric score");
+    await clickButton(page, "Build Draft");
+    await expectText(page, "Draft preview");
+    await clickButton(page, "Open in Editor");
+    await expectText(
+      page,
+      "Browser storage is unavailable, so the draft cannot be handed off to the editor in this tab.",
+    );
+    assert(
+      new URL(page.url()).pathname === "/editor/guided",
+      "Guided builder should stay on the page when storage handoff is unavailable",
+    );
+    await assertInteractiveControlsAccessible(
+      page,
+      "Guided Builder blocked session storage",
+    );
+  } finally {
+    await page.close();
+  }
+}
+
 async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
   expectedBrowserIssuePatterns.length = 0;
   const browser = await chromium.launch({
@@ -2827,23 +3506,7 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
       { once: true },
     );
   });
-  page.on("pageerror", (error) => {
-    const stack = error.stack || error.message;
-    const issue = `pageerror: ${stack}`;
-    if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-  });
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      const issue = `console: ${message.text()}`;
-      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-    }
-  });
-  page.on("response", (response) => {
-    if (response.status() >= 500) {
-      const issue = `http ${response.status()}: ${response.url()}`;
-      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-    }
-  });
+  attachBrowserIssueTracking(page, browserIssues);
 
   try {
     await runNavigationSmoke(page, baseUrl);
@@ -2857,10 +3520,12 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
     );
     await runMockedSettingsSaveFailureSmoke(page, baseUrl);
     await runMockedSkillsImportFailureSmoke(page, baseUrl);
+    await runMockedSkillsImportDuplicateSmoke(page, baseUrl);
     await runSkillsSmoke(page, baseUrl, importSource, archivePath);
     await runMockedEmptyStateSmoke(page, baseUrl, smokeRoot);
     await runChatSmoke(page, baseUrl);
     await runMockedChatInteractionSmoke(page, baseUrl);
+    await runMockedChatClipboardFailureSmoke(browser, browserIssues, baseUrl);
     await runMockedChatReadinessFailureSmoke(page, baseUrl);
     await runMockedChatRebuildSmoke(page, baseUrl);
     await runExportSmoke(page, baseUrl, smokeRoot);
@@ -2868,6 +3533,8 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
     await runEditorSmoke(page, baseUrl);
     await runGuidedSmoke(page, baseUrl);
     await runMobileLayoutSmoke(page, baseUrl);
+    await runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, baseUrl);
+    await runGuidedBlockedSessionStorageSmoke(browser, browserIssues, baseUrl);
     assert(browserIssues.length === 0, `Browser issues:\n${browserIssues.join("\n")}`);
     assertExpectedBrowserIssuesConsumed();
   } finally {
@@ -2886,6 +3553,7 @@ async function main() {
   const archivePath = path.join(runRoot, "smoke-archive-skills.zip");
   const settingsImportPath = path.join(runRoot, "smoke-settings.env");
   await cp(demoWorkspace, workspace, { recursive: true });
+  await mkdir(path.join(workspace, "smoke-picker-child"), { recursive: true });
   await mkdir(importSource, { recursive: true });
   await writeFile(
     settingsImportPath,

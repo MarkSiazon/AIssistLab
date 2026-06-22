@@ -91,6 +91,7 @@ function runPrivacyScan() {
 runCommand("Full test sweep", "npm", ["test"]);
 runCommand("Lint", "npm", ["run", "lint"]);
 runCommand("Production build", "npm", ["run", "build"]);
+runCommand("Production server smoke", "npm", ["run", "smoke:production"]);
 runCommand("Dependency audit", "npm", ["audit", "--audit-level=moderate"]);
 runCommand("Local browser/API smoke", "npm", ["run", "smoke:local"]);
 runCommand("Diff whitespace check", "git", ["diff", "--check"]);
@@ -99,7 +100,7 @@ runPrivacyScan();
 
 console.log("\nAutomated V1 release verification passed.");
 console.log(
-  "Manual external QA is still required for native OS picker visibility, Open Login, and real account-backed chat.",
+  "Manual external QA is still required for native OS picker visibility, Open Login, and real account-backed chat; record it in Settings Manual QA Evidence.",
 );
 
 function isReleaseScanPath(filePath) {

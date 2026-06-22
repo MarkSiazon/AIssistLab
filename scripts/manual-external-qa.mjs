@@ -165,6 +165,11 @@ export function formatManualQaReport(baseUrl, entries) {
   }
 
   lines.push(
+    "## Evidence Tracking",
+    "",
+    "Use the Settings Manual QA Evidence panel to mark each check as Passed, Needs fix, or Pending after you run it.",
+    "The panel stores only status and timestamp in this browser. This helper does not write evidence files.",
+    "",
     "## Manual Checks To Finish",
     "",
     ...manualQaChecks.flatMap((check, index) => [

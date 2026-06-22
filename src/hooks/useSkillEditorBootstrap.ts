@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { optionalJson } from "@/lib/api/client";
+import { getBrowserSessionStorage } from "@/lib/ui/browser-storage";
 import {
   extraFrontmatterFields,
   type GuidedStoredDraft,
@@ -67,11 +68,14 @@ export function useSkillEditorBootstrap({
     const params = new URLSearchParams(window.location.search);
     if (!params.has("guidedDraft")) return;
 
-    const draft = readGuidedDraftFromStorage(sessionStorage) as
+    const storage = getBrowserSessionStorage();
+    if (!storage) return;
+
+    const draft = readGuidedDraftFromStorage(storage) as
       | GuidedStoredDraft
       | null;
     if (!draft) {
-      clearGuidedDraftFromStorage(sessionStorage);
+      clearGuidedDraftFromStorage(storage);
       return;
     }
 
@@ -80,7 +84,7 @@ export function useSkillEditorBootstrap({
     } catch {
       // Invalid stored drafts are ignored and cleared below.
     } finally {
-      clearGuidedDraftFromStorage(sessionStorage);
+      clearGuidedDraftFromStorage(storage);
     }
   }, [mode, onGuidedDraft]);
 

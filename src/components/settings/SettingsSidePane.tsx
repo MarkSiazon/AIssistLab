@@ -5,6 +5,7 @@ import { ActiveValuesPanel } from "@/components/settings/ActiveValuesPanel";
 import { ClaudeCliPanel } from "@/components/settings/ClaudeCliPanel";
 import { ClaudeProjectInventoryPanel } from "@/components/settings/ClaudeProjectInventoryPanel";
 import { FirstRunChecklistPanel } from "@/components/settings/FirstRunChecklistPanel";
+import { ManualExternalQaPanel } from "@/components/settings/ManualExternalQaPanel";
 import { RagIndexPanel } from "@/components/settings/RagIndexPanel";
 import { ReleaseReadinessPanel } from "@/components/settings/ReleaseReadinessPanel";
 import { SettingsConfigFilePanel } from "@/components/settings/SettingsConfigFilePanel";
@@ -132,6 +133,8 @@ export function SettingsSidePane({
         isActionDisabled={releaseActionDisabled}
         onAction={onReleaseAction}
       />
+
+      <ManualExternalQaPanel />
 
       <ClaudeProjectInventoryPanel
         inventory={doctorReport?.claudeProject ?? null}

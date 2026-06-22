@@ -12,7 +12,7 @@ V1 is intentionally local-first. It is designed for a developer running a privat
 - Build a local TF-IDF RAG index over skills and ask grounded questions in Chat.
 - Use Anthropic API mode by default, or optional localhost-only Claude Code CLI mode.
 - Discover local Claude CLI/profile state without exposing account identifiers.
-- Diagnose setup readiness through Settings, Setup Doctor, First Run Checklist, and V1 Release Readiness.
+- Diagnose setup readiness through Settings, Setup Doctor, First Run Checklist, V1 Release Readiness, and Manual QA Evidence.
 - Validate skill quality, import skill bundles safely, and export sanitized diagnostics.
 - Keep device-local operations behind localhost guards.
 
@@ -38,7 +38,7 @@ V1 is feature-complete for the Claude-focused local release path:
 - Skill lifecycle, templates, import preview, quality checks, delete/restore, and guided builder are implemented.
 - Chat readiness, retry, citations, and streamed error handling are implemented.
 - Claude Project inventory and sanitized diagnostics export are implemented.
-- Release verification scripts and manual external QA checklist are documented.
+- Release verification scripts, the manual external QA checklist, and Settings Manual QA Evidence tracking are documented.
 
 Out of scope for V1:
 
@@ -138,7 +138,7 @@ Public UI labels stay generic, such as `Default profile`, `Profile 1`, and `Manu
 - `New Skill`: create from templates or open the guided skill builder.
 - `RAG Chat`: ask questions against indexed skills with citation links back to editor pages.
 - `Export`: download selected skills or a zip bundle with sanitized diagnostics.
-- `Settings`: configure paths/provider, run Setup Doctor, view First Run Checklist, inspect Claude Project inventory, and check V1 Release Readiness.
+- `Settings`: configure paths/provider, run Setup Doctor, view First Run Checklist, inspect Claude Project inventory, check V1 Release Readiness, and track local-only Manual QA Evidence.
 
 ## Local APIs
 
@@ -188,7 +188,7 @@ Full release gate:
 npm run verify:release
 ```
 
-This runs the test sweep, lint, production build, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
+This runs the test sweep, lint, production build, production server smoke, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 Useful focused commands:
 
@@ -198,12 +198,15 @@ npm run lint
 cmd.exe /c npm run build
 npm audit
 npm run smoke:local
+npm run smoke:production
 npm run qa:manual
 ```
 
 `npm run smoke:local` starts a temporary local Next.js server against a copied demo workspace, rebuilds the index, checks sanitized readiness/diagnostics APIs, and drives Settings, Skills, Chat, Export, Editor, and Guided Builder in Chromium. It does not click external auth launchers or native OS folder pickers.
 
-`npm run qa:manual` prints the manual external QA checklist for native folder picker, visible Claude login launch, and real account-backed chat. It does not open native dialogs, launch login, send chat messages, or write evidence files.
+`npm run smoke:production` expects `npm run build` to have completed, starts `next start` against the demo workspace, verifies local-device APIs return the intended production guard response, and checks the built Settings, Skills, Chat, Export, Editor, and Guided Builder pages load without unexpected browser errors.
+
+`npm run qa:manual` prints the manual external QA checklist for native folder picker, visible Claude login launch, and real account-backed chat. It does not open native dialogs, launch login, send chat messages, or write evidence files. Settings includes a `Manual QA Evidence` panel for session-local status/timestamp tracking after you run those checks.
 
 ## Documentation
 

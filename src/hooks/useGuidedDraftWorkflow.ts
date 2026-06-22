@@ -8,6 +8,7 @@ import {
   type GuidedFeedback,
   type GuidedValidationError,
 } from "@/lib/ui/guided-builder-model";
+import { getBrowserSessionStorage } from "@/lib/ui/browser-storage";
 import { writeGuidedDraftToStorage } from "@/lib/ui/guided-draft-storage";
 
 interface GuidedDraftWorkflowInput {
@@ -129,7 +130,8 @@ export function useGuidedDraftWorkflow({
       return;
     }
 
-    const stored = writeGuidedDraftToStorage(sessionStorage, draft);
+    const storage = getBrowserSessionStorage();
+    const stored = storage ? writeGuidedDraftToStorage(storage, draft) : false;
     if (!stored) {
       setMessage(
         "Browser storage is unavailable, so the draft cannot be handed off to the editor in this tab.",

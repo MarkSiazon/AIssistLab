@@ -6,6 +6,7 @@ Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code
 
 - Local Settings for workspace paths, skills directory paths, provider selection, Claude CLI profile selection, and runtime-applied provider changes.
 - Deterministic Setup Doctor, First Run Checklist, and V1 Release Readiness panel for workspace, provider, index, skill quality, Claude project, chat, and diagnostics state.
+- Settings Manual QA Evidence panel for local-only status/timestamp tracking of native folder picker, visible Claude login launch, and real account-backed chat checks.
 - A tracked demo workspace for portable first-run smoke checks without private local paths or provider credentials.
 - Anthropic API mode as the default deployable provider, plus optional localhost-only Claude Code CLI mode with profile discovery, visible login launch, explicit smoke tests, and sanitized status output.
 - Persistent RAG index metadata with ready, stale, missing, rebuilding, and failed states; skill writes mark the index stale, and stale counts are labeled as the last index in Sidebar and Settings.
@@ -34,6 +35,7 @@ Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code
 2. Rebuild the RAG index.
 3. Test Claude CLI or API auth through the existing provider readiness controls.
 4. Confirm the V1 Release Readiness panel and Chat status are usable.
-5. Export diagnostics when sharing release evidence or troubleshooting context.
+5. Run manual external QA where device/account interaction is required and mark the results in Settings Manual QA Evidence.
+6. Export diagnostics when sharing release evidence or troubleshooting context.
 
 For a repeatable release-candidate pass, use [release-candidate-runbook.md](release-candidate-runbook.md).

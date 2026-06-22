@@ -58,11 +58,6 @@ export interface SettingsReleaseReadinessPanelState {
   primaryAction: SettingsReleaseReadinessSection | undefined;
 }
 
-export const manualExternalQaCommand = "npm run qa:manual";
-
-export const manualExternalQaHint =
-  "Run this after starting the local app to print the native folder picker, Open Login, and account-backed chat checklist.";
-
 function statusSortScore(status: SettingsReleaseReadinessStatus): number {
   if (status === "blocked") return 0;
   if (status === "needs_action") return 1;

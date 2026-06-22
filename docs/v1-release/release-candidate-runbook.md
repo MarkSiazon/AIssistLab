@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs the full test sweep, lint, production build, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs the full test sweep, lint, production build, production server smoke, dependency audit, local browser/API smoke, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -104,6 +104,7 @@ npm run lint
 cmd.exe /c npm run build
 npm audit
 npm run smoke:local
+npm run smoke:production
 git diff --check
 ```
 
@@ -114,6 +115,8 @@ npm run qa:manual
 ```
 
 Set `MANUAL_QA_BASE_URL=http://localhost:3000` when the app is running on a different local port. The helper does not click native OS dialogs, launch login, send chat, or write evidence files.
+
+After running those checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted.
 
 `npm test` executes every `src/**/*.test.ts` file and release script helper tests under `scripts/**/*.test.mjs`. If you need to run the same sweep manually:
 

@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import {
   getSettingsReleaseReadinessPanelState,
-  manualExternalQaCommand,
-  manualExternalQaHint,
 } from "./settings-release-readiness-panel";
 
 const report = {
@@ -60,10 +58,6 @@ assert.deepEqual(
   ["workspace", "index", "skills"],
 );
 assert.equal(state.primaryAction?.id, "workspace");
-assert.equal(manualExternalQaCommand, "npm run qa:manual");
-assert.match(manualExternalQaHint, /native folder picker/);
-assert.match(manualExternalQaHint, /Open Login/);
-assert.match(manualExternalQaHint, /account-backed chat/);
 
 assert.deepEqual(getSettingsReleaseReadinessPanelState(null), {
   readyCount: 0,

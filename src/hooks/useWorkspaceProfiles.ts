@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getBrowserLocalStorage } from "@/lib/ui/browser-storage";
 import {
   buildSettingsWorkspaceProfile,
   deleteSettingsWorkspaceProfile,
@@ -29,8 +30,10 @@ export function useWorkspaceProfiles() {
   const persistWorkspaceProfiles = useCallback(
     (nextProfiles: SettingsWorkspaceProfile[]) => {
       setWorkspaceProfiles(nextProfiles);
+      const storage = getBrowserLocalStorage();
+      if (!storage) return false;
       return writeSettingsWorkspaceProfilesToStorage(
-        window.localStorage,
+        storage,
         nextProfiles,
       );
     },
@@ -38,8 +41,10 @@ export function useWorkspaceProfiles() {
   );
 
   useEffect(() => {
+    const storage = getBrowserLocalStorage();
+    if (!storage) return;
     setWorkspaceProfiles(
-      readSettingsWorkspaceProfilesFromStorage(window.localStorage),
+      readSettingsWorkspaceProfilesFromStorage(storage),
     );
   }, []);
 

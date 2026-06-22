@@ -6,8 +6,6 @@ import {
 import { isSafeInternalActionHref } from "@/lib/ui/internal-action-href";
 import {
   getSettingsReleaseReadinessPanelState,
-  manualExternalQaCommand,
-  manualExternalQaHint,
   type SettingsReleaseReadinessReport,
   type SettingsReleaseReadinessSection,
 } from "@/lib/ui/settings-release-readiness-panel";
@@ -212,18 +210,6 @@ export function ReleaseReadinessPanel({
                     })()}
                 </div>
               ))}
-            </div>
-            <div
-              className="settings-readiness-manual-qa"
-              aria-label="Manual external QA helper"
-            >
-              <div className="settings-readiness-manual-qa-label">
-                Manual external QA
-              </div>
-              <div className="settings-readiness-manual-qa-copy">
-                <code>{manualExternalQaCommand}</code>
-                <span>{manualExternalQaHint}</span>
-              </div>
             </div>
           </div>
         ) : (

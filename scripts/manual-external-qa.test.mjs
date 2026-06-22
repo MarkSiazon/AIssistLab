@@ -63,6 +63,8 @@ assert.match(report, /Claude Open Login/);
 assert.match(report, /Account-backed chat/);
 assert.match(report, /Release readiness: needs_action \(82\/100\)/);
 assert.match(report, /Chat readiness: blocked \(Provider auth needs attention\.\)/);
+assert.match(report, /Settings Manual QA Evidence panel/);
+assert.match(report, /does not write evidence files/);
 assert.doesNotMatch(report, /C:\\Users|sk-ant-|oauth\.json|Bearer /i);
 
 await assert.rejects(

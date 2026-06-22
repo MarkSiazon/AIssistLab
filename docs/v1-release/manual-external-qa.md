@@ -16,6 +16,8 @@ npm run qa:manual
 
 Set `MANUAL_QA_BASE_URL=http://localhost:3000` if the app is running on a different local port. The helper reads sanitized readiness endpoints and prints this checklist. It does not open native dialogs, launch login, send chat messages, or write evidence files.
 
+Settings also includes a `Manual QA Evidence` panel. Use it to mark each check as `Passed`, `Needs fix`, or `Pending` after you run the manual steps. The panel stores only status and timestamp in this browser's local storage; it does not store prompts, screenshots, account names, profile paths, or auth output.
+
 ## Native Folder Picker
 
 1. In Settings, find `WORKSPACE_ROOT` or `SKILLS_DIR`.
@@ -71,7 +73,6 @@ Pass criteria:
 
 ## Evidence To Record
 
-- Date and local browser used.
-- Which buttons were checked.
-- Pass/fail state for each flow.
-- Sanitized notes only; do not include screenshots containing account identifiers or local secrets.
+- Use the Settings `Manual QA Evidence` panel for session-local pass/fail state.
+- Keep any external notes sanitized; do not include screenshots containing account identifiers or local secrets.
+- Record only the local browser, date, checked buttons, and generic failure category when separate issue notes are needed.

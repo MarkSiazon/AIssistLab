@@ -1,4 +1,4 @@
-import { compactPath } from "@/lib/ui/path-picker-model";
+import { compactPath, isAbsolutePathValue } from "@/lib/ui/path-picker-model";
 
 interface PathPickerSidebarProps {
   browseFrom?: string;
@@ -15,6 +15,11 @@ export function PathPickerSidebar({
   loading,
   onBrowse,
 }: PathPickerSidebarProps) {
+  const currentValuePath =
+    value && browseFrom && !isAbsolutePathValue(value) ? browseFrom : value;
+  const showCurrentValue =
+    currentValuePath && currentValuePath.toLowerCase() !== browseFrom?.toLowerCase();
+
   return (
     <aside className="path-picker-sidebar" aria-label="Folder shortcuts">
       <button
@@ -36,13 +41,13 @@ export function PathPickerSidebar({
           Start folder
         </button>
       )}
-      {value && (
+      {showCurrentValue && (
         <button
           type="button"
-          onClick={() => onBrowse(value)}
+          onClick={() => onBrowse(currentValuePath)}
           disabled={loading}
           className="ui-button ui-button-secondary"
-          title={value}
+          title={currentValuePath}
         >
           Current value
         </button>

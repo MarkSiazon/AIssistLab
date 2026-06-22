@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "node scripts/run-tests.mjs",
     "smoke:local": "node scripts/smoke-local.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "qa:manual": "node scripts/manual-external-qa.mjs",
     "verify:release": "node scripts/verify-release.mjs"
   },

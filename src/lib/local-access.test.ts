@@ -67,6 +67,42 @@ async function main(): Promise<void> {
     assert.equal(blockedCliRoute.status, 403);
     assert.equal(cliCallCount, 0);
   });
+
+  await withEnv({ NODE_ENV: "production", VERCEL: undefined }, async () => {
+    const deviceResponse = forbidNonLocalDeviceRequest(
+      localRequest("/api/settings"),
+    );
+    assert.equal(deviceResponse?.status, 403);
+    assert.deepEqual(await json(deviceResponse), {
+      error: "Local device access is disabled in production mode.",
+    });
+
+    const cliResponse = forbidNonLocalCliRequest(
+      localRequest("/api/settings/claude-cli"),
+    );
+    assert.equal(cliResponse?.status, 403);
+    assert.deepEqual(await json(cliResponse), {
+      error: "Local Claude CLI is disabled in production mode.",
+    });
+  });
+
+  await withEnv({ NODE_ENV: "development", VERCEL: "1" }, async () => {
+    const deviceResponse = forbidNonLocalDeviceRequest(
+      localRequest("/api/settings"),
+    );
+    assert.equal(deviceResponse?.status, 403);
+    assert.deepEqual(await json(deviceResponse), {
+      error: "Local device access is disabled on hosted deployments.",
+    });
+
+    const cliResponse = forbidNonLocalCliRequest(
+      localRequest("/api/settings/claude-cli"),
+    );
+    assert.equal(cliResponse?.status, 403);
+    assert.deepEqual(await json(cliResponse), {
+      error: "Local Claude CLI is disabled on hosted deployments.",
+    });
+  });
 }
 
 main()

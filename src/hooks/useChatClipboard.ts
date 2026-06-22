@@ -18,8 +18,12 @@ async function writeClipboard(value: string) {
   document.body.appendChild(textarea);
   textarea.focus();
   textarea.select();
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textarea);
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textarea);
+  }
   if (!copied) throw new Error("Clipboard unavailable");
 }
 

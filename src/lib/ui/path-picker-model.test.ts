@@ -1,12 +1,19 @@
 import assert from "node:assert/strict";
 import {
   compactPath,
+  isAbsolutePathValue,
   normalizeInputPath,
   splitBreadcrumbs,
 } from "./path-picker-model";
 
 assert.equal(normalizeInputPath(' "C:\\Work\\Skills" '), "C:\\Work\\Skills");
 assert.equal(normalizeInputPath("'~/skills'"), "~/skills");
+assert.equal(isAbsolutePathValue("C:\\Work\\Skills"), true);
+assert.equal(isAbsolutePathValue("C:/Work/Skills"), true);
+assert.equal(isAbsolutePathValue("\\\\server\\share\\skills"), true);
+assert.equal(isAbsolutePathValue("/workspace/skills"), true);
+assert.equal(isAbsolutePathValue(".claude/skills"), false);
+assert.equal(isAbsolutePathValue("skills"), false);
 
 assert.deepEqual(splitBreadcrumbs("C:\\Work\\Skills"), [
   { label: "C:\\", path: "C:\\" },

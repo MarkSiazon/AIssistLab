@@ -12,6 +12,7 @@ import {
   formatGuidedAutosaveTime,
   GUIDED_FORM_STORAGE_KEY,
 } from "@/lib/ui/guided-builder-model";
+import { getBrowserSessionStorage } from "@/lib/ui/browser-storage";
 
 interface GuidedAutosaveInput {
   formSnapshotInput: GuidedFormSnapshotInput;
@@ -35,8 +36,10 @@ export function useGuidedAutosave({
 
   useEffect(() => {
     try {
+      const storage = getBrowserSessionStorage();
+      if (!storage) throw new Error("Session storage unavailable");
       const snapshot = parseGuidedFormSnapshot(
-        sessionStorage.getItem(GUIDED_FORM_STORAGE_KEY),
+        storage.getItem(GUIDED_FORM_STORAGE_KEY),
       );
       if (snapshot && guidedFormHasContent(snapshot)) {
         onRestoreSnapshot(snapshot);
@@ -57,15 +60,17 @@ export function useGuidedAutosave({
 
     const timer = window.setTimeout(() => {
       try {
+        const storage = getBrowserSessionStorage();
+        if (!storage) throw new Error("Session storage unavailable");
         if (!formHasContent) {
-          sessionStorage.removeItem(GUIDED_FORM_STORAGE_KEY);
+          storage.removeItem(GUIDED_FORM_STORAGE_KEY);
           setHasContent(false);
           setMessage("Autosaves in this tab after you start typing.");
           return;
         }
 
         const snapshot = buildGuidedFormSnapshot(formSnapshotInput);
-        sessionStorage.setItem(GUIDED_FORM_STORAGE_KEY, JSON.stringify(snapshot));
+        storage.setItem(GUIDED_FORM_STORAGE_KEY, JSON.stringify(snapshot));
         setHasContent(true);
         setMessage(
           `Saved in this tab at ${formatGuidedAutosaveTime(snapshot.updatedAt)}.`,
@@ -85,7 +90,7 @@ export function useGuidedAutosave({
 
   function confirmClear() {
     try {
-      sessionStorage.removeItem(GUIDED_FORM_STORAGE_KEY);
+      getBrowserSessionStorage()?.removeItem(GUIDED_FORM_STORAGE_KEY);
     } catch {
       // Some embedded browser contexts restrict storage access.
     }

@@ -12,6 +12,10 @@ assert.equal(
 );
 assert.equal(toRelativeSettingsPath("C:\\workspace", "C:\\workspace"), ".");
 assert.equal(
+  toRelativeSettingsPath("C:\\workspace2\\.claude\\skills", "C:\\workspace"),
+  "C:\\workspace2\\.claude\\skills",
+);
+assert.equal(
   toRelativeSettingsPath("D:\\other\\.claude\\skills", "C:\\workspace"),
   "D:\\other\\.claude\\skills",
 );
@@ -22,8 +26,28 @@ assert.deepEqual(
     workspaceRoot: "C:\\workspace\\",
   }),
   {
-    browseFrom: "C:\\workspace\\.claude/skills",
-    resolvedPath: "C:\\workspace\\.claude/skills",
+    browseFrom: "C:\\workspace\\.claude\\skills",
+    resolvedPath: "C:\\workspace\\.claude\\skills",
+  },
+);
+assert.deepEqual(
+  getRelativePathFieldState({
+    value: ".",
+    workspaceRoot: "C:\\workspace\\",
+  }),
+  {
+    browseFrom: "C:\\workspace",
+    resolvedPath: "C:\\workspace",
+  },
+);
+assert.deepEqual(
+  getRelativePathFieldState({
+    value: "./.claude/skills",
+    workspaceRoot: "C:\\workspace",
+  }),
+  {
+    browseFrom: "C:\\workspace\\.claude\\skills",
+    resolvedPath: "C:\\workspace\\.claude\\skills",
   },
 );
 assert.deepEqual(
@@ -33,7 +57,7 @@ assert.deepEqual(
   }),
   {
     browseFrom: "D:\\other\\.claude\\skills",
-    resolvedPath: "C:\\workspace\\D:\\other\\.claude\\skills",
+    resolvedPath: "D:\\other\\.claude\\skills",
   },
 );
 

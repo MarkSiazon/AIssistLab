@@ -27,6 +27,14 @@ export function normalizeInputPath(value: string): string {
   return value.trim().replace(/^["']|["']$/g, "");
 }
 
+export function isAbsolutePathValue(value: string): boolean {
+  return (
+    /^[A-Za-z]:[\\/]/.test(value) ||
+    value.startsWith("\\\\") ||
+    value.startsWith("/")
+  );
+}
+
 export function splitBreadcrumbs(pathValue: string): PathCrumb[] {
   if (!pathValue) return [];
 
