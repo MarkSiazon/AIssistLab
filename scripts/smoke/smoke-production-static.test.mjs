@@ -170,4 +170,24 @@ assert.match(
   "production smoke must verify mocked chat send/copy behavior in the built app",
 );
 
+assert.match(
+  productionSmokeSource,
+  /runProductionExportInteractionSmoke/,
+  "production smoke must verify built-app export interaction states",
+);
+
+for (const exportInteraction of [
+  "production export selected skill",
+  "Download 1 selected skills with diagnostics",
+  "Download release-readiness-smoke as Markdown",
+  "skill=release-readiness-smoke",
+  "diagnostics=true",
+]) {
+  assert.match(
+    productionSmokeSource,
+    new RegExp(escapeRegExp(exportInteraction)),
+    `production smoke must verify ${exportInteraction}`,
+  );
+}
+
 console.log("Production smoke runner static tests passed");

@@ -290,6 +290,17 @@ async function clickButton(page, name) {
   await button.click();
 }
 
+async function waitForRecordedUrl(page, readLatestUrl, label) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < routeNavigationTimeoutMs) {
+    const url = readLatestUrl();
+    if (url) return url;
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`${label} was not requested. Current URL: ${page.url()}`);
+}
+
 async function assertCurrentRouteState(page, scope) {
   await assertRouteSemanticState(page, scope);
   await assertRouteInteractionState(page, scope);
@@ -330,6 +341,51 @@ function mockChatStatusPayload() {
       error: null,
     },
     lastCliSmokeTest: null,
+  };
+}
+
+function mockExportSkillsPayload() {
+  return {
+    skills: [
+      {
+        name: "release-readiness-smoke",
+        description: "Production smoke export fixture.",
+        tags: ["smoke", "release"],
+        updatedAt: "2026-06-12T04:00:00.000Z",
+      },
+    ],
+  };
+}
+
+function mockReleaseReadinessPayload() {
+  return {
+    schemaVersion: 1,
+    generatedAt: "2026-06-12T04:00:00.000Z",
+    summary: {
+      status: "ready",
+      score: 100,
+      topAction: null,
+      canChat: true,
+      canExportDiagnostics: true,
+    },
+    sections: [
+      {
+        id: "workspace",
+        label: "Workspace",
+        status: "ready",
+        message: "Workspace path is valid.",
+        actionLabel: "Open Settings",
+        actionHref: "/settings",
+      },
+      {
+        id: "diagnostics",
+        label: "Diagnostics",
+        status: "ready",
+        message: "Diagnostics export is available.",
+        actionLabel: "Export Diagnostics",
+        actionHref: "/export?diagnostics=true",
+      },
+    ],
   };
 }
 
@@ -478,6 +534,108 @@ async function runProductionInteractionSmoke(page, baseUrl) {
   await runProductionChatInteractionSmoke(page, baseUrl);
 }
 
+async function runProductionExportInteractionSmoke(page, baseUrl) {
+  const requestedZipUrls = [];
+  const requestedSkillUrls = [];
+  await page.route("**/api/skills", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockExportSkillsPayload()),
+    });
+  });
+  await page.route("**/api/release/readiness", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mockReleaseReadinessPayload()),
+    });
+  });
+  await page.route("**/api/export/zip**", async (route) => {
+    requestedZipUrls.push(route.request().url());
+    await route.fulfill({
+      contentType: "application/zip",
+      headers: {
+        "content-disposition": 'attachment; filename="production-smoke.zip"',
+      },
+      body: "production smoke zip",
+    });
+  });
+  await page.route("**/api/export?**", async (route) => {
+    requestedSkillUrls.push(route.request().url());
+    await route.fulfill({
+      contentType: "text/markdown",
+      headers: {
+        "content-disposition":
+          'attachment; filename="release-readiness-smoke.md"',
+      },
+      body: "# Production Smoke Skill\n",
+    });
+  });
+
+  try {
+    await page.goto(`${baseUrl}/export`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await expectText(page, "Diagnostics export is available.");
+    await expectText(page, "release-readiness-smoke.md");
+    await expectText(page, "0 of 1 selected");
+    await clickButton(page, "Select all");
+    await expectText(page, "1 of 1 selected");
+    await assertCurrentRouteState(page, "production export selected skill");
+    await clickButton(page, "Clear");
+    await expectText(page, "0 of 1 selected");
+
+    const skillCheckbox = page
+      .getByRole("checkbox", { name: "Select release-readiness-smoke for export" })
+      .first();
+    await skillCheckbox.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await skillCheckbox.check();
+    await expectText(page, "1 of 1 selected");
+    const includeDiagnostics = page
+      .getByRole("checkbox", { name: "Include diagnostics in export bundle" })
+      .first();
+    assert(
+      await includeDiagnostics.isChecked(),
+      "Production export diagnostics toggle should default to checked",
+    );
+
+    await clickButton(page, "Download 1 selected skills with diagnostics");
+    const selectedZipUrl = await waitForRecordedUrl(
+      page,
+      () => requestedZipUrls.at(-1),
+      "Production export selected ZIP URL",
+    );
+    assert(
+      selectedZipUrl.includes("skill=release-readiness-smoke") &&
+        selectedZipUrl.includes("diagnostics=true"),
+      `Production export selected ZIP URL was wrong: ${selectedZipUrl}`,
+    );
+
+    await page.goto(`${baseUrl}/export`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await clickButton(page, "Download release-readiness-smoke as Markdown");
+    const skillUrl = await waitForRecordedUrl(
+      page,
+      () => requestedSkillUrls.at(-1),
+      "Production export single-skill URL",
+    );
+    assert(
+      skillUrl.includes("skill=release-readiness-smoke"),
+      `Production export single-skill URL was wrong: ${skillUrl}`,
+    );
+  } finally {
+    await page.unroute("**/api/skills");
+    await page.unroute("**/api/release/readiness");
+    await page.unroute("**/api/export/zip**");
+    await page.unroute("**/api/export?**");
+  }
+}
+
 async function runBrowserSmoke(baseUrl) {
   const browser = await chromium.launch({
     headless: process.env.SMOKE_HEADLESS !== "false",
@@ -496,6 +654,7 @@ async function runBrowserSmoke(baseUrl) {
         }
         if (viewportLabel === "desktop") {
           await runProductionInteractionSmoke(page, baseUrl);
+          await runProductionExportInteractionSmoke(page, baseUrl);
         }
         assert(
           browserIssues.length === 0,
