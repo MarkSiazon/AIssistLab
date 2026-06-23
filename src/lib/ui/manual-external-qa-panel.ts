@@ -5,6 +5,7 @@ export interface ManualExternalQaItemDefinition {
   label: string;
   action: string;
   passCriteria: string;
+  manualReason: string;
 }
 
 export interface ManualExternalQaEvidenceItem
@@ -44,18 +45,21 @@ export const manualExternalQaItems: ManualExternalQaItemDefinition[] = [
     label: "Native folder picker",
     action: "Open Settings, click Choose folder, then cancel and select a harmless test folder.",
     passCriteria: "Visible OS picker opens, cancel is non-destructive, and selected folders update only the intended field.",
+    manualReason: "The OS folder picker is a native device dialog and must be visually confirmed by the local user.",
   },
   {
     id: "claude-open-login",
     label: "Claude Open Login",
     action: "Select the intended Claude profile, click Open Login, then close or cancel the visible auth flow.",
     passCriteria: "Login never runs silently, the launcher is visible, and Settings stays sanitized.",
+    manualReason: "The login action can open a private account-owned Claude auth flow, so automation must not click it.",
   },
   {
     id: "account-backed-chat",
     label: "Account-backed chat",
     action: "Use an allowed API key or Claude profile, send the release-readiness prompt, and inspect the cited answer.",
     passCriteria: "Chat sends only after user action, provider failures are actionable, and no account/auth details leak.",
+    manualReason: "A real chat sends a user-owned prompt through configured credentials and needs account approval.",
   },
 ];
 

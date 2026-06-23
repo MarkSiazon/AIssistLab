@@ -63,7 +63,7 @@ export const CLAUDE_CLI_FIELDS: SettingsConfigField[] = [
     type: "text",
     placeholder: "auto",
     defaultValue: "auto",
-    hint: "Use auto to prefer the official native install path, then fall back to PATH. Set an explicit executable path only when needed.",
+    hint: "Use auto to prefer the official native install path, then fall back to PATH. You can also set an executable path or its install folder.",
   },
   {
     key: "CLAUDE_LOGIN_COMMAND",
@@ -71,7 +71,7 @@ export const CLAUDE_CLI_FIELDS: SettingsConfigField[] = [
     type: "text",
     placeholder: "auto",
     defaultValue: "auto",
-    hint: "Use auto to discover an optional claude-login helper, or fall back to Claude Code's built-in auth login.",
+    hint: "Use auto for Claude Code's built-in auth login. Set claude-login or an explicit helper path only when you intentionally use a custom login helper.",
   },
   {
     key: "CLAUDE_CONFIG_DIR",

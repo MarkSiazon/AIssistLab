@@ -2314,11 +2314,20 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await setInputValue(page, "#skills-import-folder", importSource);
   await clickButton(page, "Preview Folder", { timeout: 60000 });
   await expectText(page, "smoke-imported-skill");
-  await clickButton(page, "Import \\d+ skill", {
-    exact: false,
-    timeout: 60000,
-  });
-  await expectText(page, "smoke-imported-skill");
+  await Promise.all([
+    waitForApiResponse(
+      page,
+      (response) =>
+        response.url().includes("/api/skills/import/apply") &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    ),
+    clickButton(page, "Import \\d+ skill", {
+      exact: false,
+      timeout: 60000,
+    }),
+  ]);
+  await expectText(page, "Imported 1 skill. Index marked stale.");
 
   const demoSkillButton = page
     .locator(".skills-list-scroll button")
@@ -2331,6 +2340,7 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
     .locator(".skills-list-scroll button")
     .filter({ hasText: "smoke-imported-skill" })
     .first();
+  await importedSkillButton.waitFor({ state: "visible", timeout: 60000 });
   await clickButtonLocator(importedSkillButton, "imported skill button");
   await expectText(page, "smoke-imported-skill.md");
   const skillPreviewPane = page.locator(".skills-preview-pane").first();
@@ -2394,16 +2404,26 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await page.locator("#skills-import-archive").setInputFiles(archivePath);
   await clickButton(page, "Preview Zip", { timeout: 60000 });
   await expectText(page, "smoke-zip-imported-skill");
-  await clickButton(page, "Import \\d+ skill", {
-    exact: false,
-    timeout: 60000,
-  });
-  await expectText(page, "smoke-zip-imported-skill");
+  await Promise.all([
+    waitForApiResponse(
+      page,
+      (response) =>
+        response.url().includes("/api/skills/import/apply") &&
+        response.request().method() === "POST" &&
+        response.ok(),
+    ),
+    clickButton(page, "Import \\d+ skill", {
+      exact: false,
+      timeout: 60000,
+    }),
+  ]);
+  await expectText(page, "Imported 1 skill. Index marked stale.");
 
   const zipImportedSkillButton = page
     .locator(".skills-list-scroll button")
     .filter({ hasText: "smoke-zip-imported-skill" })
     .first();
+  await zipImportedSkillButton.waitFor({ state: "visible", timeout: 60000 });
   await clickButtonLocator(zipImportedSkillButton, "zip imported skill button");
   await expectText(page, "smoke-zip-imported-skill.md");
   const selectedSkillExportPromise = page.waitForEvent("download");

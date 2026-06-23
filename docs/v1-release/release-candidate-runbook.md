@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -104,11 +104,14 @@ npm run lint
 cmd.exe /c npm run build
 npm audit
 npm run smoke:local
+npm run smoke:buttons
 npm run smoke:production
 git diff --check
 ```
 
 `npm run smoke:local` drives local interactive Settings, Skills, Chat, Export, Editor, and Guided Builder flows in Chromium and verifies keyboard paths, semantic route structure, ARIA references, accessible control names, and 44px action targets across those states.
+
+`npm run smoke:buttons` clicks low-risk visible buttons across the main local routes and fails on console errors or real failed requests. It intentionally skips auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
 
 `npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
@@ -138,7 +141,7 @@ Set `MANUAL_QA_BASE_URL=http://localhost:3000` when the app is running on a diff
 npm run qa:manual:auto
 ```
 
-Both helpers print only sanitized status plus the manual checklist. They do not click native OS dialogs, launch login, send chat, or write evidence files.
+Both helpers print only sanitized status plus the manual checklist, including why each gated check remains manual. They do not click native OS dialogs, launch login, send chat, or write evidence files.
 
 After running those checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted.
 

@@ -220,6 +220,24 @@ assert.match(
 
 assert.match(
   source,
+  /\/api\/skills\/import\/apply[\s\S]*response\.ok\(\)/,
+  "skills smoke must wait for successful import apply responses before checking imported rows",
+);
+
+assert.match(
+  source,
+  /importedSkillButton\.waitFor\(\{\s*state:\s*"visible",\s*timeout:\s*60000\s*\}\)/,
+  "skills smoke must wait for imported folder skill rows after import",
+);
+
+assert.match(
+  source,
+  /zipImportedSkillButton\.waitFor\(\{\s*state:\s*"visible",\s*timeout:\s*60000\s*\}\)/,
+  "skills smoke must wait for imported zip skill rows after import",
+);
+
+assert.match(
+  source,
   /All previewed skills are duplicates\. Choose Rename or Overwrite to import changes\./,
   "duplicate import smoke must verify skip-all duplicate blocker copy",
 );

@@ -18,6 +18,7 @@ export interface SettingsClaudeCliStatus {
   cliPath: string;
   configuredCliPath: string;
   cliPathSource: "env" | "native-install" | "path";
+  loginCommand: string;
   loginCommandSource: "env" | "sibling" | "user-bin" | "path" | "missing";
   loginHelperAvailable: boolean;
   canOpenLogin: boolean;
@@ -191,9 +192,11 @@ export function getSettingsClaudePanelState({
           : claudeStatus.canOpenLogin
             ? "Claude auth login"
             : "Unavailable",
-        meta: claudeStatus.enabled
-          ? "Local CLI calls enabled"
-          : "Local CLI calls disabled",
+        meta: claudeStatus.canOpenLogin
+          ? formatPath(claudeStatus.loginCommand)
+          : claudeStatus.enabled
+            ? "Install Claude Code CLI before opening login."
+            : "Local CLI calls disabled",
       },
       {
         label: "Profile",

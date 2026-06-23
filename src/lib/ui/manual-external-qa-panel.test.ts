@@ -24,6 +24,10 @@ assert.deepEqual(
   initialEvidence.map((item) => item.status),
   ["pending", "pending", "pending"],
 );
+assert.deepEqual(
+  initialEvidence.map((item) => item.manualReason.length > 0),
+  [true, true, true],
+);
 
 const checkedAt = "2026-06-22T04:00:00.000Z";
 const passedEvidence = updateManualExternalQaEvidence(

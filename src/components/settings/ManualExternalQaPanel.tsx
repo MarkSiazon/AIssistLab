@@ -120,6 +120,9 @@ export function ManualExternalQaPanel() {
             <div className="settings-manual-qa-copy">
               <span>{item.action}</span>
               <strong>{item.passCriteria}</strong>
+              <span className="settings-manual-qa-reason">
+                Manual because: {item.manualReason}
+              </span>
               <em>{formatManualExternalQaTimestamp(item.checkedAt)}</em>
             </div>
             <div

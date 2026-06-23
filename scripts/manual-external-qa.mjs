@@ -15,6 +15,8 @@ const endpointPaths = [
 export const manualQaChecks = [
   {
     title: "Native folder picker",
+    manualReason:
+      "The OS folder picker is a native device dialog and must be visually confirmed by the local user.",
     steps: [
       "Open Settings and click Choose folder for WORKSPACE_ROOT or SKILLS_DIR.",
       "Confirm the native folder picker opens visibly.",
@@ -25,6 +27,8 @@ export const manualQaChecks = [
   },
   {
     title: "Claude Open Login",
+    manualReason:
+      "The login action can open a private account-owned Claude auth flow, so automation must not click it.",
     steps: [
       "Open Settings and select the intended Claude profile.",
       "Click Open Login.",
@@ -36,6 +40,8 @@ export const manualQaChecks = [
   },
   {
     title: "Account-backed chat",
+    manualReason:
+      "A real chat sends a user-owned prompt through configured credentials and needs account approval.",
     steps: [
       "Choose the intended provider in Settings.",
       "For API mode, confirm an API key is configured locally without copying its value.",
@@ -320,6 +326,7 @@ export function formatManualQaReport(baseUrl, entries) {
     "",
     ...manualQaChecks.flatMap((check, index) => [
       `${index + 1}. ${check.title}`,
+      `   - Manual because: ${check.manualReason}`,
       ...check.steps.map((step) => `   - ${step}`),
       `   - Pass: ${check.pass}`,
       "",

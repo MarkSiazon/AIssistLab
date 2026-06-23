@@ -120,7 +120,9 @@ CLAUDE_CONFIG_DIR=
 - Windows: `%USERPROFILE%\.local\bin\claude.exe`, then `claude.exe`
 - macOS/Linux: `~/.local/bin/claude`, then `claude`
 
-`CLAUDE_LOGIN_COMMAND=auto` resolves an optional helper named `claude-login`. If no helper is found, Settings falls back to visible `claude auth login`.
+`CLAUDE_LOGIN_COMMAND=auto` opens Claude Code's built-in visible auth flow, `claude auth login`, using the resolved Claude executable. Set `CLAUDE_LOGIN_COMMAND=claude-login` or an explicit helper path only if you intentionally use a custom login helper.
+
+`CLAUDE_CLI_PATH` may be `auto`, a full executable path, or the install folder that contains the Claude executable, such as `%USERPROFILE%\.local\bin`.
 
 CLI generation uses `claude -p` in a non-interactive child process with safe flags. The spawned process removes `ANTHROPIC_API_KEY` so API-key auth does not accidentally override local Claude subscription auth.
 
@@ -188,7 +190,7 @@ Full release gate:
 npm run verify:release
 ```
 
-This runs project cleanup dry-run preflight, the test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
+This runs project cleanup dry-run preflight, the test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 Useful focused commands:
 
@@ -198,6 +200,7 @@ npm run lint
 cmd.exe /c npm run build
 npm audit
 npm run smoke:local
+npm run smoke:buttons
 npm run smoke:production
 npm run qa:manual
 npm run qa:manual:auto
@@ -207,9 +210,11 @@ npm run cleanup:project
 
 `npm run smoke:local` starts a temporary local Next.js server against a copied demo workspace, rebuilds the index, checks sanitized readiness/diagnostics APIs, and drives Settings, Skills, Chat, Export, Editor, and Guided Builder in Chromium, including keyboard activation paths, semantic route checks, and interactive ARIA/control audits for key states. It does not click external auth launchers or native OS folder pickers.
 
+`npm run smoke:buttons` starts a temporary local Next.js server and clicks low-risk visible buttons on Settings, Skills, Chat, Export, and Guided Builder. It fails on console errors or real failed requests while intentionally skipping auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
+
 `npm run smoke:production` expects `npm run build` to have completed, starts `next start` against the demo workspace, verifies local-device APIs return the intended production guard response, checks the built Settings, Skills, Chat, Export, Editor, and Guided Builder pages render nonblank desktop/mobile views without horizontal overflow, broken landmarks/headings/ARIA references, missing accessible control names, undersized action targets, or unexpected browser errors, and exercises built-client Settings, editor, guided builder, chat/citation, and export interaction states with sanitized mocks.
 
-`npm run qa:manual` prints the manual external QA checklist for native folder picker, visible Claude login launch, and real account-backed chat against an already-running local app. `npm run qa:manual:auto` starts a temporary localhost dev server, prints the same sanitized report, then stops that server. Neither command opens native dialogs, launches login, sends chat messages, or writes evidence files. Settings includes a `Manual QA Evidence` panel for session-local status/timestamp tracking after you run those checks.
+`npm run qa:manual` prints the manual external QA checklist for native folder picker, visible Claude login launch, and real account-backed chat against an already-running local app. `npm run qa:manual:auto` starts a temporary localhost dev server, prints the same sanitized report, then stops that server. Each checklist item explains why it remains manual. Neither command opens native dialogs, launches login, sends chat messages, or writes evidence files. Settings includes a `Manual QA Evidence` panel for session-local status/timestamp tracking after you run those checks.
 
 `npm run cleanup:project:dry-run` lists repo-owned Next/smoke/test process trees that can be cleaned up when a local run is stale. `npm run cleanup:project` stops only those detected project process trees. It requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure, so it is safe to use without affecting other Codex conversations.
 

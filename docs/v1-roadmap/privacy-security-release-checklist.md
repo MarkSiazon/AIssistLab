@@ -66,7 +66,7 @@ Run after code changes:
 npm run verify:release
 ```
 
-The release verifier includes full tests, lint, build, audit, browser/API smoke, tracked diff whitespace checks, untracked release-text hygiene checks, and the privacy scan.
+The release verifier includes full tests, lint, build, audit, browser/API smoke, safe button smoke, tracked diff whitespace checks, untracked release-text hygiene checks, and the privacy scan.
 
 For focused debugging, run individual checks:
 

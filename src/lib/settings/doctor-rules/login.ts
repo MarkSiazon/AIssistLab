@@ -24,7 +24,7 @@ export function buildLoginChecks(input: SetupDoctorInput): SetupDoctorCheck[] {
             ? "No optional Claude login helper was found; Settings can use Claude Code's built-in auth login instead."
             : "No optional Claude login helper was found, and Claude Code auth login is not available.",
           ["CLAUDE_LOGIN_COMMAND"],
-          "Set CLAUDE_LOGIN_COMMAND=auto, or install a claude-login helper if you need profile switching shortcuts.",
+          "Keep CLAUDE_LOGIN_COMMAND=auto for built-in auth, or set CLAUDE_LOGIN_COMMAND=claude-login only if you intentionally use a custom helper.",
         ),
   ];
 }

@@ -64,6 +64,7 @@ assert.equal(passed.statusCards.length, 4);
 assert.equal(passed.statusCards[0].value, "Installed");
 assert.equal(passed.statusCards[2].value, "Claude CLI");
 assert.equal(passed.detailRows[0].value, "path:claude (1.2.3)");
+assert.equal(passed.detailRows[2].meta, "path:claude-login");
 assert.equal(passed.detailRows[3].value, "Default profile (Signed in)");
 
 const stale = getSettingsClaudePanelState({
@@ -101,5 +102,31 @@ const missing = getSettingsClaudePanelState({
 assert.equal(missing.test.label, "Not run");
 assert.equal(missing.statusCards[0].tone, "error");
 assert.equal(missing.statusCards[2].value, "Not loaded");
+
+const builtinLogin = getSettingsClaudePanelState({
+  claudeStatus: {
+    ...claudeStatus,
+    loginCommand: "~\\.local\\bin\\claude.exe auth login",
+    loginCommandSource: "missing",
+    loginHelperAvailable: false,
+    canOpenLogin: true,
+  },
+  activeRuntime: {
+    provider: "claude_code_cli",
+    claudeCliEnabled: true,
+    configDirConfigured: true,
+    source: "runtime",
+  },
+  claudeTestResult: null,
+  testIsCurrent: false,
+  formatPath: (value) => value,
+  profileStatusText: () => "Signed in",
+});
+
+assert.equal(builtinLogin.detailRows[2].value, "Claude auth login");
+assert.equal(
+  builtinLogin.detailRows[2].meta,
+  "~\\.local\\bin\\claude.exe auth login",
+);
 
 console.log("Settings Claude panel helper tests passed");

@@ -190,6 +190,11 @@
   font-style: normal;
 }
 
+.settings-manual-qa-reason {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+}
+
 .settings-manual-qa-actions {
   display: flex;
   flex-wrap: wrap;

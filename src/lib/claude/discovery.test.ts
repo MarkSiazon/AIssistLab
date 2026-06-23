@@ -65,8 +65,13 @@ async function main(): Promise<void> {
   );
 
   const nativeClaude = path.win32.join(home, "tools", "claude.exe");
+  assert.deepEqual(
+    buildClaudeLoginCandidates("auto", nativeClaude, env),
+    [],
+  );
+
   const loginCandidates = buildClaudeLoginCandidates(
-    "auto",
+    "claude-login",
     nativeClaude,
     env,
   );

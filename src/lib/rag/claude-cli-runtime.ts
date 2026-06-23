@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
+import path from "node:path";
 import {
   buildClaudeExecutableCandidates,
   buildClaudeLoginCandidates,
   expandUserPath,
+  sanitizeClaudeDisplayText,
+  toPortableHomePath,
   type ClaudeCommandSource,
   type ClaudeInternalProfile,
 } from "@/lib/claude/discovery";
@@ -92,15 +95,44 @@ export function getClaudeCliEnv(
   return env;
 }
 
+function isWindowsLikePath(value: string): boolean {
+  return /^[A-Za-z]:[\\/]/.test(value) || value.includes("\\");
+}
+
+function executableNameForDirectory(directory: string): string {
+  return isWindowsLikePath(directory) || process.platform === "win32"
+    ? "claude.exe"
+    : "claude";
+}
+
+async function resolveConfiguredCliCommand(
+  command: string,
+): Promise<string> {
+  try {
+    const stat = await fs.stat(command);
+    if (!stat.isDirectory()) return command;
+  } catch {
+    return command;
+  }
+
+  const api = isWindowsLikePath(command) ? path.win32 : path.posix;
+  return api.join(command, executableNameForDirectory(command));
+}
+
+function displayCliCommand(command: string): string {
+  return sanitizeClaudeDisplayText(toPortableHomePath(command));
+}
+
 export async function resolveClaudeCliCommand(): Promise<ResolvedCliCommand> {
   const configuredCliPath = getClaudeCliPath();
   const candidates = buildClaudeExecutableCandidates(configuredCliPath);
 
   for (const candidate of candidates) {
     if (candidate.source === "env") {
+      const command = await resolveConfiguredCliCommand(candidate.command);
       return {
-        command: candidate.command,
-        displayCommand: candidate.displayCommand,
+        command,
+        displayCommand: displayCliCommand(command),
         configuredCliPath,
         source: candidate.source,
       };
@@ -160,9 +192,13 @@ export async function resolveClaudeLoginCommand(
     }
   }
 
+  const builtinDisplayCommand = `${sanitizeClaudeDisplayText(
+    toPortableHomePath(claudeCommand),
+  )} auth login`;
+
   return {
-    command: candidates.at(-1)?.command ?? "claude-login",
-    displayCommand: candidates.at(-1)?.displayCommand ?? "claude-login",
+    command: claudeCommand,
+    displayCommand: builtinDisplayCommand,
     configuredLoginCommand,
     source: "missing",
     available: false,

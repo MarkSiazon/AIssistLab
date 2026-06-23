@@ -82,7 +82,12 @@ export function buildClaudeLoginCandidates(
   claudeCommand: string,
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): ClaudeCommandCandidate[] {
-  if (!isAutoValue(configuredLoginCommand, ["", "auto", "claude-login"])) {
+  if (isAutoValue(configuredLoginCommand, ["", "auto"])) {
+    return [];
+  }
+
+  const configured = configuredLoginCommand?.trim();
+  if (configured && configured.toLowerCase() !== "claude-login") {
     const command = expandUserPath(configuredLoginCommand ?? "", env);
     return [
       {

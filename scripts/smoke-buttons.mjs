@@ -1,0 +1,350 @@
+import { spawn, spawnSync } from "node:child_process";
+import { createServer } from "node:net";
+import { setTimeout as delay } from "node:timers/promises";
+import { chromium } from "playwright";
+
+const routeNavigationTimeoutMs = 60000;
+const routes = ["/settings", "/skills", "/chat", "/export", "/editor/guided"];
+const expectedRouteText = new Map([
+  ["/settings", "Manual QA Evidence"],
+  ["/skills", "Library Readiness"],
+  ["/chat", "Chat Readiness"],
+  ["/export", "Export Skills"],
+  ["/editor/guided", "Guided Skill Builder"],
+]);
+const safeClickLimitPerRoute = 20;
+const riskyButtonLabelPatterns = [
+  /open login/i,
+  /test cli/i,
+  /choose folder/i,
+  /browse/i,
+  /^show$/i,
+  /save/i,
+  /delete/i,
+  /remove/i,
+  /restore/i,
+  /^rebuild$/i,
+  /rebuild index/i,
+  /download/i,
+  /export/i,
+  /send/i,
+  /retry/i,
+  /import/i,
+  /preview folder/i,
+  /preview zip/i,
+  /create skill/i,
+  /use template/i,
+  /start from template/i,
+  /generate feedback/i,
+  /copy/i,
+  /^open\b/i,
+  /^chat$/i,
+  /^settings$/i,
+];
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function isRiskyButtonLabel(label) {
+  if (!label) return true;
+  return riskyButtonLabelPatterns.some((pattern) => pattern.test(label));
+}
+
+function pushLog(lines, chunk) {
+  const text = chunk.toString();
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    lines.push(line);
+  }
+  while (lines.length > 80) lines.shift();
+}
+
+async function getFreePort() {
+  return await new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+async function fetchWithTimeout(url, init = {}, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function waitForServer(baseUrl, child, logs) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 90000) {
+    if (child.exitCode !== null) {
+      throw new Error(`Next dev server exited early.\n${logs.join("\n")}`);
+    }
+    try {
+      const response = await fetchWithTimeout(
+        `${baseUrl}/settings`,
+        { headers: { host: new URL(baseUrl).host } },
+        2000,
+      );
+      if (response.ok) return;
+    } catch {
+      // Server is still starting.
+    }
+    await delay(1000);
+  }
+  throw new Error(`Timed out waiting for Next dev server.\n${logs.join("\n")}`);
+}
+
+function startDevServer(port) {
+  const logs = [];
+  const child =
+    process.platform === "win32"
+      ? spawn(
+          "cmd.exe",
+          [
+            "/d",
+            "/s",
+            "/c",
+            `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
+          ],
+          {
+            cwd: process.cwd(),
+            env: process.env,
+            stdio: ["ignore", "pipe", "pipe"],
+            windowsHide: true,
+          },
+        )
+      : spawn(
+          "npm",
+          ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(port)],
+          {
+            cwd: process.cwd(),
+            env: process.env,
+            stdio: ["ignore", "pipe", "pipe"],
+          },
+        );
+
+  child.stdout.on("data", (chunk) => pushLog(logs, chunk));
+  child.stderr.on("data", (chunk) => pushLog(logs, chunk));
+  return { child, logs };
+}
+
+function stopDevServer(child) {
+  if (!child || child.exitCode !== null) return;
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
+      stdio: "ignore",
+    });
+    return;
+  }
+  child.kill("SIGTERM");
+}
+
+function shouldIgnoreFailedRequest(request) {
+  const failure = request.failure()?.errorText ?? "";
+  if (
+    request.url().includes("/__nextjs_original-stack-frames") &&
+    /ERR_ABORTED/i.test(failure)
+  ) {
+    return true;
+  }
+  if (/ERR_ABORTED/i.test(failure) && request.method() === "GET") return true;
+  if (/hot-update|webpack/.test(request.url()) && /ERR_ABORTED/i.test(failure)) {
+    return true;
+  }
+  return false;
+}
+
+async function collectSafeButtons(page) {
+  const buttons = await page.locator("button").evaluateAll((elements) =>
+    elements.map((element, index) => ({
+      index,
+      text: (element.textContent ?? "").replace(/\s+/g, " ").trim(),
+      disabled:
+        element.disabled || element.getAttribute("aria-disabled") === "true",
+      visible: Boolean(
+        element.offsetWidth ||
+          element.offsetHeight ||
+          element.getClientRects().length,
+      ),
+    })),
+  );
+  const visibleButtons = buttons.filter((button) => button.visible);
+  const safeButtons = visibleButtons.filter(
+    (button) => !button.disabled && !isRiskyButtonLabel(button.text),
+  );
+  return { visibleButtons, safeButtons };
+}
+
+async function auditSafeButtonClick(page, baseUrl, route, label) {
+  const consoleErrors = [];
+  const failedRequests = [];
+  const onConsole = (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  };
+  const onPageError = (error) => {
+    consoleErrors.push(error.message);
+  };
+  const onRequestFailed = (request) => {
+    if (shouldIgnoreFailedRequest(request)) return;
+    failedRequests.push(
+      `${request.method()} ${request.url()} ${
+        request.failure()?.errorText ?? ""
+      }`,
+    );
+  };
+
+  page.on("console", onConsole);
+  page.on("pageerror", onPageError);
+  page.on("requestfailed", onRequestFailed);
+  try {
+    await page.goto(`${baseUrl}${route}`, {
+      waitUntil: "networkidle",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await page.waitForTimeout(1000);
+    const locator = page.locator("button").filter({ hasText: label }).first();
+    const visibleAtClickTime = await locator
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+    if (!visibleAtClickTime) {
+      return {
+        route,
+        button: label,
+        skipped: true,
+        reason: "Button was no longer visible after route reload.",
+        consoleErrors,
+        failedRequests,
+        ok: consoleErrors.length === 0 && failedRequests.length === 0,
+      };
+    }
+    await locator.click({ timeout: 15000 });
+    await page.waitForTimeout(700);
+    return {
+      route,
+      button: label,
+      consoleErrors,
+      failedRequests,
+      ok: consoleErrors.length === 0 && failedRequests.length === 0,
+    };
+  } catch (error) {
+    return {
+      route,
+      button: label,
+      error: error instanceof Error ? error.message : String(error),
+      consoleErrors,
+      failedRequests,
+      ok: false,
+    };
+  } finally {
+    page.off("console", onConsole);
+    page.off("pageerror", onPageError);
+    page.off("requestfailed", onRequestFailed);
+  }
+}
+
+async function auditRoute(page, baseUrl, route) {
+  await page.goto(`${baseUrl}${route}`, {
+    waitUntil: "networkidle",
+    timeout: routeNavigationTimeoutMs,
+  });
+  await page.waitForTimeout(1000);
+  const expectedText = expectedRouteText.get(route);
+  if (expectedText) {
+    const bodyText = await page.locator("body").innerText({ timeout: 15000 });
+    const normalizedBodyText = bodyText.toLowerCase();
+    assert(
+      normalizedBodyText.includes(expectedText.toLowerCase()),
+      `${route} did not render expected app text: ${expectedText}. Body excerpt: ${bodyText
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 240)}`,
+    );
+  }
+  const { visibleButtons, safeButtons } = await collectSafeButtons(page);
+  const selectedButtons = safeButtons.slice(0, safeClickLimitPerRoute);
+  const findings = [];
+  const clickResults = [];
+
+  for (const button of selectedButtons) {
+    const result = await auditSafeButtonClick(page, baseUrl, route, button.text);
+    clickResults.push(result);
+    if (!result.ok) findings.push(result);
+  }
+
+  const transientSkipped = clickResults.filter((result) => result.skipped).length;
+  return {
+    summary: {
+      route,
+      visibleButtons: visibleButtons.length,
+      safeCandidates: selectedButtons.length,
+      safeClicked: selectedButtons.length - transientSkipped,
+      transientSkipped,
+      skipped: visibleButtons.length - selectedButtons.length,
+      safeLabels: selectedButtons.map((button) => button.text),
+    },
+    findings,
+  };
+}
+
+async function main() {
+  const providedBaseUrl = process.env.SMOKE_BUTTONS_BASE_URL;
+  const port = providedBaseUrl ? null : await getFreePort();
+  const baseUrl = providedBaseUrl ?? `http://127.0.0.1:${port}`;
+  const server = providedBaseUrl ? null : startDevServer(port);
+  let browser = null;
+
+  try {
+    if (server) await waitForServer(baseUrl, server.child, server.logs);
+    browser = await chromium.launch();
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 1100 },
+    });
+    const routeSummaries = [];
+    const findings = [];
+
+    for (const route of routes) {
+      const result = await auditRoute(page, baseUrl, route);
+      routeSummaries.push(result.summary);
+      findings.push(...result.findings);
+    }
+
+    console.log(
+      JSON.stringify(
+        {
+          baseUrl,
+          routeSummaries,
+          findingCount: findings.length,
+          findings,
+        },
+        null,
+        2,
+      ),
+    );
+
+    assert(
+      findings.length === 0,
+      `Safe button smoke found ${findings.length} issue(s).`,
+    );
+    console.log(`Safe button smoke passed at ${baseUrl}`);
+  } finally {
+    if (browser) await browser.close();
+    if (server) stopDevServer(server.child);
+  }
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

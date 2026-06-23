@@ -17,7 +17,7 @@ npm run qa:manual:auto
 
 Use `npm run qa:manual` when the app is already running. Set `MANUAL_QA_BASE_URL=http://localhost:3000` if it is running on a different local port. Use `npm run qa:manual:auto` when you want the helper to start a temporary localhost dev server, print the same sanitized readiness report, and stop that server afterward. The helper does not open native dialogs, launch login, send chat messages, or write evidence files.
 
-Settings also includes a `Manual QA Evidence` panel. Use it to mark each check as `Passed`, `Needs fix`, or `Pending` after you run the manual steps. The panel stores only status and timestamp in this browser's local storage; it does not store prompts, screenshots, account names, profile paths, or auth output.
+Settings also includes a `Manual QA Evidence` panel. Use it to mark each check as `Passed`, `Needs fix`, or `Pending` after you run the manual steps. Each checklist item explains why it remains manual. The panel stores only status and timestamp in this browser's local storage; it does not store prompts, screenshots, account names, profile paths, or auth output.
 
 ## Native Folder Picker
 
