@@ -32,7 +32,6 @@ export interface GuidedValidationError {
   message: string;
 }
 
-export { GUIDED_DRAFT_STORAGE_KEY } from "./guided-draft-storage";
 export const GUIDED_FORM_STORAGE_KEY = "skill-workshop-guided-form";
 export const GUIDED_STEPS = ["Purpose", "Examples", "Boundaries", "Review"];
 export const GUIDED_STEP_GUIDANCE = [

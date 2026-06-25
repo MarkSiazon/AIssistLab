@@ -1,7 +1,8 @@
 import { SkillFrontmatter } from "@/types/skill";
 import { isManagedSkillName } from "@/lib/skills/name";
+import { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
-export const MAX_SKILL_BODY_BYTES = 200_000;
+export { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
 export type SkillValidationCode =
   | "invalid_name"

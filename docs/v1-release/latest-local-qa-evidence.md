@@ -13,6 +13,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
 - Dependency cleanup removed unused class-name helper packages and the redundant external `natural` type package; `natural` now uses its bundled type declarations.
 - The release runbook now points at `npm test` as the authoritative test sweep instead of keeping a partial duplicate manual loop.
+- Skill body size limits are now centralized in `src/lib/skills/limits.ts` so client editor validation and server/import validation use the same value, and unused guided-draft storage-key re-exports were removed.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -49,7 +50,9 @@ Additional focused checks also passed:
 
 ```bash
 npx --yes tsx src/lib/ui/editor-tab-navigation.test.ts
+npx --yes tsx src/lib/ui/skill-editor-model.test.ts
 npx --yes tsx src/lib/settings/client-api.test.ts
+npx --yes tsx src/lib/skills/validation.test.ts
 npx --yes tsx scripts/audit-assets.test.mjs
 npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
 npx --yes tsx scripts/cleanup-project-processes.test.mjs

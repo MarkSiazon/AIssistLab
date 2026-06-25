@@ -1,0 +1,1 @@
+export const MAX_SKILL_BODY_BYTES = 200_000;

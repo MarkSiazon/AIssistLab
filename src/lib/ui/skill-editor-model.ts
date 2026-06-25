@@ -1,3 +1,5 @@
+import { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
+
 export interface SkillValidationError {
   field:
     | "name"
@@ -35,8 +37,7 @@ export interface SkillEditorSetupCheck {
   message: string;
 }
 
-export const MAX_SKILL_BODY_BYTES = 200_000;
-export { GUIDED_DRAFT_STORAGE_KEY } from "./guided-draft-storage";
+export { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
 export function extraFrontmatterFields(
   frontmatter: Record<string, unknown>,
