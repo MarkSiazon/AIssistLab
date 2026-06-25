@@ -2,40 +2,18 @@ import {
   indexCountsLabel,
   indexSuggestedAction,
   indexStatusTitle,
-  type RagIndexStatus,
 } from "@/lib/ui/index-status-summary";
-import type { ClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
 import type {
-  LlmProvider,
-  RuntimeProviderSource,
-} from "@/lib/rag/llm-types";
+  ChatProvider,
+  ChatReadinessReleaseSummary,
+  ChatReadinessStatus,
+  ChatRuntimeSource,
+} from "@/lib/chat/status-types";
 import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
 import type { UiTone } from "@/lib/ui/tone";
 
-type ChatProvider = LlmProvider;
-type ChatRuntimeSource = RuntimeProviderSource;
 export type ChatStatusTone = UiTone;
-
-export interface ChatReadinessStatus {
-  provider: ChatProvider;
-  runtimeSource: ChatRuntimeSource;
-  canSend: boolean;
-  blockingReason: string | null;
-  suggestedAction: string | null;
-  index: {
-    status: RagIndexStatus;
-    skillCount: number;
-    chunkCount: number;
-    staleReason: string | null;
-    error: string | null;
-  };
-  lastCliSmokeTest: ClaudeCliTestResult | null;
-}
-
-export interface ChatReadinessReleaseSummary {
-  status?: ReleaseReadinessStatus;
-  topAction?: string | null;
-}
+export type { ChatReadinessReleaseSummary, ChatReadinessStatus };
 
 export interface ChatStatusChip {
   label: string;

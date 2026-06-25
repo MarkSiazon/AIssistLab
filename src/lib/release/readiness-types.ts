@@ -3,8 +3,9 @@ import type { ChatReadiness } from "@/lib/chat/readiness";
 import type { PublicIndexState } from "@/lib/rag/index-state";
 import type { SetupDoctorReport } from "@/lib/settings/doctor";
 import type { SkillQualityReport } from "@/lib/skills/quality";
+import type { BlockingReadinessStatus } from "@/lib/status/status-types";
 
-export type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
+export type ReleaseReadinessStatus = BlockingReadinessStatus;
 type ReleaseReadinessSectionId =
   | "workspace"
   | "provider"

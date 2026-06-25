@@ -1,4 +1,7 @@
-export type FeedbackStatus = "ok" | "warn" | "error";
+import { statusSeverityColor } from "@/lib/status/status-presentation";
+import type { StatusSeverity } from "@/lib/status/status-types";
+
+export type FeedbackStatus = StatusSeverity;
 
 export interface SkillTemplateSummary {
   id: string;
@@ -66,9 +69,7 @@ export function splitGuidedLines(value: string): string[] {
 }
 
 export function guidedFeedbackStatusColor(status: FeedbackStatus): string {
-  if (status === "ok") return "var(--green)";
-  if (status === "warn") return "var(--yellow)";
-  return "var(--red)";
+  return statusSeverityColor(status);
 }
 
 export function guidedFieldStyle() {

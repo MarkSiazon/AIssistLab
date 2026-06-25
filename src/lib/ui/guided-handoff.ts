@@ -1,8 +1,10 @@
+import type { StatusSeverity } from "@/lib/status/status-types";
+
 type GuidedHandoffStatus = "blocked" | "needs_review" | "needs_build" | "ready";
 export type GuidedHandoffPrimaryAction = "review" | "build" | "open";
 
 interface GuidedHandoffFeedbackCategory {
-  status: "ok" | "warn" | "error";
+  status: StatusSeverity;
 }
 
 interface GuidedHandoffFeedback {

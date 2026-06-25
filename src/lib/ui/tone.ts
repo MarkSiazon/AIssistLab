@@ -1,3 +1,9 @@
-export type UiTone = "ok" | "warn" | "error" | "neutral";
-export type UiAlertTone = Exclude<UiTone, "neutral">;
-export type UiIssueTone = Extract<UiTone, "warn" | "error">;
+import type {
+  IssueStatusSeverity,
+  StatusSeverity,
+  StatusTone,
+} from "@/lib/status/status-types";
+
+export type UiTone = StatusTone;
+export type UiAlertTone = StatusSeverity;
+export type UiIssueTone = IssueStatusSeverity;

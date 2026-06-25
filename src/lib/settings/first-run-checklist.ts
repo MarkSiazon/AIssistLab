@@ -1,8 +1,12 @@
 import { countLabel } from "@/lib/format/count-label";
 import type { RagIndexStateStatus } from "@/lib/rag/index-state-types";
 import type { ActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
+import type {
+  OptionalReadinessStatus,
+  StatusSeverity,
+} from "@/lib/status/status-types";
 
-export type FirstRunChecklistStatus = "ready" | "needs_action" | "optional";
+export type FirstRunChecklistStatus = OptionalReadinessStatus;
 export type FirstRunChecklistAction =
   | "save-settings"
   | "rebuild-index"
@@ -13,7 +17,7 @@ export type FirstRunChecklistAction =
 export interface FirstRunDoctorCheck {
   id: string;
   group: string;
-  status: "ok" | "warn" | "error";
+  status: StatusSeverity;
   message: string;
   suggestedFix?: string;
 }

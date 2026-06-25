@@ -4,7 +4,10 @@ import {
   readResponseJson,
   requestJson,
 } from "@/lib/api/client";
-import type { ChatReadinessReleaseSummary, ChatReadinessStatus } from "@/lib/ui/chat-readiness-panel";
+import type {
+  ChatReadinessReleaseSummary,
+  ChatReadinessStatus,
+} from "@/lib/chat/status-types";
 import type { Citation, StreamChunk } from "@/types/chat";
 
 export interface ChatStatus extends ChatReadinessStatus {

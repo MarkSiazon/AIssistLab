@@ -5,8 +5,10 @@ import {
   type SkillQualityIssue,
   type SkillQualityReport,
 } from "@/lib/skills/quality";
+import { blockingReadinessLabel } from "@/lib/status/status-presentation";
+import type { BlockingReadinessStatus } from "@/lib/status/status-types";
 
-export type SkillLibraryReadinessStatus = "ready" | "needs_action" | "blocked";
+export type SkillLibraryReadinessStatus = BlockingReadinessStatus;
 export type SkillLibraryReadinessAction =
   | "guided-builder"
   | "create-skill"
@@ -50,9 +52,7 @@ export interface SkillLibraryReadiness {
 function statusLabel(
   status: SkillLibraryReadinessStatus,
 ): SkillLibraryReadiness["statusLabel"] {
-  if (status === "ready") return "Ready";
-  if (status === "blocked") return "Blocked";
-  return "Needs action";
+  return blockingReadinessLabel(status);
 }
 
 function readiness(

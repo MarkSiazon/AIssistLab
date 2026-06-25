@@ -1,6 +1,8 @@
 import { countLabel } from "@/lib/format/count-label";
+import { optionalReadinessColor } from "@/lib/status/status-presentation";
+import type { OptionalReadinessStatus } from "@/lib/status/status-types";
 
-export type GuidedChecklistStatus = "ready" | "needs_action" | "optional";
+export type GuidedChecklistStatus = OptionalReadinessStatus;
 
 interface GuidedChecklistItem {
   id: string;
@@ -34,9 +36,7 @@ export interface GuidedChecklistInput {
 export function guidedChecklistStatusColor(
   status: GuidedChecklistStatus,
 ): string {
-  if (status === "ready") return "var(--green)";
-  if (status === "needs_action") return "var(--yellow)";
-  return "var(--text-muted)";
+  return optionalReadinessColor(status);
 }
 
 export function buildGuidedChecklist({

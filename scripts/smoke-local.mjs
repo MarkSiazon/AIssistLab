@@ -2161,16 +2161,18 @@ async function runMockedSkillsImportDuplicateSmoke(page, baseUrl) {
 async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
-  await clickLink(page, "New");
-  await waitForPageUrl(page, (url) => url.pathname === "/editor", "skills New route");
+  await clickNavigationLink(
+    page,
+    "New",
+    (url) => url.pathname === "/editor",
+  );
   await expectText(page, "Template Gallery");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
-  await clickLink(page, "Guided");
-  await waitForPageUrl(
+  await clickNavigationLink(
     page,
+    "Guided",
     (url) => url.pathname === "/editor/guided",
-    "skills Guided route",
   );
   await expectText(page, "Guided Skill Builder");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });

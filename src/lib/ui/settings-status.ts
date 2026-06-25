@@ -1,10 +1,18 @@
 import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
+import {
+  blockingReadinessColor,
+  blockingReadinessLabel,
+  blockingReadinessTone,
+  optionalReadinessColor,
+  statusSeverityColor,
+} from "@/lib/status/status-presentation";
+import type { OptionalReadinessStatus } from "@/lib/status/status-types";
 import type { UiAlertTone, UiTone } from "@/lib/ui/tone";
 
 export type SettingsDoctorStatus = UiAlertTone;
 export type SettingsDoctorSeverity = "blocking" | "warning" | "optional";
 export type SettingsReleaseStatus = ReleaseReadinessStatus;
-export type SettingsFirstRunStatus = "ready" | "needs_action" | "optional";
+export type SettingsFirstRunStatus = OptionalReadinessStatus;
 export type SettingsPathState = "idle" | "checking" | "ok" | "error";
 export type SettingsTone = UiTone;
 
@@ -17,9 +25,7 @@ export interface SettingsProfileStatus {
 }
 
 export function doctorStatusColor(status: SettingsDoctorStatus): string {
-  if (status === "error") return "var(--red)";
-  if (status === "warn") return "var(--yellow)";
-  return "var(--green)";
+  return statusSeverityColor(status);
 }
 
 export function doctorSeverityLabel(
@@ -31,27 +37,19 @@ export function doctorSeverityLabel(
 }
 
 export function releaseStatusColor(status: SettingsReleaseStatus): string {
-  if (status === "ready") return "var(--green)";
-  if (status === "blocked") return "var(--red)";
-  return "var(--yellow)";
+  return blockingReadinessColor(status);
 }
 
 export function releaseStatusLabel(status: SettingsReleaseStatus): string {
-  if (status === "ready") return "Ready";
-  if (status === "blocked") return "Blocked";
-  return "Needs action";
+  return blockingReadinessLabel(status);
 }
 
 export function releaseStatusTone(status: SettingsReleaseStatus): SettingsTone {
-  if (status === "ready") return "ok";
-  if (status === "blocked") return "error";
-  return "warn";
+  return blockingReadinessTone(status);
 }
 
 export function firstRunStatusColor(status: SettingsFirstRunStatus): string {
-  if (status === "ready") return "var(--green)";
-  if (status === "optional") return "var(--text-muted)";
-  return "var(--yellow)";
+  return optionalReadinessColor(status);
 }
 
 export function firstRunStatusClass(status: SettingsFirstRunStatus): string {

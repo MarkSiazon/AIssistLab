@@ -10,9 +10,10 @@ import {
   PROVIDER_RUNTIME_KEYS,
   type ProviderRuntimeKey,
 } from "@/lib/settings/runtime-config";
+import type { StatusSeverity } from "@/lib/status/status-types";
 import type { SettingsPathState } from "@/lib/settings/path-state";
 
-export type DoctorCheckStatus = "ok" | "warn" | "error";
+export type DoctorCheckStatus = StatusSeverity;
 type ReadinessSeverity = "blocking" | "warning" | "optional";
 
 export type DoctorCheckGroup =

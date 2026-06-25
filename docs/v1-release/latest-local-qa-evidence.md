@@ -1,6 +1,6 @@
 # Latest Local QA Evidence
 
-Updated: 2026-06-25, Asia/Manila
+Updated: 2026-06-26, Asia/Manila
 
 This note records the latest local, privacy-safe verification state for the V1 release candidate. It is intentionally generic: no API keys, account identifiers, OAuth paths, full home paths, or raw Claude profile folders are included.
 
@@ -41,6 +41,12 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Skills import UI preview shapes now alias the canonical importer domain preview/source/strategy types, and the skills client no longer imports preview response types from the UI model.
 - Skills restore/list UI and client response shapes now alias the canonical deleted-skill trash summary instead of restating partial deleted-skill metadata.
 - Skill editor UI and save-client validation error shapes now reuse the canonical skills validation error type instead of restating editor-local validation fields.
+- Chat readiness client and UI response shapes now alias chat-owned status types instead of requiring the chat client to import presentation helper types.
+- Shared ok/warn/error status severity types now live in a domain-neutral status module, with UI tone, guided feedback, first-run doctor, and Claude project types aliasing that source instead of restating the same status unions.
+- Repeated readiness status unions now resolve through shared optional/blocking readiness aliases while preserving release, skills, settings, first-run, and guided checklist public type names.
+- Repeated status color, label, and tone mappings now use shared status presentation helpers while preserving existing Settings, Guided Builder, and Skills readiness public helper APIs.
+- Shared status presentation mappings now have direct unit coverage in addition to the existing consumer helper tests.
+- Shared app route constants now back repeated model-layer Settings, Chat, Export, Skills, and Guided Builder action links while preserving existing public action helper outputs.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
@@ -116,7 +122,13 @@ Covered by that gate:
 Latest focused checks for the current cleanup and smoke-helper pass:
 
 ```bash
+npm run smoke:buttons
+npm run smoke:local
+npm run build
+npm run smoke:production
+npm run qa:manual:auto
 npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
+npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
 npx --yes tsx scripts/smoke/browser-init.test.mjs
 npx --yes tsx scripts/smoke/browser-issues.test.mjs
 npx --yes tsx scripts/smoke/chat-mocks.test.mjs

@@ -1,4 +1,5 @@
 import type { SkillFrontmatter } from "@/types/skill";
+import type { StatusSeverity } from "@/lib/status/status-types";
 
 export type GuidedSkillFeedbackCategoryId =
   | "discoverability"
@@ -31,7 +32,7 @@ export interface GuidedSkillValidationError {
 
 export interface GuidedSkillFeedbackCategory {
   id: GuidedSkillFeedbackCategoryId;
-  status: "ok" | "warn" | "error";
+  status: StatusSeverity;
   message: string;
   suggestedFix: string;
 }

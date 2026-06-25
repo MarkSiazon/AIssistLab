@@ -9,6 +9,7 @@ import {
   statusFromChecks,
 } from "@/lib/release/readiness-rules";
 import { sanitizeReleaseSection } from "@/lib/release/readiness-sanitize";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import type {
   ReleaseReadinessInput,
   ReleaseReadinessSection,
@@ -57,7 +58,7 @@ export function buildReleaseReadinessSections({
               "Resolve workspace and skills path issues in Settings.",
             ),
       actionLabel: workspaceState === "ready" ? undefined : "Open Settings",
-      actionHref: workspaceState === "ready" ? undefined : "/settings",
+      actionHref: workspaceState === "ready" ? undefined : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "provider",
@@ -72,7 +73,7 @@ export function buildReleaseReadinessSections({
               "Resolve provider authentication in Settings.",
             ),
       actionLabel: providerState === "ready" ? undefined : "Open Settings",
-      actionHref: providerState === "ready" ? undefined : "/settings",
+      actionHref: providerState === "ready" ? undefined : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "index",
@@ -85,7 +86,7 @@ export function buildReleaseReadinessSections({
             index.staleReason ??
             "Rebuild the index before relying on citations.",
       actionLabel: indexState === "ready" ? undefined : "Rebuild Index",
-      actionHref: indexState === "ready" ? undefined : "/settings",
+      actionHref: indexState === "ready" ? undefined : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "skills",
@@ -96,7 +97,7 @@ export function buildReleaseReadinessSections({
           ? `${countLabel(skillQuality.totalSkills, "skill")} scanned with no quality issues.`
           : `${countLabel(skillQuality.issueCount, "skill quality issue", "skill quality issues")} should be reviewed before release.`,
       actionLabel: skillsState === "ready" ? undefined : "Open Settings",
-      actionHref: skillsState === "ready" ? undefined : "/settings",
+      actionHref: skillsState === "ready" ? undefined : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "claude_project",
@@ -107,7 +108,7 @@ export function buildReleaseReadinessSections({
           ? "Claude project inventory has no blocking warnings."
           : `${countLabel(claudeWarningCount, "Claude project warning", "Claude project warnings")} should be reviewed.`,
       actionLabel: claudeState === "ready" ? undefined : "Open Settings",
-      actionHref: claudeState === "ready" ? undefined : "/settings",
+      actionHref: claudeState === "ready" ? undefined : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "chat",
@@ -125,7 +126,7 @@ export function buildReleaseReadinessSections({
           : chat.canSend
             ? "Open Chat"
             : "Open Settings",
-      actionHref: chat.canSend ? "/chat" : "/settings",
+      actionHref: chat.canSend ? APP_ROUTES.chat : APP_ROUTES.settings,
     }),
     sanitizeReleaseSection({
       id: "diagnostics",
@@ -134,7 +135,7 @@ export function buildReleaseReadinessSections({
       message:
         "Export diagnostics when you are ready to share or archive release evidence.",
       actionLabel: "Open Export",
-      actionHref: "/export?diagnostics=true",
+      actionHref: APP_ROUTES.exportDiagnostics,
     }),
   ];
 }

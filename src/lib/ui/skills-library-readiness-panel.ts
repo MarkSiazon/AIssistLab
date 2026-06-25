@@ -1,5 +1,7 @@
 import { countLabel } from "@/lib/format/count-label";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { countSkillQualityIssues } from "@/lib/skills/quality";
+import { blockingReadinessColor } from "@/lib/status/status-presentation";
 import type {
   SkillLibraryQualityReport,
   SkillLibraryReadinessAction,
@@ -15,18 +17,16 @@ export interface SkillQualitySummary {
 export function skillLibraryStatusColor(
   status: SkillLibraryReadinessStatus,
 ): string {
-  if (status === "ready") return "var(--green)";
-  if (status === "blocked") return "var(--red)";
-  return "var(--yellow)";
+  return blockingReadinessColor(status);
 }
 
 export function skillLibraryReadinessActionHref(
   action: SkillLibraryReadinessAction,
 ): string | null {
-  if (action === "guided-builder") return "/editor/guided";
-  if (action === "create-skill") return "/editor";
-  if (action === "review-quality") return "/settings";
-  if (action === "export-skills") return "/export";
+  if (action === "guided-builder") return APP_ROUTES.guidedBuilder;
+  if (action === "create-skill") return APP_ROUTES.editor;
+  if (action === "review-quality") return APP_ROUTES.settings;
+  if (action === "export-skills") return APP_ROUTES.export;
   return null;
 }
 

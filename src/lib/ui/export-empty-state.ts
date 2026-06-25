@@ -1,3 +1,5 @@
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+
 type ExportEmptyLinkActionId = "guided-builder" | "skills-library";
 type ExportEmptyButtonActionId = "export-diagnostics";
 
@@ -30,13 +32,13 @@ export function buildExportEmptyActions({
     {
       id: "guided-builder",
       label: "Guided Builder",
-      href: "/editor/guided",
+      href: APP_ROUTES.guidedBuilder,
       variant: "primary",
     },
     {
       id: "skills-library",
       label: "Open Skills",
-      href: "/skills",
+      href: APP_ROUTES.skills,
       variant: "secondary",
     },
   ];

@@ -1,3 +1,5 @@
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+
 type ChatEmptyIndexStatus =
   | "ready"
   | "stale"
@@ -51,7 +53,6 @@ const DEFAULT_READY_SUGGESTIONS = [
   "Which skill should I use for this task?",
   "How can I improve this skill library?",
 ];
-const DIAGNOSTICS_EXPORT_HREF = "/export?diagnostics=true";
 
 export function buildChatEmptySuggestions(
   status: ChatEmptyStateStatus,
@@ -80,7 +81,7 @@ export function buildChatEmptyActions(
         {
           id: "settings",
           label: "Open Settings",
-          href: "/settings",
+          href: APP_ROUTES.settings,
           variant: "primary",
         },
         {
@@ -91,7 +92,7 @@ export function buildChatEmptyActions(
         {
           id: "export-diagnostics",
           label: "Export Diagnostics",
-          href: "/export?diagnostics=true",
+          href: APP_ROUTES.exportDiagnostics,
           variant: "secondary",
         },
       ];
@@ -101,13 +102,13 @@ export function buildChatEmptyActions(
       {
         id: "settings",
         label: "Open Settings",
-        href: "/settings",
+        href: APP_ROUTES.settings,
         variant: "primary",
       },
       {
         id: "export-diagnostics",
         label: "Export Diagnostics",
-        href: DIAGNOSTICS_EXPORT_HREF,
+        href: APP_ROUTES.exportDiagnostics,
         variant: "secondary",
       },
     ];
@@ -118,19 +119,19 @@ export function buildChatEmptyActions(
       {
         id: "guided-builder",
         label: "Guided Builder",
-        href: "/editor/guided",
+        href: APP_ROUTES.guidedBuilder,
         variant: "primary",
       },
       {
         id: "skills-library",
         label: "Open Skills",
-        href: "/skills",
+        href: APP_ROUTES.skills,
         variant: "secondary",
       },
       {
         id: "export-diagnostics",
         label: "Export Diagnostics",
-        href: DIAGNOSTICS_EXPORT_HREF,
+        href: APP_ROUTES.exportDiagnostics,
         variant: "secondary",
       },
     ];
@@ -147,7 +148,7 @@ export function buildChatEmptyActions(
       {
         id: "export-diagnostics",
         label: "Export Diagnostics",
-        href: DIAGNOSTICS_EXPORT_HREF,
+        href: APP_ROUTES.exportDiagnostics,
         variant: "secondary",
       },
     ];

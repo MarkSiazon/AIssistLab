@@ -1,4 +1,6 @@
-export type ClaudeProjectInventoryStatus = "ok" | "warn" | "error";
+import type { StatusSeverity } from "@/lib/status/status-types";
+
+export type ClaudeProjectInventoryStatus = StatusSeverity;
 
 export interface ClaudeProjectInventoryCheck {
   id: string;
