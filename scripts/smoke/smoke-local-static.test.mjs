@@ -118,19 +118,19 @@ assert.match(
 
 assert.match(
   source,
-  /clickButtonIn\(manualQaPanel,\s*"Mark Passed"\)/,
+  /setManualQaItemStatus\(manualQaItem,\s*"Mark Passed",\s*"Passed"\)/,
   "settings smoke must verify manual QA evidence can be marked passed",
 );
 
 assert.match(
   source,
-  /clickButtonIn\(manualQaPanel,\s*"Needs Fix"\)/,
+  /setManualQaItemStatus\(manualQaItem,\s*"Needs Fix",\s*"Needs fix"\)/,
   "settings smoke must verify manual QA evidence can be marked failed",
 );
 
 assert.match(
   source,
-  /clickButtonIn\(manualQaPanel,\s*"Reset"\)/,
+  /setManualQaItemStatus\(manualQaItem,\s*"Reset",\s*"Pending"\)/,
   "settings smoke must verify manual QA evidence can be reset",
 );
 
@@ -238,6 +238,18 @@ assert.match(
 
 assert.match(
   source,
+  /clickButton\(page,\s*"Restore smoke-imported-skill"\)/,
+  "skills smoke must exercise the restore action",
+);
+
+assert.doesNotMatch(
+  source,
+  /markVisibleButtonsCoveredByLabel\(\s*page,\s*\[[^\]]*"Restore smoke-imported-skill"/,
+  "skills smoke must not expect the restore button to remain visible after restore succeeds",
+);
+
+assert.match(
+  source,
   /All previewed skills are duplicates\. Choose Rename or Overwrite to import changes\./,
   "duplicate import smoke must verify skip-all duplicate blocker copy",
 );
@@ -276,6 +288,18 @@ assert.match(
   source,
   /Template Apply should replace the custom body/,
   "editor smoke must verify Apply template replaces unsaved content after confirmation",
+);
+
+assert.match(
+  source,
+  /async function gotoAndExpectText[\s\S]*waitUntil:\s*"domcontentloaded"/,
+  "route smoke helper must wait for rendered text instead of network idle",
+);
+
+assert.doesNotMatch(
+  source,
+  /page\.goto\(`\$\{baseUrl\}\/export`,\s*\{\s*waitUntil:\s*"networkidle"\s*\}\)/,
+  "export route smoke must not rely on network idle before checking page text",
 );
 
 console.log("Smoke runner static tests passed");

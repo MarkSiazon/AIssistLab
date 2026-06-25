@@ -262,15 +262,20 @@ async function auditRoute(page, baseUrl, route) {
   await page.waitForTimeout(1000);
   const expectedText = expectedRouteText.get(route);
   if (expectedText) {
-    const bodyText = await page.locator("body").innerText({ timeout: 15000 });
-    const normalizedBodyText = bodyText.toLowerCase();
-    assert(
-      normalizedBodyText.includes(expectedText.toLowerCase()),
-      `${route} did not render expected app text: ${expectedText}. Body excerpt: ${bodyText
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 240)}`,
-    );
+    try {
+      await page
+        .getByText(expectedText, { exact: true })
+        .first()
+        .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    } catch {
+      const bodyText = await page.locator("body").innerText({ timeout: 15000 });
+      throw new Error(
+        `${route} did not render expected app text: ${expectedText}. Body excerpt: ${bodyText
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 240)}`,
+      );
+    }
   }
   const { visibleButtons, safeButtons } = await collectSafeButtons(page);
   const selectedButtons = safeButtons.slice(0, safeClickLimitPerRoute);

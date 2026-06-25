@@ -8,6 +8,7 @@ import {
   openClaudeLogin,
   rebuildRagIndex,
   saveSettingsFields,
+  saveSettingsRaw,
   testClaudeCli,
 } from "./client-api";
 
@@ -128,6 +129,36 @@ describe("settings client API helpers", () => {
       vars: { LLM_PROVIDER: "claude_code_cli" },
       claudeProfileSelection: { profileId: "default" },
     });
+  });
+
+  it("throws sanitized API errors when saving settings fails", async () => {
+    const fieldSave = createFetch(
+      jsonResponse({ error: "Smoke settings save failed." }, 500),
+    );
+    const rawSave = createFetch(
+      jsonResponse({ error: "Smoke raw settings save failed." }, 500),
+    );
+
+    await assert.rejects(
+      () =>
+        saveSettingsFields(
+          {
+            vars: { LLM_PROVIDER: "anthropic_api" },
+            claudeProfileSelection: { profileId: "default" },
+          },
+          fieldSave.fetcher,
+        ),
+      /Smoke settings save failed\./,
+    );
+    assert.equal(fieldSave.calls[0].input, "/api/settings");
+    assert.equal(fieldSave.calls[0].init?.method, "POST");
+
+    await assert.rejects(
+      () => saveSettingsRaw("LLM_PROVIDER=anthropic_api\n", rawSave.fetcher),
+      /Smoke raw settings save failed\./,
+    );
+    assert.equal(rawSave.calls[0].input, "/api/settings");
+    assert.equal(rawSave.calls[0].init?.method, "POST");
   });
 
   it("posts selected Claude profile when opening login and testing CLI", async () => {

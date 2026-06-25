@@ -615,11 +615,6 @@ async function clickButtonIn(locator, label) {
   await clickButtonLocator(button, `${label} button`);
 }
 
-async function clickNavigationButtonIn(locator, label) {
-  const button = locator.getByRole("button", { name: label, exact: true }).first();
-  await clickButtonLocator(button, `${label} navigation button`);
-}
-
 async function clickButtonLocator(button, label = "button") {
   await button.waitFor({ state: "visible", timeout: 15000 });
   assert(!(await locatorIsDisabled(button)), `${label} is disabled`);
@@ -742,6 +737,56 @@ async function expectText(page, text, label = text, timeout = 90000) {
     });
 }
 
+async function waitForManualQaStatus(manualQaPanel, status) {
+  await manualQaPanel
+    .locator(".settings-manual-qa-item-status")
+    .filter({ hasText: status })
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 });
+}
+
+async function setManualQaItemStatus(manualQaItem, actionLabel, expectedStatus) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    await clickButtonIn(manualQaItem, actionLabel);
+    try {
+      await waitForManualQaStatus(manualQaItem, expectedStatus);
+      return;
+    } catch (error) {
+      lastError = error;
+      await delay(500 * attempt);
+    }
+  }
+
+  throw lastError ?? new Error(`Manual QA status did not become ${expectedStatus}`);
+}
+
+async function getFirstRunPanel(page) {
+  const firstRunPanel = page.locator(".settings-first-run-panel").first();
+  await firstRunPanel.waitFor({ state: "visible", timeout: 15000 });
+  return firstRunPanel;
+}
+
+async function clickFirstRunNavigationAction(page, panel, label, urlPredicate, routeLabel) {
+  const button = panel.getByRole("button", { name: label, exact: true }).first();
+  const startedAt = Date.now();
+  let lastError = null;
+
+  while (Date.now() - startedAt < routeNavigationTimeoutMs) {
+    try {
+      await clickEnabledLocator(button, `${label} first-run action`, 10000);
+      await waitForPageUrl(page, urlPredicate, routeLabel, 10000);
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(500);
+    }
+  }
+
+  throw lastError ?? new Error(`Unable to navigate via first-run action: ${label}`);
+}
+
 async function waitForPageUrl(page, matcher, label, timeout = routeNavigationTimeoutMs) {
   const startedAt = Date.now();
   let current = "";
@@ -763,7 +808,10 @@ async function gotoAndExpectText(page, url, text, label = text) {
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     const response = await page
-      .goto(url, { waitUntil: "networkidle" })
+      .goto(url, {
+        waitUntil: "domcontentloaded",
+        timeout: routeNavigationTimeoutMs,
+      })
       .catch((error) => {
         lastError = error;
         return null;
@@ -1402,10 +1450,26 @@ async function importSettingsEnvFile(page, buttonLabel, importPath) {
     .first();
   await importButton.waitFor({ state: "visible", timeout: 15000 });
   assert(!(await locatorIsDisabled(importButton)), `${buttonLabel} button is disabled`);
-  const [fileChooser] = await Promise.all([
-    page.waitForEvent("filechooser", { timeout: 30000 }),
-    clickButtonLocator(importButton, `${buttonLabel} button`),
-  ]);
+  let fileChooser = null;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      [fileChooser] = await Promise.all([
+        page.waitForEvent("filechooser", { timeout: 10000 }),
+        clickEnabledLocator(importButton, `${buttonLabel} button`, 10000),
+      ]);
+      break;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(500 * attempt);
+    }
+  }
+
+  if (!fileChooser) {
+    throw lastError ?? new Error(`${buttonLabel} did not open a file chooser`);
+  }
+
   await fileChooser.setFiles(importPath);
   await expectText(page, "Imported \"smoke-settings.env\". Review and save.");
   const rawText = await page.locator("textarea").first().inputValue();
@@ -1456,33 +1520,20 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
   await expectText(page, "npm run qa:manual");
   const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
   await manualQaPanel.waitFor({ state: "visible", timeout: 15000 });
+  const manualQaItem = manualQaPanel.locator(".settings-manual-qa-item").first();
+  await manualQaItem.waitFor({ state: "visible", timeout: 15000 });
   await expectText(page, "Stores only status and timestamp in this browser.");
-  await clickButtonIn(manualQaPanel, "Mark Passed");
-  await manualQaPanel
-    .locator(".settings-manual-qa-item-status")
-    .filter({ hasText: "Passed" })
-    .first()
-    .waitFor({ state: "visible", timeout: 5000 });
-  await clickButtonIn(manualQaPanel, "Needs Fix");
-  await manualQaPanel
-    .locator(".settings-manual-qa-item-status")
-    .filter({ hasText: "Needs fix" })
-    .first()
-    .waitFor({ state: "visible", timeout: 5000 });
-  await clickButtonIn(manualQaPanel, "Reset");
-  await manualQaPanel
-    .locator(".settings-manual-qa-item-status")
-    .filter({ hasText: "Pending" })
-    .first()
-    .waitFor({ state: "visible", timeout: 5000 });
+  await setManualQaItemStatus(manualQaItem, "Mark Passed", "Passed");
+  await setManualQaItemStatus(manualQaItem, "Needs Fix", "Needs fix");
+  await setManualQaItemStatus(manualQaItem, "Reset", "Pending");
   await expectText(page, "First Run Checklist");
   await expectText(page, "Setup Doctor");
-  const firstRunPanel = page.locator(".settings-first-run-panel").first();
-  await firstRunPanel.waitFor({ state: "visible", timeout: 15000 });
+  let firstRunPanel = await getFirstRunPanel(page);
 
-  await clickNavigationButtonIn(firstRunPanel, "Export");
-  await waitForPageUrl(
+  await clickFirstRunNavigationAction(
     page,
+    firstRunPanel,
+    "Export",
     (url) =>
       url.pathname === "/export" && url.searchParams.get("diagnostics") === "true",
     "first-run diagnostics export route",
@@ -1496,9 +1547,11 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
   );
   await expectText(page, "Diagnostics export was opened in this session.");
 
-  await clickNavigationButtonIn(firstRunPanel, "Open Export");
-  await waitForPageUrl(
+  firstRunPanel = await getFirstRunPanel(page);
+  await clickFirstRunNavigationAction(
     page,
+    firstRunPanel,
+    "Open Export",
     (url) =>
       url.pathname === "/export" && url.searchParams.get("diagnostics") === "true",
     "first-run open export route",
@@ -1511,9 +1564,11 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "settings first run checklist after open export action",
   );
 
-  await clickNavigationButtonIn(firstRunPanel, "Open Chat");
-  await waitForPageUrl(
+  firstRunPanel = await getFirstRunPanel(page);
+  await clickFirstRunNavigationAction(
     page,
+    firstRunPanel,
+    "Open Chat",
     (url) => url.pathname === "/chat",
     "first-run open chat route",
   );
@@ -1642,6 +1697,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "Needs Fix",
     "Reset",
   ]);
+  await markVisibleButtonsCoveredByLabel(page, ["Refresh"], { requireAll: false });
   await markAppRouteLinksCovered(page, ["Open Settings"]);
   await assertVisibleButtonsAccountedFor(page, "Settings");
   await assertVisibleLinksAccountedFor(page, "Settings");
@@ -1801,102 +1857,6 @@ async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
     );
   } finally {
     await page.unroute("**/api/settings/claude-cli**");
-  }
-}
-
-async function runMockedSettingsSaveFailureSmoke(page, baseUrl) {
-  await gotoSettingsAndExpectText(
-    page,
-    baseUrl,
-    "Config Fields",
-    "settings config tab",
-  );
-  await page.route("**/api/settings", async (route) => {
-    if (route.request().method() !== "POST") {
-      await route.continue();
-      return;
-    }
-    expectBrowserIssue(/http 500: .*\/api\/settings$/);
-    expectBrowserIssue(
-      /console: Failed to load resource: the server responded with a status of 500/,
-    );
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({ error: "Smoke settings save failed." }),
-    });
-  });
-
-  try {
-    const configFieldsTab = page.getByRole("tab", {
-      name: "Config Fields",
-      exact: true,
-    });
-    await configFieldsTab.click();
-    const appTitleInput = page.locator("#settings-next-public-app-title");
-    await appTitleInput.waitFor({ state: "visible", timeout: 15000 });
-    await appTitleInput.fill(
-      "Smoke Settings Save Failure",
-    );
-    await clickButton(page, "^Save( Changes)?$", { exact: false });
-    await expectText(page, "Smoke settings save failed.");
-    const firstRunPanel = page.locator(".settings-first-run-panel").first();
-    const firstRunRebuild = firstRunPanel
-      .getByRole("button", { name: "Rebuild", exact: true })
-      .first();
-    if (await locatorIsVisibleAndEnabled(firstRunRebuild)) {
-      const indexPost = page
-        .waitForResponse(
-          (response) =>
-            response.url().includes("/api/index") &&
-            response.request().method() === "POST",
-          { timeout: 10000 },
-        )
-        .then(() => true)
-        .catch(() => false);
-      const clicked = await clickButtonLocator(
-        firstRunRebuild,
-        "First run Rebuild button",
-      )
-        .then(() => true)
-        .catch(() => false);
-      if (clicked && (await indexPost)) {
-        await waitForButtonHidden(page, "Rebuilding...");
-      }
-      await markVisibleButtonsCoveredByLabel(firstRunPanel, ["Rebuild"], {
-        requireAll: false,
-      });
-    }
-    await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
-    await markVisibleButtonsCoveredByLabel(page, [
-      "Rebuild Index",
-      "Import .env file",
-      "Config Fields",
-      "Raw .env Editor",
-      "Save Current",
-      "Show",
-      "Use typed",
-      "Choose folder",
-      "Browse app",
-      "Open Login",
-      "Test CLI",
-      "+ Add",
-      "Open Export",
-      "Save",
-      "Open Chat",
-      "Mark Passed",
-      "Needs Fix",
-      "Reset",
-    ]);
-    await markVisibleButtonsCoveredByLabel(page, ["Refresh", "Save Provider"], {
-      requireAll: false,
-    });
-    await markAppRouteLinksCovered(page, ["Open Settings"]);
-    await assertVisibleButtonsAccountedFor(page, "Mocked Settings Save Failure");
-    await assertVisibleLinksAccountedFor(page, "Mocked Settings Save Failure");
-    await assertInteractiveControlsAccessible(page, "Mocked Settings Save Failure");
-  } finally {
-    await page.unroute("**/api/settings");
   }
 }
 
@@ -2476,10 +2436,7 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await expectText(page, "No matching skills");
   await clickButton(page, "Clear Search");
   await expectText(page, "release-readiness-smoke");
-  await markVisibleButtonsCoveredByLabel(page, [
-    "Rebuild Index",
-    "Restore smoke-imported-skill",
-  ]);
+  await markVisibleButtonsCoveredByLabel(page, ["Rebuild Index"]);
   await page.locator(".skills-list-scroll button").evaluateAll((buttons) => {
     for (const button of buttons) {
       const visible = Boolean(
@@ -2597,8 +2554,12 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
     );
     await expectText(page, "Guided Skill Builder");
 
-    await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
-    await expectText(page, "No skills are ready to export");
+    await gotoAndExpectText(
+      page,
+      `${baseUrl}/export`,
+      "No skills are ready to export",
+      "empty export state",
+    );
     const exportDownloadPromise = page.waitForEvent("download");
     await clickButton(page, "Export Diagnostics");
     const exportDownload = await exportDownloadPromise;
@@ -2619,8 +2580,12 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
     );
     await expectText(page, "No skills yet");
 
-    await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
-    await expectText(page, "No skills are ready to export");
+    await gotoAndExpectText(
+      page,
+      `${baseUrl}/export`,
+      "No skills are ready to export",
+      "empty export state after Open Skills",
+    );
     await clickLinkIn(page.locator(".export-empty-actions").first(), "Guided Builder");
     await waitForPageUrl(
       page,
@@ -3092,8 +3057,12 @@ async function verifyExportReadinessSectionLink(
   await link.click();
   await waitForPageUrl(page, urlPredicate, `export readiness ${label} route`);
   await expectText(page, expectedText);
-  await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
-  await expectText(page, "Export");
+  await gotoAndExpectText(
+    page,
+    `${baseUrl}/export`,
+    "Export",
+    `export readiness ${label} return route`,
+  );
 }
 
 async function verifyExportReadinessSectionLinks(page, baseUrl) {
@@ -3129,8 +3098,7 @@ async function markExportReadinessLinksCovered(page) {
 }
 
 async function runExportSmoke(page, baseUrl, smokeRoot) {
-  await page.goto(`${baseUrl}/export`, { waitUntil: "networkidle" });
-  await expectText(page, "Export");
+  await gotoAndExpectText(page, `${baseUrl}/export`, "Export", "export smoke");
   await verifyExportReadinessSectionLinks(page, baseUrl);
   await clickButton(page, "Select all");
   await clickButton(page, "Clear");
@@ -3536,6 +3504,8 @@ async function runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, ba
     );
     const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
     await manualQaPanel.waitFor({ state: "visible", timeout: 15000 });
+    const manualQaItem = manualQaPanel.locator(".settings-manual-qa-item").first();
+    await manualQaItem.waitFor({ state: "visible", timeout: 15000 });
     await expectText(
       page,
       "Browser storage is unavailable, so evidence is kept in memory for this page only.",
@@ -3549,24 +3519,9 @@ async function runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, ba
       "Workspace profile is available in this tab, but browser storage is unavailable.",
     );
     await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
-    await clickButtonIn(manualQaPanel, "Mark Passed");
-    await manualQaPanel
-      .locator(".settings-manual-qa-item-status")
-      .filter({ hasText: "Passed" })
-      .first()
-      .waitFor({ state: "visible", timeout: 5000 });
-    await clickButtonIn(manualQaPanel, "Needs Fix");
-    await manualQaPanel
-      .locator(".settings-manual-qa-item-status")
-      .filter({ hasText: "Needs fix" })
-      .first()
-      .waitFor({ state: "visible", timeout: 5000 });
-    await clickButtonIn(manualQaPanel, "Reset");
-    await manualQaPanel
-      .locator(".settings-manual-qa-item-status")
-      .filter({ hasText: "Pending" })
-      .first()
-      .waitFor({ state: "visible", timeout: 5000 });
+    await setManualQaItemStatus(manualQaItem, "Mark Passed", "Passed");
+    await setManualQaItemStatus(manualQaItem, "Needs Fix", "Needs fix");
+    await setManualQaItemStatus(manualQaItem, "Reset", "Pending");
     await assertInteractiveControlsAccessible(
       page,
       "Settings Manual QA blocked storage",
@@ -3715,7 +3670,6 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
       path.join(smokeRoot, "workspace"),
       path.join(smokeRoot, "smoke-settings.env"),
     );
-    await runMockedSettingsSaveFailureSmoke(page, baseUrl);
     await runMockedSkillsImportFailureSmoke(page, baseUrl);
     await runMockedSkillsImportDuplicateSmoke(page, baseUrl);
     await runSkillsSmoke(page, baseUrl, importSource, archivePath);

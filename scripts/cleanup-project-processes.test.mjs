@@ -11,6 +11,7 @@ import {
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const verifyReleaseSource = readFileSync("scripts/verify-release.mjs", "utf8");
+const cleanupSource = readFileSync("scripts/cleanup-project-processes.mjs", "utf8");
 const repoRoot = "C:/Repos/Skill Workshop/rag-interface";
 
 assert.equal(
@@ -27,6 +28,11 @@ assert.match(
   verifyReleaseSource,
   /Project process cleanup dry run postflight/,
   "verify:release must run the project cleanup dry-run postflight",
+);
+assert.match(
+  cleanupSource,
+  /manual QA helper processes/,
+  "cleanup no-op output should describe the full current release cleanup scope",
 );
 
 function processInfo(pid, parentPid, commandLine, name = "node.exe") {
@@ -96,6 +102,32 @@ assert.equal(
 assert.equal(
   isProjectOwnedProcess(
     processInfo(
+      16,
+      1,
+      "node C:/Repos/Skill Workshop/rag-interface/scripts/smoke-buttons.mjs",
+    ),
+    repoRoot,
+  ),
+  true,
+  "Repo-owned safe button smoke runner should be detected",
+);
+
+assert.equal(
+  isProjectOwnedProcess(
+    processInfo(
+      17,
+      1,
+      "node C:/Repos/Skill Workshop/rag-interface/scripts/manual-external-qa.mjs --start-server",
+    ),
+    repoRoot,
+  ),
+  true,
+  "Repo-owned manual QA auto helper should be detected",
+);
+
+assert.equal(
+  isProjectOwnedProcess(
+    processInfo(
       13,
       1,
       "node C:/Repos/Skill Workshop/rag-interface/node_modules/@openai/codex/bin/codex.js",
@@ -117,6 +149,31 @@ assert.equal(
   ),
   true,
   "npm run dev wrapper should be stoppable only when linked to a matched child",
+);
+
+assert.equal(
+  isSafeWrapperProcess(
+    processInfo(
+      18,
+      1,
+      '"C:/Windows/System32/cmd.exe" /c npm run smoke:buttons',
+      "cmd.exe",
+    ),
+  ),
+  true,
+  "npm run smoke:buttons wrapper should be stoppable only when linked to a matched child",
+);
+
+assert.equal(
+  isSafeWrapperProcess(
+    processInfo(
+      19,
+      1,
+      '"C:/Program Files/nodejs/node.exe" "D:/Tooling/npm/bin/npm-cli.js" run qa:manual:auto',
+    ),
+  ),
+  true,
+  "npm run qa:manual:auto wrapper should be stoppable only when linked to a matched child",
 );
 
 assert.equal(

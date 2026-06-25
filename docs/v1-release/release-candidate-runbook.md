@@ -121,7 +121,7 @@ If a local smoke/dev run is interrupted and memory or ports look stale, inspect 
 npm run cleanup:project:dry-run
 ```
 
-Then stop only this repo's detected Next/smoke/test process trees:
+Then stop only this repo's detected Next, smoke, test, release, and manual QA helper process trees:
 
 ```bash
 npm run cleanup:project

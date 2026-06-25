@@ -14,6 +14,7 @@ export function useSkillEditorTabs(initialTab: EditorTabId = "edit") {
 
   function focusEditorTab(tab: EditorTabId) {
     const tabRef = tab === "edit" ? editTabButtonRef : previewTabButtonRef;
+    tabRef.current?.focus();
     window.requestAnimationFrame(() => tabRef.current?.focus());
   }
 

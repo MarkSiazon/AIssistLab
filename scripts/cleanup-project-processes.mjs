@@ -17,6 +17,7 @@ const INFRASTRUCTURE_PATTERNS = [
 const PROJECT_COMMAND_PATTERNS = [
   /[\\/]next[\\/]dist[\\/]bin[\\/]next\b/i,
   /[\\/]scripts[\\/]smoke-local\.mjs\b/i,
+  /[\\/]scripts[\\/]smoke-buttons\.mjs\b/i,
   /[\\/]scripts[\\/]smoke-production\.mjs\b/i,
   /[\\/]scripts[\\/]verify-release\.mjs\b/i,
   /[\\/]scripts[\\/]run-tests\.mjs\b/i,
@@ -24,8 +25,8 @@ const PROJECT_COMMAND_PATTERNS = [
 ];
 
 const SAFE_WRAPPER_PATTERNS = [
-  /\bcmd\.exe"?\s+\/c\s+npm\s+run\s+(?:dev|start|test|smoke:local|smoke:production|verify:release)\b/i,
-  /\bnpm-cli\.js"?\s+run\s+(?:dev|start|test|smoke:local|smoke:production|verify:release)\b/i,
+  /\bcmd\.exe"?\s+\/c\s+npm\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release)\b/i,
+  /\bnpm-cli\.js"?\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release)\b/i,
   /\bcmd\.exe\b.*\bnext\s+(?:dev|start)\b/i,
 ];
 
@@ -235,7 +236,9 @@ async function main() {
   });
 
   if (plan.rootMatches.length === 0) {
-    console.log("No repo-owned Next/smoke/test processes were found.");
+    console.log(
+      "No repo-owned Next, smoke, test, release, or manual QA helper processes were found.",
+    );
     return;
   }
 

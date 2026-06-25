@@ -22,6 +22,12 @@ assert.match(
   "safe button smoke should include a body excerpt when route content is missing",
 );
 
+assert.match(
+  source,
+  /getByText\(expectedText, \{ exact: true \}\)[\s\S]*waitFor\(\{ state: "visible", timeout: routeNavigationTimeoutMs \}\)/,
+  "safe button smoke should wait for expected route text instead of reading body text only once",
+);
+
 for (const requiredSkip of [
   "open login",
   "test cli",

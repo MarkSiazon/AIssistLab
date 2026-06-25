@@ -216,7 +216,7 @@ npm run cleanup:project
 
 `npm run qa:manual` prints the manual external QA checklist for native folder picker, visible Claude login launch, and real account-backed chat against an already-running local app. `npm run qa:manual:auto` starts a temporary localhost dev server, prints the same sanitized report, then stops that server. Each checklist item explains why it remains manual. Neither command opens native dialogs, launches login, sends chat messages, or writes evidence files. Settings includes a `Manual QA Evidence` panel for session-local status/timestamp tracking after you run those checks.
 
-`npm run cleanup:project:dry-run` lists repo-owned Next/smoke/test process trees that can be cleaned up when a local run is stale. `npm run cleanup:project` stops only those detected project process trees. It requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure, so it is safe to use without affecting other Codex conversations.
+`npm run cleanup:project:dry-run` lists repo-owned Next, smoke, test, release, and manual QA helper process trees that can be cleaned up when a local run is stale. `npm run cleanup:project` stops only those detected project process trees. It requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure, so it is safe to use without affecting other Codex conversations.
 
 ## Documentation
 
