@@ -136,6 +136,24 @@ assert.match(
 
 assert.match(
   source,
+  /markButtonLocatorCovered\(page\.locator\("\.settings-claude-refresh"\)\.first\(\)\)/,
+  "settings smoke must explicitly account for the Claude panel refresh button after reloads",
+);
+
+assert.match(
+  source,
+  /async function downloadByButton[\s\S]*page\.waitForEvent\("download", \{ timeout: 60000 \}\)[\s\S]*Download did not start for button/,
+  "export smoke must use bounded retryable download waits",
+);
+
+assert.equal(
+  source.includes('downloadByButton(page, "Download Selected \\\\+ Diagnostics", {\n    exact: false,'),
+  true,
+  "export smoke must use the bounded download helper for selected diagnostics downloads",
+);
+
+assert.match(
+  source,
   /runSettingsManualQaBlockedStorageSmoke/,
   "local smoke must verify the manual QA evidence panel when browser storage is blocked",
 );

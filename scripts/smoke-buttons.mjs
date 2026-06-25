@@ -106,6 +106,46 @@ async function waitForServer(baseUrl, child, logs) {
   throw new Error(`Timed out waiting for Next dev server.\n${logs.join("\n")}`);
 }
 
+async function gotoRouteAndExpectText(page, baseUrl, route) {
+  const expectedText = expectedRouteText.get(route);
+  let lastBodyText = "";
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await page.goto(`${baseUrl}${route}`, {
+      waitUntil: "domcontentloaded",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await page.waitForLoadState("networkidle", {
+      timeout: routeNavigationTimeoutMs,
+    }).catch(() => {});
+
+    if (!expectedText) return;
+
+    const rendered = await page
+      .getByText(expectedText, { exact: true })
+      .first()
+      .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs / 3 })
+      .then(() => true)
+      .catch(async () => {
+        lastBodyText = await page
+          .locator("body")
+          .innerText({ timeout: 15000 })
+          .catch(() => "");
+        return false;
+      });
+
+    if (rendered) return;
+    await delay(1000 * attempt);
+  }
+
+  throw new Error(
+    `${route} did not render expected app text: ${expectedText}. Body excerpt: ${lastBodyText
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 240)}`,
+  );
+}
+
 function startDevServer(port) {
   const logs = [];
   const child =
@@ -209,10 +249,7 @@ async function auditSafeButtonClick(page, baseUrl, route, label) {
   page.on("pageerror", onPageError);
   page.on("requestfailed", onRequestFailed);
   try {
-    await page.goto(`${baseUrl}${route}`, {
-      waitUntil: "networkidle",
-      timeout: routeNavigationTimeoutMs,
-    });
+    await gotoRouteAndExpectText(page, baseUrl, route);
     await page.waitForTimeout(1000);
     const locator = page.locator("button").filter({ hasText: label }).first();
     const visibleAtClickTime = await locator
@@ -255,28 +292,8 @@ async function auditSafeButtonClick(page, baseUrl, route, label) {
 }
 
 async function auditRoute(page, baseUrl, route) {
-  await page.goto(`${baseUrl}${route}`, {
-    waitUntil: "networkidle",
-    timeout: routeNavigationTimeoutMs,
-  });
+  await gotoRouteAndExpectText(page, baseUrl, route);
   await page.waitForTimeout(1000);
-  const expectedText = expectedRouteText.get(route);
-  if (expectedText) {
-    try {
-      await page
-        .getByText(expectedText, { exact: true })
-        .first()
-        .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
-    } catch {
-      const bodyText = await page.locator("body").innerText({ timeout: 15000 });
-      throw new Error(
-        `${route} did not render expected app text: ${expectedText}. Body excerpt: ${bodyText
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 240)}`,
-      );
-    }
-  }
   const { visibleButtons, safeButtons } = await collectSafeButtons(page);
   const selectedButtons = safeButtons.slice(0, safeClickLimitPerRoute);
   const findings = [];

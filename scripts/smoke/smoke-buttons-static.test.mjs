@@ -24,8 +24,14 @@ assert.match(
 
 assert.match(
   source,
-  /getByText\(expectedText, \{ exact: true \}\)[\s\S]*waitFor\(\{ state: "visible", timeout: routeNavigationTimeoutMs \}\)/,
-  "safe button smoke should wait for expected route text instead of reading body text only once",
+  /for \(let attempt = 1; attempt <= 3; attempt\+\+\)[\s\S]*getByText\(expectedText, \{ exact: true \}\)[\s\S]*waitFor\(\{ state: "visible", timeout: routeNavigationTimeoutMs \/ 3 \}\)/,
+  "safe button smoke should retry expected route text readiness before reading final body text",
+);
+
+assert.match(
+  source,
+  /auditSafeButtonClick[\s\S]*gotoRouteAndExpectText\(page, baseUrl, route\)/,
+  "safe button smoke should verify route readiness before each button click reload",
 );
 
 for (const requiredSkip of [

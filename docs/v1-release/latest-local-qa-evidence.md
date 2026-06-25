@@ -7,9 +7,9 @@ This note records the latest local, privacy-safe verification state for the V1 r
 ## Current Checkpoint
 
 - Branch: `main`
-- Base commit: `9484f0a` (`origin/main`, `fix(release): harden local QA and Claude login`)
-- Local working tree: uncommitted smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, manual QA helper clarification in `docs/v1-release/manual-external-qa.md`, and this evidence refresh.
-- Push state: no commit or push attempted in this checkpoint.
+- Release QA checkpoint: committed and pushed on `origin/main`.
+- Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/manual-external-qa.md`.
+- Push state: release QA stabilization has been committed and pushed to `origin/main`; this file records the current privacy-safe evidence snapshot.
 
 ## Automated Verification
 

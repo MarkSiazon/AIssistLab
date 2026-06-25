@@ -520,6 +520,29 @@ async function clickButton(page, label, options = {}) {
   );
 }
 
+async function downloadByButton(page, label, options = {}) {
+  const exact = options.exact !== false;
+  const attempts = options.attempts ?? 3;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const [download] = await Promise.all([
+        page.waitForEvent("download", { timeout: 60000 }),
+        clickButton(page, label, { exact, timeout: 15000 }),
+      ]);
+      return download;
+    } catch (error) {
+      lastError = error;
+      if (page.isClosed()) throw error;
+      await page.waitForTimeout(1000 * attempt);
+    }
+  }
+
+  const message = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`Download did not start for button "${label}": ${message}`);
+}
+
 async function clickLink(page, label, options = {}) {
   const timeout = options.timeout ?? 10000;
   const exact = options.exact !== false;
@@ -1698,6 +1721,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "Reset",
   ]);
   await markVisibleButtonsCoveredByLabel(page, ["Refresh"], { requireAll: false });
+  await markButtonLocatorCovered(page.locator(".settings-claude-refresh").first());
   await markAppRouteLinksCovered(page, ["Open Settings"]);
   await assertVisibleButtonsAccountedFor(page, "Settings");
   await assertVisibleLinksAccountedFor(page, "Settings");
@@ -3104,9 +3128,7 @@ async function runExportSmoke(page, baseUrl, smokeRoot) {
   await clickButton(page, "Clear");
   await expectText(page, "0 of", "export selection cleared");
   await clickButton(page, "Select all");
-  const singleDownloadPromise = page.waitForEvent("download");
-  await clickButton(page, "Download .md");
-  const singleDownload = await singleDownloadPromise;
+  const singleDownload = await downloadByButton(page, "Download .md");
   const singleDownloadPath = path.join(smokeRoot, "single-skill.md");
   await singleDownload.saveAs(singleDownloadPath);
   const singleDownloadText = await readFile(singleDownloadPath, "utf8");
@@ -3115,9 +3137,9 @@ async function runExportSmoke(page, baseUrl, smokeRoot) {
     "Single-skill browser export did not include the expected demo skill content",
   );
   assertNoUnsafe("single-skill browser export", singleDownloadText);
-  const downloadPromise = page.waitForEvent("download");
-  await clickButton(page, "Download Selected \\+ Diagnostics", { exact: false });
-  const download = await downloadPromise;
+  const download = await downloadByButton(page, "Download Selected \\+ Diagnostics", {
+    exact: false,
+  });
   const downloadPath = path.join(smokeRoot, "downloaded-skills.zip");
   await download.saveAs(downloadPath);
   assert(await exists(downloadPath), "ZIP download was not saved");
@@ -3125,9 +3147,9 @@ async function runExportSmoke(page, baseUrl, smokeRoot) {
     extractZipEntries(await readFile(downloadPath)),
     "selected export ZIP",
   );
-  const allDownloadPromise = page.waitForEvent("download");
-  await clickButton(page, "Download All \\+ Diagnostics", { exact: false });
-  const allDownload = await allDownloadPromise;
+  const allDownload = await downloadByButton(page, "Download All \\+ Diagnostics", {
+    exact: false,
+  });
   const allDownloadPath = path.join(smokeRoot, "downloaded-all-skills.zip");
   await allDownload.saveAs(allDownloadPath);
   assert(await exists(allDownloadPath), "All-skills ZIP download was not saved");
