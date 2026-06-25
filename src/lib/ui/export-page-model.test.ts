@@ -5,7 +5,6 @@ import {
   buildExportReadinessStatus,
   buildPrimaryDownloadLabel,
   readinessCopy,
-  readinessLabel,
   type ReleaseReadinessResponse,
 } from "./export-page-model";
 
@@ -16,10 +15,6 @@ const readySummary: ReleaseReadinessResponse["summary"] = {
   canChat: true,
   canExportDiagnostics: true,
 };
-
-assert.equal(readinessLabel("ready"), "Ready");
-assert.equal(readinessLabel("needs_action"), "Needs action");
-assert.equal(readinessLabel("blocked"), "Blocked");
 
 assert.equal(
   readinessCopy(readySummary, false),

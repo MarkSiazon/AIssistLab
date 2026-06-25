@@ -5,11 +5,13 @@ import {
   buildExportReadinessStatus,
   diagnosticsContents,
   diagnosticsPrivacyCopy,
-  readinessColor,
   readinessCopy,
-  readinessLabel,
   type ReleaseReadinessResponse,
 } from "@/lib/ui/export-page-model";
+import {
+  releaseStatusColor,
+  releaseStatusLabel,
+} from "@/lib/ui/settings-status";
 
 interface ExportReadinessPanelProps {
   readiness: ReleaseReadinessResponse | undefined;
@@ -92,12 +94,12 @@ export function ExportReadinessPanel({
                   <div className="export-readiness-section-label">
                     <span
                       className="ui-status-dot"
-                      style={{ background: readinessColor(section.status) }}
+                      style={{ background: releaseStatusColor(section.status) }}
                     />
                     <span>{section.label}</span>
                   </div>
                   <span className="export-readiness-section-status">
-                    {readinessLabel(section.status)}
+                    {releaseStatusLabel(section.status)}
                   </span>
                 </div>
                 <div className="export-readiness-section-message">

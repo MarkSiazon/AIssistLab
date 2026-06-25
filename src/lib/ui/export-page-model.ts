@@ -39,18 +39,6 @@ export const diagnosticsContents = [
 export const diagnosticsPrivacyCopy =
   "Generated locally with sanitized readiness, index, quality, Claude project, and settings data. API keys, account identifiers, OAuth paths, and raw profile paths are not included.";
 
-export function readinessLabel(
-  status: ReleaseReadinessResponse["summary"]["status"],
-) {
-  return releaseStatusLabel(status);
-}
-
-export function readinessColor(
-  status: ReleaseReadinessResponse["summary"]["status"],
-) {
-  return releaseStatusColor(status);
-}
-
 export function readinessCopy(
   summary: ReleaseReadinessResponse["summary"] | undefined,
   hasError: boolean,
@@ -71,7 +59,11 @@ export function buildExportReadinessMetrics(
   return [
     {
       label: "Readiness",
-      value: summary ? readinessLabel(summary.status) : hasError ? "Unavailable" : "Checking",
+      value: summary
+        ? releaseStatusLabel(summary.status)
+        : hasError
+          ? "Unavailable"
+          : "Checking",
     },
     {
       label: "Chat",
@@ -104,7 +96,7 @@ export function buildExportBundleStats(input: {
   readinessError: unknown;
 }) {
   const readinessSummaryLabel = input.readinessSummary
-    ? `${readinessLabel(input.readinessSummary.status)} - ${input.readinessSummary.score}/100`
+    ? `${releaseStatusLabel(input.readinessSummary.status)} - ${input.readinessSummary.score}/100`
     : input.readinessError
       ? "Unavailable"
       : "Checking";
@@ -123,7 +115,7 @@ export function buildExportReadinessStatus(input: {
 }) {
   return {
     statusLabel: input.readinessSummary
-      ? readinessLabel(input.readinessSummary.status)
+      ? releaseStatusLabel(input.readinessSummary.status)
       : input.readinessError
         ? "Unavailable"
         : "Checking",
@@ -131,7 +123,7 @@ export function buildExportReadinessStatus(input: {
       ? `${input.readinessSummary.score}/100`
       : "--/100",
     statusColor: input.readinessSummary
-      ? readinessColor(input.readinessSummary.status)
+      ? releaseStatusColor(input.readinessSummary.status)
       : input.readinessError
         ? "var(--red)"
         : "var(--text-muted)",
