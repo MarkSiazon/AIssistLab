@@ -1,6 +1,5 @@
 export {
   expandUserPath,
-  getNativeClaudeInstallPath,
   sanitizeClaudeDisplayText,
   toPortableHomePath,
 } from "@/lib/claude/discovery-paths";
@@ -11,8 +10,6 @@ export {
 export {
   discoverClaudeProfileState,
   discoverClaudeProfiles,
-  getSelectedClaudeProfile,
-  getSelectedInternalClaudeProfile,
   resolveClaudeProfileSelection,
 } from "@/lib/claude/discovery-profiles";
 export type {

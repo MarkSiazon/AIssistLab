@@ -5,9 +5,6 @@ export { getClaudeCliStatus } from "@/lib/rag/claude-cli-status";
 export type { ClaudeCliStatus } from "@/lib/rag/claude-cli-status";
 export {
   buildClaudeCliEnvForCommand,
-  getClaudeCliPath,
-  getClaudeConfigDir,
-  getClaudeLoginCommand,
   getLlmProvider,
   isClaudeCliEnabled,
 } from "@/lib/rag/claude-cli-runtime";

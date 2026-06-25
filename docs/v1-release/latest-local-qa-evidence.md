@@ -26,6 +26,9 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Test request origin and non-local host constants are now private behind the request helper builders.
 - Chat stream line parsing is now private behind the public streaming client, with parser behavior covered through stream-level tests.
 - Settings path privacy sanitization is now private behind the public settings path formatter.
+- Claude discovery regex escaping, selected-profile helpers, and native-install path lookup are no longer exposed through public discovery module surfaces.
+- Claude CLI path, config-dir, and login-command readers are no longer re-exported through the legacy LLM config barrel.
+- Native folder picker process launching, guided-draft normalization, unused skill writer delete wrapper, and editor body-size limit re-export were removed from public runtime surfaces.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -69,6 +72,10 @@ npx --yes tsx src/lib/settings/client-api.test.ts
 npx --yes tsx src/lib/settings/doctor.test.ts
 npx --yes tsx src/lib/skills/validation.test.ts
 npx --yes tsx src/lib/claude/discovery.test.ts
+npx --yes tsx src/lib/rag/claude-cli-runtime.test.ts
+npx --yes tsx src/app/api/settings/native-folder/route.test.ts
+npx --yes tsx src/lib/skills/guided-builder.test.ts
+npx --yes tsx src/lib/ui/skill-editor-model.test.ts
 npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx src/lib/local-access.test.ts
 npx --yes tsx src/app/api/settings/local-guards.test.ts

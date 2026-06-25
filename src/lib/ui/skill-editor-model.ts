@@ -37,8 +37,6 @@ export interface SkillEditorSetupCheck {
   message: string;
 }
 
-export { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
-
 export function extraFrontmatterFields(
   frontmatter: Record<string, unknown>,
 ): Record<string, unknown> {

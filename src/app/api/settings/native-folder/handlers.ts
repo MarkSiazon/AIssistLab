@@ -17,7 +17,7 @@ interface NativeFolderRouteDependencies {
   runWindowsFolderPicker?: FolderPickerRunner;
 }
 
-export function runWindowsFolderPicker(
+function runWindowsFolderPicker(
   initialPath: string,
   title: string,
 ): Promise<NativeFolderPickerResult> {

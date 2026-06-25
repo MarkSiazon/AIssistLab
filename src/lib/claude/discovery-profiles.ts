@@ -199,18 +199,6 @@ export async function discoverClaudeProfiles(
   return state.profiles;
 }
 
-export function getSelectedClaudeProfile(
-  profiles: ClaudeProfileSummary[],
-): ClaudeProfileSummary {
-  return profiles.find((profile) => profile.selected) ?? profiles[0];
-}
-
-export function getSelectedInternalClaudeProfile(
-  profiles: ClaudeInternalProfile[],
-): ClaudeInternalProfile {
-  return profiles.find((profile) => profile.selected) ?? profiles[0];
-}
-
 export async function resolveClaudeProfileSelection(
   selection: ClaudeProfileSelectionInput | undefined,
   options: DiscoverClaudeProfilesOptions = {},

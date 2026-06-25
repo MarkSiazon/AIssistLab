@@ -23,7 +23,7 @@ export function joinNearHome(
   return pathApiFor(home).join(home, ...segments);
 }
 
-export function escapeRegExp(value: string): string {
+function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
