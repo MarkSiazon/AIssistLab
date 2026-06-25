@@ -1,4 +1,4 @@
-import { pluralNoun } from "@/lib/format/count-label";
+import { countLabel } from "@/lib/format/count-label";
 
 type SkillsImportPreviewSummaryTone = "ok" | "warn" | "error";
 
@@ -36,7 +36,7 @@ export function buildSkillsImportPreviewSummary(
     return {
       statusLabel: "Needs fixes",
       statusTone: "error",
-      headline: `${input.invalidCount} ${pluralNoun(
+      headline: `${countLabel(
         input.invalidCount,
         "skill",
       )} ${input.invalidCount === 1 ? "needs" : "need"} fixes before import.`,
@@ -60,9 +60,9 @@ export function buildSkillsImportPreviewSummary(
     return {
       statusLabel: "Review",
       statusTone: "warn",
-      headline: `${input.validCount} valid ${pluralNoun(
+      headline: `${countLabel(
         input.validCount,
-        "skill",
+        "valid skill",
       )} found with ${suffix}.`,
       detail:
         hasDuplicates && hasWarnings
@@ -82,9 +82,9 @@ export function buildSkillsImportPreviewSummary(
   return {
     statusLabel: "Ready",
     statusTone: "ok",
-    headline: `${input.validCount} valid ${pluralNoun(
+    headline: `${countLabel(
       input.validCount,
-      "skill",
+      "valid skill",
     )} ${input.validCount === 1 ? "is" : "are"} ready to import.`,
     detail: "Apply this preview when you are ready. The index will be marked stale.",
     nextAction: "Apply import",

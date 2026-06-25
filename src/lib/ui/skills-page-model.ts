@@ -1,4 +1,4 @@
-import { pluralNoun } from "@/lib/format/count-label";
+import { countLabel } from "@/lib/format/count-label";
 
 export interface SkillSummary {
   name: string;
@@ -44,10 +44,10 @@ export function buildIndexRebuiltMessage(input: {
   skillCount: number;
   chunkCount: number;
 }): string {
-  return `Index rebuilt with ${input.skillCount} ${pluralNoun(
+  return `Index rebuilt with ${countLabel(
     input.skillCount,
     "skill",
-  )} and ${input.chunkCount} ${pluralNoun(input.chunkCount, "chunk")}.`;
+  )} and ${countLabel(input.chunkCount, "chunk")}.`;
 }
 
 export function buildImportAppliedMessage(input: {
@@ -55,10 +55,7 @@ export function buildImportAppliedMessage(input: {
   skippedCount: number;
   renamedCount: number;
 }): string {
-  return `Imported ${input.writtenCount} ${pluralNoun(
-    input.writtenCount,
-    "skill",
-  )}${
+  return `Imported ${countLabel(input.writtenCount, "skill")}${
     input.skippedCount > 0 ? `, skipped ${input.skippedCount}` : ""
   }${
     input.renamedCount > 0 ? `, renamed ${input.renamedCount}` : ""

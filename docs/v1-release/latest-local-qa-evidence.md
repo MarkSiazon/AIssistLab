@@ -36,6 +36,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
 - Skill library readiness now consumes the canonical Skill Quality report shape and shared severity counters instead of maintaining duplicate quality report/counting logic.
 - Skill import previews now use the canonical Skill Quality warning filter and shared count-label formatting for preview issue summaries.
+- Skills page and import preview copy now use the public `countLabel` helper directly; the lower-level plural helper is private to the formatter module.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

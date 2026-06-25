@@ -1,4 +1,4 @@
-import { countLabel, pluralNoun } from "@/lib/format/count-label";
+import { countLabel } from "@/lib/format/count-label";
 
 type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
 
@@ -47,7 +47,7 @@ export function buildSkillsImportActionState(
       ? "Applying..."
       : input.duplicateCount > 0 && input.duplicateStrategy === "skip"
         ? effectiveImportCount > 0
-          ? `Import ${effectiveImportCount}, skip ${input.duplicateCount} ${pluralNoun(
+          ? `Import ${effectiveImportCount}, skip ${countLabel(
               input.duplicateCount,
               "duplicate",
             )}`

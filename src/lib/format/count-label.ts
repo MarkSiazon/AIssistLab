@@ -1,4 +1,4 @@
-export function pluralNoun(
+function pluralNoun(
   count: number,
   singular: string,
   plural = `${singular}s`,
