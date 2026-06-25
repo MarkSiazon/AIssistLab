@@ -93,10 +93,6 @@ Use `rag-interface/docs/v1-release/manual-external-qa.md` and the Settings Manua
 
 ## Commit Notes
 
-Recent pushed implementation commits include:
-
-1. Parent `dev`: `6e457ba fix(workspace): refresh pushed handoff state`.
-2. Parent `dev`: `34d75a3 chore(workspace): harden claude cli v1 handoff`.
-3. Nested app `main`: `1bb997a chore(qa): stabilize v1 release smoke coverage`.
+The parent wrapper changes are committed and pushed on `origin/dev`. The nested V1 app changes are committed and pushed on `origin/main`.
 
 Do not pull or merge parent remote branches without first deciding whether this checkout should remain a parent wrapper with nested `rag-interface/` or move to the app-root `origin/main` layout. The local parent skill still writes PR bodies to `docs/pr-description.md`; keep that behavior if the wrapper layout is preserved.
