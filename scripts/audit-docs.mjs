@@ -29,7 +29,7 @@ export function extractMarkdownLinks(markdown) {
   return links;
 }
 
-export function markdownLineForOffset(markdown, offset) {
+function markdownLineForOffset(markdown, offset) {
   return markdown.slice(0, offset).split(/\r?\n/).length;
 }
 

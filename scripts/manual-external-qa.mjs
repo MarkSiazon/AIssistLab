@@ -12,7 +12,7 @@ const endpointPaths = [
   "/api/settings/claude-cli/profiles",
 ];
 
-export const manualQaChecks = [
+const manualQaChecks = [
   {
     title: "Native folder picker",
     manualReason:

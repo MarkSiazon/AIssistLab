@@ -7,7 +7,7 @@ export const repoRoot = path.resolve(
   fileURLToPath(new URL("../../", import.meta.url)),
 );
 
-export function runGit(args) {
+function runGit(args) {
   const result = spawnSync("git", args, {
     cwd: repoRoot,
     encoding: "utf8",
