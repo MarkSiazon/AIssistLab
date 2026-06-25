@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ChatPageStatus } from "@/lib/ui/chat-page-model";
-import { indexSuggestedAction } from "@/lib/ui/chat-readiness-panel";
+import { indexSuggestedAction } from "@/lib/ui/index-status-summary";
 
 interface ChatBlockedAlertProps {
   status: ChatPageStatus | null;

@@ -1015,7 +1015,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
       () => (indexRebuildCount > 0 ? "index rebuilt" : ""),
       "Production settings rebuild index action",
     );
-    await expectText(page, "Index ready: 1 skills, 2 chunks.");
+    await expectText(page, "Index ready: 1 skill, 2 chunks.");
 
     await clickButton(page, /^Save settings( changes)?$/i);
     await waitForRecordedUrl(

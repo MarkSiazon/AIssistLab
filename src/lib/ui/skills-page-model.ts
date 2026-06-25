@@ -40,16 +40,6 @@ export function getSkillsEmptyStateCopy(hasSearch: boolean): {
       };
 }
 
-export function buildIndexRebuiltMessage(input: {
-  skillCount: number;
-  chunkCount: number;
-}): string {
-  return `Index rebuilt with ${countLabel(
-    input.skillCount,
-    "skill",
-  )} and ${countLabel(input.chunkCount, "chunk")}.`;
-}
-
 export function buildImportAppliedMessage(input: {
   writtenCount: number;
   skippedCount: number;

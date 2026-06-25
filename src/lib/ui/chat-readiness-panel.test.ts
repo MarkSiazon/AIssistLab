@@ -3,9 +3,9 @@ import {
   buildChatEmptyStateCopy,
   buildChatReadinessRows,
   buildChatStatusChips,
-  indexSuggestedAction,
   type ChatReadinessStatus,
 } from "./chat-readiness-panel";
+import { indexSuggestedAction } from "./index-status-summary";
 
 const readyStatus: ChatReadinessStatus = {
   provider: "anthropic_api",

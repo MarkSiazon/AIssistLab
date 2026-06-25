@@ -17,8 +17,8 @@ import {
 import { useSkillsImportController } from "@/hooks/useSkillsImportController";
 import { buildSkillDeleteActionState } from "@/lib/ui/skill-delete-action";
 import { buildSkillQualitySummary } from "@/lib/ui/skills-library-readiness-panel";
+import { indexRebuiltMessage } from "@/lib/ui/index-status-summary";
 import {
-  buildIndexRebuiltMessage,
   filterSkills,
   getSkillsEmptyStateCopy,
 } from "@/lib/ui/skills-page-model";
@@ -97,7 +97,7 @@ export function useSkillsPageController() {
     try {
       const payload = await rebuildSkillsIndex();
       await refreshIndexStatus(payload, { revalidate: false });
-      setLifecycleMessage(buildIndexRebuiltMessage(payload));
+      setLifecycleMessage(indexRebuiltMessage(payload));
     } catch (err) {
       setLifecycleMessage(
         err instanceof Error ? err.message : "Index rebuild failed.",

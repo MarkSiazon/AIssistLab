@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import {
   buildImportAppliedMessage,
-  buildIndexRebuiltMessage,
   filterSkills,
   getSkillsEmptyStateCopy,
   type SkillSummary,
@@ -40,10 +39,6 @@ assert.deepEqual(
 );
 assert.deepEqual(filterSkills(null, "anything"), []);
 
-assert.equal(
-  buildIndexRebuiltMessage({ skillCount: 1, chunkCount: 2 }),
-  "Index rebuilt with 1 skill and 2 chunks.",
-);
 assert.equal(
   buildImportAppliedMessage({
     writtenCount: 2,

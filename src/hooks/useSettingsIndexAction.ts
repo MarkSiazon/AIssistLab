@@ -3,6 +3,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { SettingsStatusMessage } from "@/components/settings/SettingsStatusBanner";
 import type { PublicIndexState } from "@/lib/rag/index-state";
+import { indexStatusUpdateMessage } from "@/lib/ui/index-status-summary";
 import {
   runSettingsRefreshPlan,
   type SettingsRefreshActions,
@@ -25,7 +26,7 @@ export function useSettingsIndexAction({
       const data = await rebuildIndex();
       setStatus({
         type: "success",
-        msg: `Index ${data.status}: ${data.skillCount} skills, ${data.chunkCount} chunks.`,
+        msg: indexStatusUpdateMessage(data),
       });
       runSettingsRefreshPlan("after-index-rebuild", refreshActions);
     } catch (err) {

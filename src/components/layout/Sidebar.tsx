@@ -9,6 +9,7 @@ import {
   indexStatusCountsLabel,
   indexStatusColor,
   indexStatusLabel,
+  indexStatusUpdateMessage,
   type RagIndexStatusSnapshot,
 } from "@/lib/ui/index-status-summary";
 
@@ -145,7 +146,7 @@ export function Sidebar() {
       );
       setIndexStatus(data);
       setIndexError(null);
-      setStatus(`Index ${data.status}: ${data.skillCount} skills, ${data.chunkCount} chunks`);
+      setStatus(indexStatusUpdateMessage(data));
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error rebuilding index";

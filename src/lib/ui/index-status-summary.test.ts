@@ -8,10 +8,42 @@ async function main() {
   assert.equal(indexSummary.indexStatusLabel("missing"), "Missing");
   assert.equal(indexSummary.indexStatusLabel("rebuilding"), "Rebuilding");
   assert.equal(indexSummary.indexStatusLabel("failed"), "Failed");
+  assert.equal(indexSummary.indexStatusTitle("ready"), "Index ready");
+  assert.equal(indexSummary.indexStatusTitle("failed"), "Index failed");
 
   assert.equal(indexSummary.indexStatusColor("ready"), "var(--green)");
   assert.equal(indexSummary.indexStatusColor("failed"), "var(--red)");
   assert.equal(indexSummary.indexStatusColor("stale"), "var(--yellow)");
+  assert.equal(
+    indexSummary.indexCountsLabel({ skillCount: 1, chunkCount: 2 }),
+    "1 skill / 2 chunks",
+  );
+  assert.equal(
+    indexSummary.indexRebuiltMessage({ skillCount: 1, chunkCount: 2 }),
+    "Index rebuilt with 1 skill and 2 chunks.",
+  );
+  assert.equal(
+    indexSummary.indexStatusUpdateMessage({
+      status: "ready",
+      skillCount: 1,
+      chunkCount: 2,
+      staleReason: null,
+      error: null,
+    }),
+    "Index ready: 1 skill, 2 chunks.",
+  );
+  assert.equal(
+    indexSummary.indexSuggestedAction({ status: "failed" }),
+    "Fix the index error, then rebuild.",
+  );
+  assert.equal(
+    indexSummary.indexSuggestedAction({ status: "rebuilding" }),
+    "Wait for rebuild to finish.",
+  );
+  assert.equal(
+    indexSummary.indexSuggestedAction({ status: "stale" }),
+    "Rebuild Index before relying on citations.",
+  );
 
   assert.equal(
     indexSummary.indexStatusAnnouncement(null, true, null),

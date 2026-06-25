@@ -1,11 +1,12 @@
+import {
+  indexCountsLabel,
+  indexSuggestedAction,
+  indexStatusTitle,
+  type RagIndexStatus,
+} from "@/lib/ui/index-status-summary";
+
 type ChatProvider = "anthropic_api" | "claude_code_cli";
 type ChatRuntimeSource = "runtime" | "process";
-type ChatIndexStatus =
-  | "ready"
-  | "stale"
-  | "missing"
-  | "rebuilding"
-  | "failed";
 export type ChatStatusTone = "ok" | "warn" | "error" | "neutral";
 type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
 
@@ -16,7 +17,7 @@ export interface ChatReadinessStatus {
   blockingReason: string | null;
   suggestedAction: string | null;
   index: {
-    status: ChatIndexStatus;
+    status: RagIndexStatus;
     skillCount: number;
     chunkCount: number;
     staleReason: string | null;
@@ -57,20 +58,6 @@ function providerLabel(provider: ChatProvider): string {
 
 function runtimeLabel(source: ChatRuntimeSource): string {
   return source === "runtime" ? "Applied session" : "Process env";
-}
-
-function indexLabel(status: ChatIndexStatus): string {
-  if (status === "ready") return "Index ready";
-  if (status === "stale") return "Index stale";
-  if (status === "missing") return "Index missing";
-  if (status === "rebuilding") return "Index rebuilding";
-  return "Index failed";
-}
-
-export function indexSuggestedAction(status: ChatReadinessStatus["index"]): string {
-  if (status.status === "failed") return "Fix the index error, then rebuild.";
-  if (status.status === "rebuilding") return "Wait for rebuild to finish.";
-  return "Rebuild Index before relying on citations.";
 }
 
 function smokeTestLabel(status: ChatReadinessStatus): string {
@@ -119,7 +106,7 @@ export function buildChatStatusChips(
     status.canSend ? "Ready to send" : "Chat blocked",
     providerLabel(status.provider),
     runtimeLabel(status.runtimeSource),
-    indexLabel(status.index.status),
+    indexStatusTitle(status.index.status),
     authReadinessLabel(status),
   ].map((label) => ({
     label,
@@ -156,8 +143,8 @@ export function buildChatReadinessRows({
     },
     {
       label: "Index",
-      value: indexLabel(status.index.status),
-      detail: `${status.index.skillCount} skills / ${status.index.chunkCount} chunks`,
+      value: indexStatusTitle(status.index.status),
+      detail: indexCountsLabel(status.index),
       tone:
         status.index.status === "ready"
           ? "ok"

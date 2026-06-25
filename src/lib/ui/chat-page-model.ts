@@ -10,7 +10,6 @@ import {
   buildChatEmptyStateCopy,
   buildChatReadinessRows,
   buildChatStatusChips,
-  indexSuggestedAction,
   type ChatEmptyStateCopy,
   type ChatReadinessReleaseSummary,
   type ChatReadinessRow,
@@ -18,6 +17,7 @@ import {
   type ChatStatusChip,
   type ChatStatusTone,
 } from "@/lib/ui/chat-readiness-panel";
+import { indexSuggestedAction } from "@/lib/ui/index-status-summary";
 import {
   buildChatComposerActionState,
   type ChatComposerActionState,

@@ -10,6 +10,11 @@ export interface RagIndexStatusSnapshot {
   error: string | null;
 }
 
+interface RagIndexCounts {
+  skillCount: number;
+  chunkCount: number;
+}
+
 export function indexStatusLabel(status: RagIndexStatus): string {
   if (status === "ready") return "Ready";
   if (status === "stale") return "Stale";
@@ -18,15 +23,23 @@ export function indexStatusLabel(status: RagIndexStatus): string {
   return "Failed";
 }
 
+export function indexStatusTitle(status: RagIndexStatus): string {
+  return `Index ${indexStatusLabel(status).toLowerCase()}`;
+}
+
 export function indexStatusColor(status: RagIndexStatus): string {
   if (status === "ready") return "var(--green)";
   if (status === "failed") return "var(--red)";
   return "var(--yellow)";
 }
 
-export function indexStatusCountsLabel(indexStatus: RagIndexStatusSnapshot): string {
+export function indexCountsLabel(indexStatus: RagIndexCounts): string {
   const skillText = countLabel(indexStatus.skillCount, "skill");
   const chunkText = countLabel(indexStatus.chunkCount, "chunk");
+  return `${skillText} / ${chunkText}`;
+}
+
+export function indexStatusCountsLabel(indexStatus: RagIndexStatusSnapshot): string {
   const prefix =
     indexStatus.status === "stale"
       ? "Last index: "
@@ -34,7 +47,31 @@ export function indexStatusCountsLabel(indexStatus: RagIndexStatusSnapshot): str
         ? "Previous index: "
         : "";
 
-  return `${prefix}${skillText} / ${chunkText}`;
+  return `${prefix}${indexCountsLabel(indexStatus)}`;
+}
+
+export function indexRebuiltMessage(indexStatus: RagIndexCounts): string {
+  return `Index rebuilt with ${countLabel(
+    indexStatus.skillCount,
+    "skill",
+  )} and ${countLabel(indexStatus.chunkCount, "chunk")}.`;
+}
+
+export function indexStatusUpdateMessage(
+  indexStatus: RagIndexStatusSnapshot,
+): string {
+  return `Index ${indexStatus.status}: ${countLabel(
+    indexStatus.skillCount,
+    "skill",
+  )}, ${countLabel(indexStatus.chunkCount, "chunk")}.`;
+}
+
+export function indexSuggestedAction(
+  indexStatus: Pick<RagIndexStatusSnapshot, "status">,
+): string {
+  if (indexStatus.status === "failed") return "Fix the index error, then rebuild.";
+  if (indexStatus.status === "rebuilding") return "Wait for rebuild to finish.";
+  return "Rebuild Index before relying on citations.";
 }
 
 export function indexStatusAnnouncement(

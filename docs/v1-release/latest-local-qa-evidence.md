@@ -45,6 +45,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Manual QA status classes and guided-builder handoff action classes are now model-owned helpers instead of component-local presentation logic.
 - Export readiness now uses the canonical release-status label and color helpers directly instead of maintaining pass-through readiness wrappers.
 - Settings RAG index panels now use canonical index-status label and color helpers directly instead of maintaining settings pass-through wrappers.
+- Sidebar, Settings, Skills, and Chat index messages now share canonical index-status copy and count formatting helpers.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
