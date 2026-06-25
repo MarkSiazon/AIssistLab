@@ -33,6 +33,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Strict exported-type cleanup now reports zero unused exported type findings; helper UI shapes, release/settings aliases, guided-builder/import barrels, test workspace options, and stale skill summary types are private or removed where they have no external consumers.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skills import, and skills readiness models.
+- Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -81,6 +82,7 @@ npx --yes tsx src/app/api/settings/native-folder/route.test.ts
 npx --yes tsx src/lib/skills/guided-builder.test.ts
 npx --yes tsx src/lib/ui/skill-editor-model.test.ts
 npx --yes tsx src/lib/api/client.test.ts
+npx --yes tsx src/lib/settings/client-api.test.ts
 npx --yes tsx src/lib/async-ttl-cache.test.ts
 npx --yes tsx src/lib/settings/first-run-checklist.test.ts
 npx --yes tsx src/lib/settings/path-browser.test.ts

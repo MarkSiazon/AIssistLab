@@ -1,12 +1,10 @@
+import type { ApiFetcher } from "@/lib/api/client";
 import type { FirstRunChatStatus } from "@/lib/settings/first-run-checklist";
 import type { PublicIndexState } from "@/lib/rag/index-state";
 import type { SetupDoctorReport } from "@/lib/settings/doctor";
 import type { SkillQualityReport } from "@/lib/skills/quality";
 
-export type SettingsFetcher = (
-  input: RequestInfo | URL,
-  init?: RequestInit,
-) => Promise<Response>;
+export type SettingsFetcher = ApiFetcher;
 
 export interface SettingsEnvData {
   raw: string;

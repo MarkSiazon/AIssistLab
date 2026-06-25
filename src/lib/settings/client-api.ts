@@ -1,10 +1,9 @@
 import { getUnavailableClaudeCliStatus } from "@/lib/settings/client-api-fallbacks";
 import {
   apiErrorMessage,
-  globalFetcher,
   postJson,
-  requestJson,
-} from "@/lib/settings/client-api-request";
+  requestJsonWithFetcher,
+} from "@/lib/api/client";
 import type {
   ActiveRuntimeProviderStatus,
   ApiErrorPayload,
@@ -27,9 +26,11 @@ export type * from "@/lib/settings/client-api-types";
 export { getUnavailableClaudeCliStatus };
 
 export async function fetchSettingsEnv(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<SettingsEnvData> {
-  const payload = await requestJson<Partial<SettingsEnvData> & ApiErrorPayload>(
+  const payload = await requestJsonWithFetcher<
+    Partial<SettingsEnvData> & ApiErrorPayload
+  >(
     fetcher,
     "/api/settings",
     undefined,
@@ -53,9 +54,9 @@ export async function fetchSettingsEnv(
 }
 
 export async function fetchRuntimeStatus(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<ActiveRuntimeProviderStatus> {
-  return requestJson<ActiveRuntimeProviderStatus>(
+  return requestJsonWithFetcher<ActiveRuntimeProviderStatus>(
     fetcher,
     "/api/settings/runtime",
     undefined,
@@ -64,9 +65,9 @@ export async function fetchRuntimeStatus(
 }
 
 export async function fetchChatReadiness(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<FirstRunChatStatus> {
-  const payload = await requestJson<{
+  const payload = await requestJsonWithFetcher<{
     canSend?: boolean;
     blockingReason?: unknown;
     suggestedAction?: unknown;
@@ -91,9 +92,9 @@ export async function fetchChatReadiness(
 }
 
 export async function fetchIndexStatus(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<PublicIndexState> {
-  return requestJson<PublicIndexState>(
+  return requestJsonWithFetcher<PublicIndexState>(
     fetcher,
     "/api/index",
     undefined,
@@ -102,9 +103,9 @@ export async function fetchIndexStatus(
 }
 
 export async function fetchSkillQualityReport(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<SkillQualityReport> {
-  return requestJson<SkillQualityReport>(
+  return requestJsonWithFetcher<SkillQualityReport>(
     fetcher,
     "/api/skills/validation",
     undefined,
@@ -113,9 +114,9 @@ export async function fetchSkillQualityReport(
 }
 
 export async function fetchReleaseReadiness(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<ReleaseReadinessReport> {
-  return requestJson<ReleaseReadinessReport>(
+  return requestJsonWithFetcher<ReleaseReadinessReport>(
     fetcher,
     "/api/release/readiness",
     undefined,
@@ -124,9 +125,9 @@ export async function fetchReleaseReadiness(
 }
 
 export async function fetchDoctorReport(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<SetupDoctorReport> {
-  return requestJson<SetupDoctorReport>(
+  return requestJsonWithFetcher<SetupDoctorReport>(
     fetcher,
     "/api/settings/doctor",
     undefined,
@@ -135,9 +136,9 @@ export async function fetchDoctorReport(
 }
 
 export async function fetchClaudeCliStatus(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<ClaudeCliStatus> {
-  return requestJson<ClaudeCliStatus>(
+  return requestJsonWithFetcher<ClaudeCliStatus>(
     fetcher,
     "/api/settings/claude-cli",
     undefined,
@@ -147,9 +148,9 @@ export async function fetchClaudeCliStatus(
 
 export async function openClaudeLogin(
   input: ClaudeProfileActionInput,
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<OpenClaudeLoginResponse> {
-  return requestJson<OpenClaudeLoginResponse>(
+  return requestJsonWithFetcher<OpenClaudeLoginResponse>(
     fetcher,
     "/api/settings/claude-cli",
     postJson(input),
@@ -159,9 +160,9 @@ export async function openClaudeLogin(
 
 export async function testClaudeCli(
   input: ClaudeProfileActionInput,
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<ClaudeCliTestResult> {
-  return requestJson<ClaudeCliTestResult>(
+  return requestJsonWithFetcher<ClaudeCliTestResult>(
     fetcher,
     "/api/settings/claude-cli/test",
     postJson(input),
@@ -171,9 +172,9 @@ export async function testClaudeCli(
 
 export async function saveSettingsFields(
   input: SaveSettingsFieldsInput,
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<SaveSettingsResponse> {
-  return requestJson<SaveSettingsResponse>(
+  return requestJsonWithFetcher<SaveSettingsResponse>(
     fetcher,
     "/api/settings",
     postJson(input),
@@ -183,9 +184,9 @@ export async function saveSettingsFields(
 
 export async function saveSettingsRaw(
   raw: string,
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<SaveSettingsResponse> {
-  return requestJson<SaveSettingsResponse>(
+  return requestJsonWithFetcher<SaveSettingsResponse>(
     fetcher,
     "/api/settings",
     postJson({ raw }),
@@ -194,9 +195,9 @@ export async function saveSettingsRaw(
 }
 
 export async function rebuildRagIndex(
-  fetcher = globalFetcher(),
+  fetcher: SettingsFetcher = fetch,
 ): Promise<PublicIndexState> {
-  return requestJson<PublicIndexState>(
+  return requestJsonWithFetcher<PublicIndexState>(
     fetcher,
     "/api/index",
     { method: "POST" },
@@ -208,7 +209,7 @@ export async function checkSettingsPath(
   fetcher: SettingsFetcher,
   path: string,
 ): Promise<{ exists: boolean; isDirectory: boolean }> {
-  return requestJson<{ exists: boolean; isDirectory: boolean }>(
+  return requestJsonWithFetcher<{ exists: boolean; isDirectory: boolean }>(
     fetcher,
     `/api/settings/path-exists?path=${encodeURIComponent(path)}`,
     undefined,
