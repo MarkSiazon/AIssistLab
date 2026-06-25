@@ -1,3 +1,5 @@
+import { countLabel } from "@/lib/format/count-label";
+
 export type GuidedChecklistStatus = "ready" | "needs_action" | "optional";
 
 interface GuidedChecklistItem {
@@ -27,10 +29,6 @@ export interface GuidedChecklistInput {
   boundaryCount: number;
   successCriteriaCount: number;
   feedbackScore?: number | null;
-}
-
-function plural(count: number, singular: string): string {
-  return `${count} ${singular}${count === 1 ? "" : "s"}`;
 }
 
 export function guidedChecklistStatusColor(
@@ -94,7 +92,7 @@ export function buildGuidedChecklist({
       statusLabel: triggerExampleCount > 0 ? "Ready" : "Needs detail",
       message:
         triggerExampleCount > 0
-          ? `${plural(triggerExampleCount, "example prompt")} captured.`
+          ? `${countLabel(triggerExampleCount, "example prompt")} captured.`
           : "Add at least one realistic user prompt.",
       stepIndex: 1,
       required: true,
@@ -106,7 +104,7 @@ export function buildGuidedChecklist({
       statusLabel: successCriteriaCount > 0 ? "Ready" : "Needs detail",
       message:
         successCriteriaCount > 0
-          ? `${plural(successCriteriaCount, "rubric check")} ready.`
+          ? `${countLabel(successCriteriaCount, "rubric check")} ready.`
           : "Add at least one measurable quality bar.",
       stepIndex: 2,
       required: true,
@@ -118,7 +116,7 @@ export function buildGuidedChecklist({
       statusLabel: requiredInputCount > 0 ? "Ready" : "Optional",
       message:
         requiredInputCount > 0
-          ? `${plural(requiredInputCount, "input")} listed.`
+          ? `${countLabel(requiredInputCount, "input")} listed.`
           : "List inputs when the skill depends on source material.",
       stepIndex: 1,
       required: false,
@@ -130,7 +128,7 @@ export function buildGuidedChecklist({
       statusLabel: boundaryCount > 0 ? "Ready" : "Optional",
       message:
         boundaryCount > 0
-          ? `${plural(boundaryCount, "boundary rule")} added.`
+          ? `${countLabel(boundaryCount, "boundary rule")} added.`
           : "Add safety or scope limits for higher-quality drafts.",
       stepIndex: 2,
       required: false,
@@ -161,6 +159,6 @@ export function buildGuidedChecklist({
     requiredReady,
     readinessSummary: requiredReady
       ? "Ready for rubric review"
-      : `${plural(remainingRequiredCount, "required item")} left before review`,
+      : `${countLabel(remainingRequiredCount, "required item")} left before review`,
   };
 }

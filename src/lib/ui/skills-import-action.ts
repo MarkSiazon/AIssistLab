@@ -1,3 +1,5 @@
+import { countLabel, pluralNoun } from "@/lib/format/count-label";
+
 type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
 
 export interface SkillsImportActionInput {
@@ -16,14 +18,6 @@ export interface SkillsImportActionState {
   buttonLabel: string;
   blocker: string | null;
   requiresOverwriteConfirmation: boolean;
-}
-
-function plural(value: number, singular: string, pluralValue = `${singular}s`) {
-  return value === 1 ? singular : pluralValue;
-}
-
-function importCountLabel(count: number): string {
-  return `${count} ${plural(count, "skill")}`;
 }
 
 export function buildSkillsImportActionState(
@@ -53,7 +47,7 @@ export function buildSkillsImportActionState(
       ? "Applying..."
       : input.duplicateCount > 0 && input.duplicateStrategy === "skip"
         ? effectiveImportCount > 0
-          ? `Import ${effectiveImportCount}, skip ${input.duplicateCount} ${plural(
+          ? `Import ${effectiveImportCount}, skip ${input.duplicateCount} ${pluralNoun(
               input.duplicateCount,
               "duplicate",
             )}`
@@ -62,7 +56,7 @@ export function buildSkillsImportActionState(
           ? `Rename duplicates and import ${input.validCount}`
           : input.duplicateCount > 0 && input.duplicateStrategy === "overwrite"
             ? `Overwrite and import ${input.validCount}`
-            : `Import ${importCountLabel(input.validCount)}`;
+            : `Import ${countLabel(input.validCount, "skill")}`;
 
   let blocker: string | null = null;
   if (input.isLoading) {

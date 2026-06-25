@@ -1,3 +1,5 @@
+import { pluralNoun } from "@/lib/format/count-label";
+
 export interface SkillSummary {
   name: string;
   description: string;
@@ -38,17 +40,14 @@ export function getSkillsEmptyStateCopy(hasSearch: boolean): {
       };
 }
 
-function pluralSuffix(value: number): string {
-  return value === 1 ? "" : "s";
-}
-
 export function buildIndexRebuiltMessage(input: {
   skillCount: number;
   chunkCount: number;
 }): string {
-  return `Index rebuilt with ${input.skillCount} skill${pluralSuffix(
+  return `Index rebuilt with ${input.skillCount} ${pluralNoun(
     input.skillCount,
-  )} and ${input.chunkCount} chunk${pluralSuffix(input.chunkCount)}.`;
+    "skill",
+  )} and ${input.chunkCount} ${pluralNoun(input.chunkCount, "chunk")}.`;
 }
 
 export function buildImportAppliedMessage(input: {
@@ -56,8 +55,9 @@ export function buildImportAppliedMessage(input: {
   skippedCount: number;
   renamedCount: number;
 }): string {
-  return `Imported ${input.writtenCount} skill${pluralSuffix(
+  return `Imported ${input.writtenCount} ${pluralNoun(
     input.writtenCount,
+    "skill",
   )}${
     input.skippedCount > 0 ? `, skipped ${input.skippedCount}` : ""
   }${

@@ -32,6 +32,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Component import panel aliases, guided summary metric types, API error payload helpers, cache get-options, Claude discovery barrel aliases, first-run internal states, runtime-provider aliases, and path-browser entry/search shapes were narrowed from unused exported type surfaces.
 - Strict exported-type cleanup now reports zero unused exported type findings; helper UI shapes, release/settings aliases, guided-builder/import barrels, test workspace options, and stale skill summary types are private or removed where they have no external consumers.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
+- Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skills import, and skills readiness models.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -84,18 +85,24 @@ npx --yes tsx src/lib/async-ttl-cache.test.ts
 npx --yes tsx src/lib/settings/first-run-checklist.test.ts
 npx --yes tsx src/lib/settings/path-browser.test.ts
 npx --yes tsx src/lib/settings/runtime-config.test.ts
+npx --yes tsx src/lib/format/count-label.test.ts
+npx --yes tsx src/lib/release/readiness.test.ts
+npx --yes tsx src/lib/release/readiness-report.test.ts
 npx --yes tsx src/lib/ui/chat-empty-state.test.ts
 npx --yes tsx src/lib/ui/export-empty-state.test.ts
+npx --yes tsx src/lib/ui/guided-checklist.test.ts
 npx --yes tsx src/lib/ui/guided-handoff.test.ts
+npx --yes tsx src/lib/ui/setup-doctor-panel.test.ts
 npx --yes tsx src/lib/ui/settings-claude-panel.test.ts
 npx --yes tsx src/lib/ui/settings-claude-profile-field.test.ts
 npx --yes tsx src/lib/ui/settings-config-fields-panel.test.ts
 npx --yes tsx src/lib/ui/settings-release-readiness-panel.test.ts
-npx --yes tsx src/lib/ui/setup-doctor-panel.test.ts
 npx --yes tsx src/lib/ui/skills-import-action.test.ts
 npx --yes tsx src/lib/ui/skills-import-preview-action.test.ts
 npx --yes tsx src/lib/ui/skills-import-preview-row.test.ts
 npx --yes tsx src/lib/ui/skills-import-preview-summary.test.ts
+npx --yes tsx src/lib/ui/skills-library-readiness-panel.test.ts
+npx --yes tsx src/lib/ui/skills-page-model.test.ts
 npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx src/lib/local-access.test.ts
 npx --yes tsx src/app/api/settings/local-guards.test.ts

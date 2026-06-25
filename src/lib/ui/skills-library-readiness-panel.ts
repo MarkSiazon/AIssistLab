@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import type {
   SkillLibraryQualityReport,
   SkillLibraryReadinessAction,
@@ -8,10 +9,6 @@ export interface SkillQualitySummary {
   status: SkillLibraryReadinessStatus;
   label: string;
   message: string;
-}
-
-function plural(count: number, singular: string): string {
-  return `${count} ${singular}${count === 1 ? "" : "s"}`;
 }
 
 export function skillLibraryStatusColor(
@@ -61,7 +58,7 @@ export function buildSkillQualitySummary(
   if (errorCount > 0) {
     return {
       status: "blocked",
-      label: plural(errorCount, "error"),
+      label: countLabel(errorCount, "error"),
       message: "Skill Quality needs review before release.",
     };
   }
@@ -69,7 +66,7 @@ export function buildSkillQualitySummary(
   if (warningCount > 0) {
     return {
       status: "needs_action",
-      label: plural(warningCount, "warning"),
+      label: countLabel(warningCount, "warning"),
       message:
         "Skill Quality can be improved for better chat and export results.",
     };
@@ -78,7 +75,7 @@ export function buildSkillQualitySummary(
   return {
     status: "ready",
     label: "Clear",
-    message: `Skill Quality checks are clear across ${plural(
+    message: `Skill Quality checks are clear across ${countLabel(
       qualityReport.totalSkills,
       "skill",
     )}.`,

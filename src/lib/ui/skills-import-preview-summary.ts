@@ -1,3 +1,5 @@
+import { pluralNoun } from "@/lib/format/count-label";
+
 type SkillsImportPreviewSummaryTone = "ok" | "warn" | "error";
 
 export interface SkillsImportPreviewSummaryInput {
@@ -14,10 +16,6 @@ export interface SkillsImportPreviewSummary {
   headline: string;
   detail: string;
   nextAction: string;
-}
-
-function plural(value: number, singular: string, pluralValue = `${singular}s`) {
-  return value === 1 ? singular : pluralValue;
 }
 
 export function buildSkillsImportPreviewSummary(
@@ -38,7 +36,7 @@ export function buildSkillsImportPreviewSummary(
     return {
       statusLabel: "Needs fixes",
       statusTone: "error",
-      headline: `${input.invalidCount} ${plural(
+      headline: `${input.invalidCount} ${pluralNoun(
         input.invalidCount,
         "skill",
       )} ${input.invalidCount === 1 ? "needs" : "need"} fixes before import.`,
@@ -62,7 +60,7 @@ export function buildSkillsImportPreviewSummary(
     return {
       statusLabel: "Review",
       statusTone: "warn",
-      headline: `${input.validCount} valid ${plural(
+      headline: `${input.validCount} valid ${pluralNoun(
         input.validCount,
         "skill",
       )} found with ${suffix}.`,
@@ -84,7 +82,7 @@ export function buildSkillsImportPreviewSummary(
   return {
     statusLabel: "Ready",
     statusTone: "ok",
-    headline: `${input.validCount} valid ${plural(
+    headline: `${input.validCount} valid ${pluralNoun(
       input.validCount,
       "skill",
     )} ${input.validCount === 1 ? "is" : "are"} ready to import.`,

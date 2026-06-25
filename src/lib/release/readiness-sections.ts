@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import {
   chatStatus,
   claudeProjectStatus,
@@ -17,10 +18,6 @@ type ReleaseReadinessSectionInput = Omit<
   ReleaseReadinessInput,
   "generatedAt"
 >;
-
-function plural(value: number, singular: string, pluralLabel: string): string {
-  return `${value} ${value === 1 ? singular : pluralLabel}`;
-}
 
 function claudeProjectWarningCount(
   input: ReleaseReadinessSectionInput["claudeProject"],
@@ -83,7 +80,7 @@ export function buildReleaseReadinessSections({
       status: indexState,
       message:
         indexState === "ready"
-          ? `${plural(index.skillCount, "skill", "skills")} indexed with ${plural(index.chunkCount, "chunk", "chunks")}.`
+          ? `${countLabel(index.skillCount, "skill")} indexed with ${countLabel(index.chunkCount, "chunk")}.`
           : index.error ??
             index.staleReason ??
             "Rebuild the index before relying on citations.",
@@ -96,8 +93,8 @@ export function buildReleaseReadinessSections({
       status: skillsState,
       message:
         skillsState === "ready"
-          ? `${plural(skillQuality.totalSkills, "skill", "skills")} scanned with no quality issues.`
-          : `${plural(skillQuality.issueCount, "skill quality issue", "skill quality issues")} should be reviewed before release.`,
+          ? `${countLabel(skillQuality.totalSkills, "skill")} scanned with no quality issues.`
+          : `${countLabel(skillQuality.issueCount, "skill quality issue", "skill quality issues")} should be reviewed before release.`,
       actionLabel: skillsState === "ready" ? undefined : "Open Settings",
       actionHref: skillsState === "ready" ? undefined : "/settings",
     }),
@@ -108,7 +105,7 @@ export function buildReleaseReadinessSections({
       message:
         claudeState === "ready"
           ? "Claude project inventory has no blocking warnings."
-          : `${plural(claudeWarningCount, "Claude project warning", "Claude project warnings")} should be reviewed.`,
+          : `${countLabel(claudeWarningCount, "Claude project warning", "Claude project warnings")} should be reviewed.`,
       actionLabel: claudeState === "ready" ? undefined : "Open Settings",
       actionHref: claudeState === "ready" ? undefined : "/settings",
     }),

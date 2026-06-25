@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import type {
   DoctorCheckGroup,
   DoctorCheckStatus,
@@ -27,10 +28,6 @@ function doctorSummaryStatusLabel(status: DoctorCheckStatus): string {
   return "Blocked";
 }
 
-function pluralize(count: number, singular: string): string {
-  return `${count} ${singular}${count === 1 ? "" : "s"}`;
-}
-
 export function getSetupDoctorPanelState({
   report,
   groupLabels,
@@ -42,7 +39,7 @@ export function getSetupDoctorPanelState({
     status: report.summary.status,
     statusLabel: doctorSummaryStatusLabel(report.summary.status),
     scoreLabel: `Readiness score ${report.summary.readinessScore}/100`,
-    countsLabel: `${pluralize(report.summary.errorCount, "error")}, ${pluralize(
+    countsLabel: `${countLabel(report.summary.errorCount, "error")}, ${countLabel(
       report.summary.warningCount,
       "warning",
     )}`,

@@ -1,3 +1,5 @@
+import { pluralNoun } from "@/lib/format/count-label";
+
 type SkillsImportPreviewRowTone = "ok" | "warn" | "error";
 type SkillsImportPreviewIssueTone = "warn" | "error";
 
@@ -30,10 +32,6 @@ export interface SkillsImportPreviewRowState {
   hiddenIssueMessage: string | null;
 }
 
-function plural(value: number, singular: string, pluralValue = `${singular}s`) {
-  return value === 1 ? singular : pluralValue;
-}
-
 function warningMessage(warning: SkillsImportPreviewRowIssueInput): string {
   return warning.category
     ? `${warning.category}: ${warning.message}`
@@ -63,10 +61,10 @@ export function buildSkillsImportPreviewRowState(
 
   const summaryParts: string[] = [];
   if (errorCount > 0) {
-    summaryParts.push(`${errorCount} ${plural(errorCount, "error")}`);
+    summaryParts.push(`${errorCount} ${pluralNoun(errorCount, "error")}`);
   }
   if (warningCount > 0) {
-    summaryParts.push(`${warningCount} ${plural(warningCount, "warning")}`);
+    summaryParts.push(`${warningCount} ${pluralNoun(warningCount, "warning")}`);
   }
   if (input.duplicate) {
     summaryParts.push("duplicate");
@@ -117,7 +115,7 @@ export function buildSkillsImportPreviewRowState(
     hiddenIssueCount,
     hiddenIssueMessage:
       hiddenIssueCount > 0
-        ? `${hiddenIssueCount} more ${plural(
+        ? `${hiddenIssueCount} more ${pluralNoun(
             hiddenIssueCount,
             "issue",
           )} hidden in this compact preview.`
