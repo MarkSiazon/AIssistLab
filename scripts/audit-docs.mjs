@@ -1,44 +1,12 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
+import {
+  listExistingTrackedAndVisibleUntrackedFiles,
+  readRepoTextFile,
+} from "./lib/repo-files.mjs";
 
-const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const externalLinkPattern = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
-
-function runGit(args) {
-  const result = spawnSync("git", args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error((result.stderr || result.stdout || "git command failed").trim());
-  }
-  return result.stdout;
-}
-
-function normalizePath(value) {
-  return value.replace(/\\/g, "/");
-}
-
-function listedFilesFromGitOutput(output) {
-  return output
-    .split(/\r?\n/)
-    .map((line) => normalizePath(line.trim()))
-    .filter(Boolean);
-}
-
-function listTrackedAndVisibleUntrackedFiles() {
-  const tracked = listedFilesFromGitOutput(runGit(["ls-files"]));
-  const untracked = listedFilesFromGitOutput(
-    runGit(["ls-files", "--others", "--exclude-standard"]),
-  );
-  return [...new Set([...tracked, ...untracked])]
-    .filter((file) => existsSync(path.join(repoRoot, file)))
-    .sort();
-}
 
 export function docsFiles(files) {
   return files.filter(
@@ -143,12 +111,8 @@ export function auditDocsLinks(files, readTextFile, fileExists) {
   return issues;
 }
 
-function readRepoTextFile(relativePath) {
-  return readFileSync(path.join(repoRoot, relativePath), "utf8");
-}
-
 function main() {
-  const files = listTrackedAndVisibleUntrackedFiles();
+  const files = listExistingTrackedAndVisibleUntrackedFiles();
   const fileSet = new Set(files);
   const issues = auditDocsLinks(
     files,
