@@ -4,6 +4,7 @@ import {
   formatManualExternalQaTimestamp,
   manualExternalQaCommand,
   manualExternalQaItems,
+  manualExternalQaStatusClassName,
   manualExternalQaStatusLabel,
   parseManualExternalQaEvidence,
   readManualExternalQaEvidenceFromStorage,
@@ -116,6 +117,18 @@ assert.deepEqual(
 assert.equal(manualExternalQaStatusLabel("pending"), "Pending");
 assert.equal(manualExternalQaStatusLabel("passed"), "Passed");
 assert.equal(manualExternalQaStatusLabel("failed"), "Needs fix");
+assert.equal(
+  manualExternalQaStatusClassName("pending"),
+  "settings-manual-qa-status-pending",
+);
+assert.equal(
+  manualExternalQaStatusClassName("passed"),
+  "settings-manual-qa-status-passed",
+);
+assert.equal(
+  manualExternalQaStatusClassName("failed"),
+  "settings-manual-qa-status-failed",
+);
 assert.equal(formatManualExternalQaTimestamp(null), "Not recorded");
 assert.equal(formatManualExternalQaTimestamp("not a date"), "Not recorded");
 assert.equal(manualExternalQaCommand, "npm run qa:manual");

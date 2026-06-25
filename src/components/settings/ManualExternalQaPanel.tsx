@@ -7,6 +7,7 @@ import {
   formatManualExternalQaTimestamp,
   manualExternalQaCommand,
   manualExternalQaItems,
+  manualExternalQaStatusClassName,
   manualExternalQaStatusLabel,
   readManualExternalQaEvidenceFromStorage,
   summarizeManualExternalQaEvidence,
@@ -15,12 +16,6 @@ import {
   type ManualExternalQaEvidence,
   type ManualExternalQaStatus,
 } from "@/lib/ui/manual-external-qa-panel";
-
-function statusClassName(status: ManualExternalQaStatus): string {
-  if (status === "passed") return "settings-manual-qa-status-passed";
-  if (status === "failed") return "settings-manual-qa-status-failed";
-  return "settings-manual-qa-status-pending";
-}
 
 export function ManualExternalQaPanel() {
   const [evidence, setEvidence] = useState<ManualExternalQaEvidence>(() =>
@@ -109,7 +104,7 @@ export function ManualExternalQaPanel() {
             <div className="settings-manual-qa-item-line">
               <div className="settings-manual-qa-item-title">{item.label}</div>
               <div
-                className={`settings-manual-qa-item-status ${statusClassName(
+                className={`settings-manual-qa-item-status ${manualExternalQaStatusClassName(
                   item.status,
                 )}`}
               >

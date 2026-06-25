@@ -184,6 +184,14 @@ export function manualExternalQaStatusLabel(
   return "Pending";
 }
 
+export function manualExternalQaStatusClassName(
+  status: ManualExternalQaStatus,
+): string {
+  if (status === "passed") return "settings-manual-qa-status-passed";
+  if (status === "failed") return "settings-manual-qa-status-failed";
+  return "settings-manual-qa-status-pending";
+}
+
 export function formatManualExternalQaTimestamp(value: string | null): string {
   if (!value) return "Not recorded";
   const date = new Date(value);

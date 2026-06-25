@@ -42,6 +42,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Local and production smoke runners now share app-route and chat-readiness link coverage definitions through the smoke DOM coverage helper.
 - Smoke and manual QA scripts now share local server helpers for free-port allocation, bounded process logs, and fetch timeouts.
 - Remaining hand-rolled singular/plural status strings now use the shared `countLabel` formatter across Setup Doctor, First Run Checklist, Claude project inventory, index summaries, chat, skill editor, and import preview UI.
+- Manual QA status classes and guided-builder handoff action classes are now model-owned helpers instead of component-local presentation logic.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

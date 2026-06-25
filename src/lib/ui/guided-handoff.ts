@@ -123,3 +123,12 @@ export function buildGuidedHandoffState({
     loading,
   );
 }
+
+export function guidedHandoffActionClass(
+  action: GuidedHandoffPrimaryAction,
+  state: GuidedHandoffState,
+): string {
+  return `ui-button ${
+    state.primaryAction === action ? "ui-button-primary" : "ui-button-secondary"
+  }`;
+}

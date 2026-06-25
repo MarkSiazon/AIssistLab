@@ -158,6 +158,21 @@ async function main() {
     true,
   );
 
+  const buildPrimary = handoff.buildGuidedHandoffState({
+    requiredReady: true,
+    loading: false,
+    feedback: baseFeedback,
+    draftReady: false,
+  });
+  assert.equal(
+    handoff.guidedHandoffActionClass("build", buildPrimary),
+    "ui-button ui-button-primary",
+  );
+  assert.equal(
+    handoff.guidedHandoffActionClass("review", buildPrimary),
+    "ui-button ui-button-secondary",
+  );
+
   console.log("Guided handoff helper tests passed");
 }
 

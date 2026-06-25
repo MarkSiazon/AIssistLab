@@ -1,9 +1,9 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type {
-  GuidedHandoffPrimaryAction,
   GuidedHandoffState,
 } from "@/lib/ui/guided-handoff";
+import { guidedHandoffActionClass } from "@/lib/ui/guided-handoff";
 import {
   guidedFeedbackStatusColor,
   type GuidedDraft,
@@ -18,17 +18,6 @@ interface GuidedReviewStepProps {
   onReviewDraft: () => void;
   onBuildDraft: () => void;
   onOpenInEditor: () => void;
-}
-
-function guidedActionClass(
-  action: GuidedHandoffPrimaryAction,
-  handoffState: GuidedHandoffState,
-) {
-  return `ui-button ${
-    handoffState.primaryAction === action
-      ? "ui-button-primary"
-      : "ui-button-secondary"
-  }`;
 }
 
 export function GuidedReviewStep({
@@ -59,7 +48,7 @@ export function GuidedReviewStep({
           onClick={onReviewDraft}
           disabled={handoffState.reviewDisabled}
           aria-describedby="guided-review-action-help"
-          className={guidedActionClass("review", handoffState)}
+          className={guidedHandoffActionClass("review", handoffState)}
         >
           {loading ? "Checking..." : "Review Draft"}
         </button>
@@ -68,7 +57,7 @@ export function GuidedReviewStep({
           onClick={onBuildDraft}
           disabled={handoffState.buildDisabled}
           aria-describedby="guided-review-action-help"
-          className={guidedActionClass("build", handoffState)}
+          className={guidedHandoffActionClass("build", handoffState)}
         >
           {loading ? "Building..." : "Build Draft"}
         </button>
@@ -77,7 +66,7 @@ export function GuidedReviewStep({
           onClick={onOpenInEditor}
           disabled={handoffState.openDisabled}
           aria-describedby="guided-review-action-help"
-          className={guidedActionClass("open", handoffState)}
+          className={guidedHandoffActionClass("open", handoffState)}
         >
           Open in Editor
         </button>
