@@ -32,7 +32,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Component import panel aliases, guided summary metric types, API error payload helpers, cache get-options, Claude discovery barrel aliases, first-run internal states, runtime-provider aliases, and path-browser entry/search shapes were narrowed from unused exported type surfaces.
 - Strict exported-type cleanup now reports zero unused exported type findings; helper UI shapes, release/settings aliases, guided-builder/import barrels, test workspace options, and stale skill summary types are private or removed where they have no external consumers.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
-- Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skills import, and skills readiness models.
+- Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 

@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import type {
   SkillQualityIssue,
   SkillQualityReport,
@@ -24,11 +25,7 @@ function hasErrorIssue(report: SkillQualityReport): boolean {
 
 function issueCountLabel(issueCount: number): string {
   if (issueCount === 0) return "No issues";
-  return `${issueCount} issue${issueCount === 1 ? "" : "s"}`;
-}
-
-function scannedLabel(totalSkills: number): string {
-  return `${totalSkills} skill${totalSkills === 1 ? "" : "s"} scanned`;
+  return countLabel(issueCount, "issue");
 }
 
 export function getSkillQualityPanelState(
@@ -42,7 +39,7 @@ export function getSkillQualityPanelState(
           ? "var(--red)"
           : "var(--yellow)",
     statusLabel: issueCountLabel(report.issueCount),
-    scannedLabel: scannedLabel(report.totalSkills),
+    scannedLabel: `${countLabel(report.totalSkills, "skill")} scanned`,
     issues: report.issues.slice(0, 3).map((issue) => ({
       key: `${issue.skillName}-${issue.code}`,
       skillName: issue.skillName,

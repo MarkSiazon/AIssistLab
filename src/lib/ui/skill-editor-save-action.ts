@@ -1,3 +1,5 @@
+import { countLabel } from "@/lib/format/count-label";
+
 export interface SkillEditorSaveActionInput {
   saving: boolean;
   fieldsReady: boolean;
@@ -11,10 +13,6 @@ export interface SkillEditorSaveAction {
   statusLabel: string;
   ariaLabel: string;
   helpText: string;
-}
-
-function issueLabel(count: number): string {
-  return `${count} validation issue${count === 1 ? "" : "s"}`;
 }
 
 export function buildSkillEditorSaveAction(
@@ -36,8 +34,8 @@ export function buildSkillEditorSaveAction(
       canSave: false,
       buttonLabel: issueCount === 1 ? "Fix field" : "Fix fields",
       statusLabel: issueCount === 1 ? "Needs field" : "Needs fields",
-      ariaLabel: `Fix ${issueLabel(issueCount)} before saving`,
-      helpText: `Fix ${issueLabel(issueCount)} before saving.`,
+      ariaLabel: `Fix ${countLabel(issueCount, "validation issue")} before saving`,
+      helpText: `Fix ${countLabel(issueCount, "validation issue")} before saving.`,
     };
   }
 
