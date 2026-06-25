@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  appRouteLinkLabels,
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
+  chatReadinessLinkHrefs,
+  markAppRouteLinksCovered,
   markVisibleButtonsCoveredByLabel,
   markVisibleLinksCoveredByHref,
   markVisibleLinksCoveredByLabel,
@@ -199,5 +202,35 @@ await assert.doesNotReject(() =>
     { requireAll: false },
   ),
 );
+
+const appRouteLinks = appRouteLinkLabels.map((label) =>
+  element({
+    tagName: "A",
+    innerText: label,
+    href: `/${label.toLowerCase().replace(/\s+/g, "-")}`,
+  }),
+);
+const extraAppRouteLink = element({
+  tagName: "A",
+  innerText: "Open Settings",
+  href: "/settings",
+});
+await assert.doesNotReject(() =>
+  markAppRouteLinksCovered(pageWith({ links: [...appRouteLinks, extraAppRouteLink] }), [
+    "Open Settings",
+  ]),
+);
+for (const link of appRouteLinks) {
+  assert.equal(link.__smokeCovered, true);
+}
+assert.equal(extraAppRouteLink.__smokeCovered, true);
+assert.deepEqual(chatReadinessLinkHrefs, [
+  "/skills",
+  "/chat",
+  "/editor",
+  "/export",
+  "/settings",
+  "/export?diagnostics=true",
+]);
 
 console.log("DOM coverage helper tests passed");

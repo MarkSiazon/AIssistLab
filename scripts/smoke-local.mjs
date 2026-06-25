@@ -7,6 +7,8 @@ import { chromium } from "playwright";
 import {
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
+  chatReadinessLinkHrefs,
+  markAppRouteLinksCovered,
   markButtonLocatorCovered,
   markLinkLocatorCovered,
   markVisibleButtonsCoveredByLabel,
@@ -27,15 +29,6 @@ const liveChatMode = process.env.SMOKE_LIVE_CHAT === "1";
 const expectedBrowserIssuePatterns = [];
 const ignoredBrowserIssuePatterns = [];
 const routeNavigationTimeoutMs = 60000;
-const appRouteLinkLabels = ["Skills", "RAG Chat", "New Skill", "Export", "Settings"];
-const chatReadinessLinkHrefs = [
-  "/skills",
-  "/chat",
-  "/editor",
-  "/export",
-  "/settings",
-  "/export?diagnostics=true",
-];
 
 function stamp() {
   return new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
@@ -714,15 +707,6 @@ async function clickAllButtons(page, selector) {
     const button = locator.nth(index);
     await clickButtonLocator(button, `${selector} ${index + 1}`);
     await page.waitForTimeout(150);
-  }
-}
-
-async function markAppRouteLinksCovered(locator, extraLabels = []) {
-  await markVisibleLinksCoveredByLabel(locator, appRouteLinkLabels);
-  if (extraLabels.length > 0) {
-    await markVisibleLinksCoveredByLabel(locator, extraLabels, {
-      requireAll: false,
-    });
   }
 }
 

@@ -39,6 +39,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Skills page and import preview copy now use the public `countLabel` helper directly; the lower-level plural helper is private to the formatter module.
 - Skill lifecycle and guided-builder API routes now share canonical JSON failure helpers for `{ ok: false }` error and validation responses.
 - Settings path existence checks now share one expanded-path state helper between the API route and Setup Doctor.
+- Local and production smoke runners now share app-route and chat-readiness link coverage definitions through the smoke DOM coverage helper.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

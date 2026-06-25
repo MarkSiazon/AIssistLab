@@ -7,10 +7,11 @@ import { chromium } from "playwright";
 import {
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
+  chatReadinessLinkHrefs,
+  markAppRouteLinksCovered,
   markButtonLocatorCovered,
   markVisibleButtonsCoveredByLabel,
   markVisibleLinksCoveredByHref,
-  markVisibleLinksCoveredByLabel,
 } from "./smoke/dom-coverage.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
 import { assertRouteInteractionState } from "./smoke/interaction-assertions.mjs";
@@ -67,15 +68,6 @@ const pageChecks = [
 const visualViewports = [
   ["desktop", { width: 1366, height: 920 }],
   ["mobile", { width: 390, height: 844, isMobile: true }],
-];
-const appRouteLinkLabels = ["Skills", "RAG Chat", "New Skill", "Export", "Settings"];
-const chatReadinessLinkHrefs = [
-  "/skills",
-  "/chat",
-  "/editor",
-  "/export",
-  "/settings",
-  "/export?diagnostics=true",
 ];
 
 const mockTemplates = [
@@ -322,15 +314,6 @@ async function waitForRecordedUrl(page, readLatestUrl, label) {
 async function assertCurrentRouteState(page, scope) {
   await assertRouteSemanticState(page, scope);
   await assertRouteInteractionState(page, scope);
-}
-
-async function markAppRouteLinksCovered(locator, extraLabels = []) {
-  await markVisibleLinksCoveredByLabel(locator, appRouteLinkLabels);
-  if (extraLabels.length > 0) {
-    await markVisibleLinksCoveredByLabel(locator, extraLabels, {
-      requireAll: false,
-    });
-  }
 }
 
 async function markChatReadinessLinksCovered(locator) {

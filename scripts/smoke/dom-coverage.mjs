@@ -26,6 +26,23 @@ const alreadyVerifiedOrStateOnlyLinkPatterns = [
   /^Skip to main content$/,
 ];
 
+export const appRouteLinkLabels = [
+  "Skills",
+  "RAG Chat",
+  "New Skill",
+  "Export",
+  "Settings",
+];
+
+export const chatReadinessLinkHrefs = [
+  "/skills",
+  "/chat",
+  "/editor",
+  "/export",
+  "/settings",
+  "/export?diagnostics=true",
+];
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -169,6 +186,15 @@ export async function markVisibleLinksCoveredByHref(locator, hrefs, options = {}
       missing.length === 0,
       `Expected visible link href(s) were not found: ${missing.join(" | ")}`,
     );
+  }
+}
+
+export async function markAppRouteLinksCovered(locator, extraLabels = []) {
+  await markVisibleLinksCoveredByLabel(locator, appRouteLinkLabels);
+  if (extraLabels.length > 0) {
+    await markVisibleLinksCoveredByLabel(locator, extraLabels, {
+      requireAll: false,
+    });
   }
 }
 
