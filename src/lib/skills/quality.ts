@@ -37,6 +37,33 @@ export interface SkillQualityReport {
   issues: SkillQualityIssue[];
 }
 
+export interface SkillQualityIssueCounts {
+  issueCount: number;
+  errorCount: number;
+  warningCount: number;
+}
+
+export function countSkillQualityIssues(
+  issues: readonly Pick<SkillQualityIssue, "severity">[],
+): SkillQualityIssueCounts {
+  let errorCount = 0;
+  let warningCount = 0;
+
+  for (const issue of issues) {
+    if (issue.severity === "error") {
+      errorCount += 1;
+    } else {
+      warningCount += 1;
+    }
+  }
+
+  return {
+    issueCount: issues.length,
+    errorCount,
+    warningCount,
+  };
+}
+
 function headingLevels(body: string): number[] {
   return body
     .split("\n")

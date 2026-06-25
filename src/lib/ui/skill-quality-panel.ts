@@ -1,4 +1,5 @@
 import { countLabel } from "@/lib/format/count-label";
+import { countSkillQualityIssues } from "@/lib/skills/quality";
 import type {
   SkillQualityIssue,
   SkillQualityReport,
@@ -19,10 +20,6 @@ export interface SkillQualityPanelState {
   issues: SkillQualityIssueItem[];
 }
 
-function hasErrorIssue(report: SkillQualityReport): boolean {
-  return report.issues.some((issue) => issue.severity === "error");
-}
-
 function issueCountLabel(issueCount: number): string {
   if (issueCount === 0) return "No issues";
   return countLabel(issueCount, "issue");
@@ -31,11 +28,13 @@ function issueCountLabel(issueCount: number): string {
 export function getSkillQualityPanelState(
   report: SkillQualityReport,
 ): SkillQualityPanelState {
+  const qualityCounts = countSkillQualityIssues(report.issues);
+
   return {
     statusColor:
       report.issueCount === 0
         ? "var(--green)"
-        : hasErrorIssue(report)
+        : qualityCounts.errorCount > 0
           ? "var(--red)"
           : "var(--yellow)",
     statusLabel: issueCountLabel(report.issueCount),

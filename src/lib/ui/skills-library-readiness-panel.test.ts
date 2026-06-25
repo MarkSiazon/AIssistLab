@@ -16,6 +16,7 @@ function report(
     issueCount: severities.length,
     issues: severities.map((severity, index) => ({
       skillName: `skill-${index + 1}`,
+      code: severity === "error" ? "unsafe_instruction" : "weak_tags",
       category: "discoverability",
       severity,
       message: `${severity} message`,

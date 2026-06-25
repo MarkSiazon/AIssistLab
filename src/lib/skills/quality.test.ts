@@ -50,6 +50,11 @@ async function main() {
     true,
   );
   assert.equal(JSON.stringify(report).includes("hidden"), false);
+  assert.deepEqual(quality.countSkillQualityIssues(report.issues), {
+    issueCount: report.issues.length,
+    errorCount: 3,
+    warningCount: report.issues.length - 3,
+  });
 
   const v2 = quality.buildSkillQualityReport([
     skill({

@@ -127,6 +127,7 @@ async function main() {
       issues: [
         {
           skillName: "alpha",
+          code: "missing_trigger_example",
           severity: "warn",
           category: "discoverability",
           message: "Missing trigger guidance.",
@@ -137,6 +138,10 @@ async function main() {
   assert.equal(qualityWarnings.status, "needs_action");
   assert.equal(qualityWarnings.action, "review-quality");
   assert.equal(qualityWarnings.warningCount, 1);
+  assert.equal(
+    qualityWarnings.message,
+    "Review 1 skill quality warning to improve chat and export quality.",
+  );
 
   const qualityErrors = buildSkillLibraryReadiness({
     totalSkills: 2,
@@ -148,6 +153,7 @@ async function main() {
       issues: [
         {
           skillName: "alpha",
+          code: "unsafe_instruction",
           severity: "error",
           category: "safety",
           message: "Unsafe instruction.",
@@ -157,6 +163,10 @@ async function main() {
   });
   assert.equal(qualityErrors.status, "blocked");
   assert.equal(qualityErrors.errorCount, 1);
+  assert.equal(
+    qualityErrors.message,
+    "Review 1 skill quality error before release.",
+  );
 
   console.log("Skill library readiness tests passed");
 }

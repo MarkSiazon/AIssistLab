@@ -1,4 +1,5 @@
 import { countLabel } from "@/lib/format/count-label";
+import { countSkillQualityIssues } from "@/lib/skills/quality";
 import type {
   SkillLibraryQualityReport,
   SkillLibraryReadinessAction,
@@ -48,25 +49,20 @@ export function buildSkillQualitySummary(
     };
   }
 
-  const errorCount = qualityReport.issues.filter(
-    (issue) => issue.severity === "error",
-  ).length;
-  const warningCount = qualityReport.issues.filter(
-    (issue) => issue.severity === "warn",
-  ).length;
+  const qualityCounts = countSkillQualityIssues(qualityReport.issues);
 
-  if (errorCount > 0) {
+  if (qualityCounts.errorCount > 0) {
     return {
       status: "blocked",
-      label: countLabel(errorCount, "error"),
+      label: countLabel(qualityCounts.errorCount, "error"),
       message: "Skill Quality needs review before release.",
     };
   }
 
-  if (warningCount > 0) {
+  if (qualityCounts.warningCount > 0) {
     return {
       status: "needs_action",
-      label: countLabel(warningCount, "warning"),
+      label: countLabel(qualityCounts.warningCount, "warning"),
       message:
         "Skill Quality can be improved for better chat and export results.",
     };

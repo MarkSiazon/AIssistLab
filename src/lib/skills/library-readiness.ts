@@ -1,3 +1,10 @@
+import { countLabel } from "@/lib/format/count-label";
+import {
+  countSkillQualityIssues,
+  type SkillQualityIssue,
+  type SkillQualityReport,
+} from "@/lib/skills/quality";
+
 export type SkillLibraryReadinessStatus = "ready" | "needs_action" | "blocked";
 export type SkillLibraryReadinessAction =
   | "guided-builder"
@@ -15,18 +22,8 @@ export interface SkillLibraryIndexState {
   error?: string | null;
 }
 
-export interface SkillLibraryQualityIssue {
-  skillName: string;
-  severity: "warn" | "error";
-  category: string;
-  message: string;
-}
-
-export interface SkillLibraryQualityReport {
-  totalSkills: number;
-  issueCount: number;
-  issues: SkillLibraryQualityIssue[];
-}
+export type SkillLibraryQualityIssue = SkillQualityIssue;
+export type SkillLibraryQualityReport = SkillQualityReport;
 
 export interface SkillLibraryReadinessInput {
   totalSkills: number | null;
@@ -69,17 +66,16 @@ export function buildSkillLibraryReadiness(
   const skillsStatus =
     input.skillsStatus ?? (typeof input.totalSkills === "number" ? "ready" : "loading");
   const issues = input.qualityReport?.issues ?? [];
-  const errorCount = issues.filter((issue) => issue.severity === "error").length;
-  const warningCount = issues.filter((issue) => issue.severity === "warn").length;
+  const qualityCounts = countSkillQualityIssues(issues);
   const indexedSkillCount = input.indexStatus?.skillCount ?? 0;
   const chunkCount = input.indexStatus?.chunkCount ?? 0;
 
   const baseCounts = {
     indexedSkillCount,
     chunkCount,
-    issueCount: input.qualityReport?.issueCount ?? issues.length,
-    errorCount,
-    warningCount,
+    issueCount: input.qualityReport?.issueCount ?? qualityCounts.issueCount,
+    errorCount: qualityCounts.errorCount,
+    warningCount: qualityCounts.warningCount,
   };
 
   if (skillsStatus === "loading") {
@@ -173,21 +169,27 @@ export function buildSkillLibraryReadiness(
     });
   }
 
-  if (errorCount > 0) {
+  if (qualityCounts.errorCount > 0) {
     return readiness({
       ...baseCounts,
       status: "blocked",
-      message: `${errorCount} skill quality error${errorCount === 1 ? "" : "s"} need review before release.`,
+      message: `Review ${countLabel(
+        qualityCounts.errorCount,
+        "skill quality error",
+      )} before release.`,
       action: "review-quality",
       actionLabel: "Review Quality",
     });
   }
 
-  if (warningCount > 0) {
+  if (qualityCounts.warningCount > 0) {
     return readiness({
       ...baseCounts,
       status: "needs_action",
-      message: `${warningCount} skill quality warning${warningCount === 1 ? "" : "s"} can improve chat and export quality.`,
+      message: `Review ${countLabel(
+        qualityCounts.warningCount,
+        "skill quality warning",
+      )} to improve chat and export quality.`,
       action: "review-quality",
       actionLabel: "Review Quality",
     });
