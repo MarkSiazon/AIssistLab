@@ -1,38 +1,11 @@
 import assert from "node:assert/strict";
-import { parseChatStreamLine, streamChatResponse } from "./client-api";
-
-assert.deepEqual(parseChatStreamLine(""), null);
-assert.deepEqual(parseChatStreamLine("{not-json"), null);
-assert.deepEqual(parseChatStreamLine('{"type":"text","text":"hello"}'), {
-  type: "text",
-  text: "hello",
-});
-assert.deepEqual(
-  parseChatStreamLine(
-    '{"type":"citations","sources":[{"skillName":"demo","section":"Intro","score":0.8,"preview":"Use this."}]}',
-  ),
-  {
-    type: "citations",
-    sources: [
-      {
-        skillName: "demo",
-        section: "Intro",
-        score: 0.8,
-        preview: "Use this.",
-      },
-    ],
-  },
-);
-assert.deepEqual(parseChatStreamLine('{"type":"error","message":"No auth"}'), {
-  type: "error",
-  message: "No auth",
-});
+import { streamChatResponse } from "./client-api";
 
 async function main() {
   const originalFetch = globalThis.fetch;
   const encoder = new TextEncoder();
   const streamBody =
-    '{"type":"citations","sources":[]}\n{"type":"text","text":"final chunk"}';
+    '\n{not-json\n{"type":"citations","sources":[{"skillName":"demo","section":"Intro","score":0.8,"preview":"Use this."}]}\n{"type":"text","text":"final chunk"}\n{"type":"error","message":"No auth"}';
   const first = encoder.encode(streamBody.slice(0, 35));
   const second = encoder.encode(streamBody.slice(35));
   const events: string[] = [];
@@ -61,7 +34,11 @@ async function main() {
     globalThis.fetch = originalFetch;
   }
 
-  assert.deepEqual(events, ["citations:0", "text:final chunk"]);
+  assert.deepEqual(events, [
+    "citations:1",
+    "text:final chunk",
+    "error:No auth",
+  ]);
   assert.equal(calls[0].input, "/api/chat");
   assert.equal(calls[0].init?.method, "POST");
   assert.deepEqual(calls[0].init?.headers, {

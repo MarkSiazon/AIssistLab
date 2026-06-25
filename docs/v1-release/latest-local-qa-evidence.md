@@ -7,7 +7,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 ## Current Checkpoint
 
 - Branch: `main`
-- Release QA checkpoint: previous stabilization committed and pushed on `origin/main`; current cleanup and audit edits are local until committed.
+- Release QA checkpoint: cleanup and audit stabilization is recorded on `main`; use the push-state line below for the current commit/sync state.
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/manual-external-qa.md`.
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
@@ -23,6 +23,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Chat readiness label and tone helpers are now private behind the exported panel model builders.
 - Manual QA helper internals, guided autosave versioning constants, and manual QA storage keys are now private, and unused skill import/unlink helpers were removed.
 - Test request origin and non-local host constants are now private behind the request helper builders.
+- Chat stream line parsing is now private behind the public streaming client, with parser behavior covered through stream-level tests.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -76,6 +77,7 @@ npx --yes tsx src/lib/skills/guided-autosave.test.ts
 npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx src/lib/ui/manual-external-qa-panel.test.ts
 npx --yes tsx src/lib/test-utils/request.test.ts
+npx --yes tsx src/lib/chat/client-api.test.ts
 npx --yes tsx scripts/lib/repo-files.test.mjs
 npx --yes tsx scripts/audit-docs.test.mjs
 npx --yes tsx scripts/manual-external-qa.test.mjs

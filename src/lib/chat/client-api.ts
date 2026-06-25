@@ -48,7 +48,7 @@ export async function rebuildChatIndex(): Promise<void> {
   );
 }
 
-export function parseChatStreamLine(line: string): StreamChunk | null {
+function parseChatStreamLine(line: string): StreamChunk | null {
   if (!line.trim()) return null;
   try {
     return JSON.parse(line) as StreamChunk;
