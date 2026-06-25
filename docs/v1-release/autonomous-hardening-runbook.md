@@ -56,4 +56,4 @@ The automated gate intentionally does not prove these:
 - `Open Login` launches a visible terminal or auth flow for the selected profile
 - real account-backed API or Claude CLI chat succeeds with a private account
 
-Track those in [manual-external-qa.md](manual-external-qa.md).
+Track those in the [release-candidate runbook manual QA section](release-candidate-runbook.md#manual-external-qa).

@@ -8,7 +8,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 
 - Branch: `main`
 - Release QA checkpoint: cleanup and audit stabilization is recorded on `main`; use the push-state line below for the current commit/sync state.
-- Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/manual-external-qa.md`.
+- Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/release-candidate-runbook.md#manual-external-qa`.
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
 - Dependency cleanup removed unused class-name helper packages and the redundant external `natural` type package; `natural` now uses its bundled type declarations.
@@ -31,6 +31,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Native folder picker process launching, guided-draft normalization, unused skill writer delete wrapper, and editor body-size limit re-export were removed from public runtime surfaces.
 - Component import panel aliases, guided summary metric types, API error payload helpers, cache get-options, Claude discovery barrel aliases, first-run internal states, runtime-provider aliases, and path-browser entry/search shapes were narrowed from unused exported type surfaces.
 - Strict exported-type cleanup now reports zero unused exported type findings; helper UI shapes, release/settings aliases, guided-builder/import barrels, test workspace options, and stale skill summary types are private or removed where they have no external consumers.
+- Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -173,4 +174,4 @@ These remain manual or account-backed by design:
 2. Visible Claude login launch.
 3. Real account-backed chat/auth.
 
-Use [manual-external-qa.md](manual-external-qa.md) for the device/account checks.
+Use the [release-candidate runbook manual QA section](release-candidate-runbook.md#manual-external-qa) for the device/account checks.

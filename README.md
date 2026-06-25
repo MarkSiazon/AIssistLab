@@ -231,7 +231,7 @@ npm run cleanup:project
 - [Docs index](docs/README.md)
 - [V1 release notes](docs/v1-release/release-notes.md)
 - [V1 release-candidate runbook](docs/v1-release/release-candidate-runbook.md)
-- [Manual external QA](docs/v1-release/manual-external-qa.md)
+- [Manual external QA](docs/v1-release/release-candidate-runbook.md#manual-external-qa)
 - [V1 roadmap](docs/v1-roadmap/roadmap.md)
 - [V1 specs](docs/v1-spec/README.md)
 - [V2 provider-agnostic roadmap](docs/v2-roadmap/roadmap.md)

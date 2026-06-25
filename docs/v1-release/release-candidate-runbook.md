@@ -152,6 +152,10 @@ npm run cleanup:artifacts
 
 The artifact cleanup does not delete `.env.local`, `node_modules`, tracked docs, screenshots, or source files.
 
+## Manual External QA
+
+These checks cover device UI and auth launchers that the automated smoke runner intentionally does not click. Run them locally only, and do not paste API keys, account emails, organization names, OAuth paths, raw Claude profile folder names, or full home paths into screenshots or notes.
+
 When the local app is already running, use the manual external QA helper to print the current sanitized readiness summary and remaining device/account checks:
 
 ```bash
@@ -166,7 +170,68 @@ npm run qa:manual:auto
 
 Both helpers print only sanitized status plus the manual checklist, including why each gated check remains manual. They do not click native OS dialogs, launch login, send chat, or write evidence files.
 
-After running those checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted.
+The helper may print `blocked` readiness when the local provider is intentionally incomplete, such as API mode without an API key or Claude CLI mode without a usable account. Treat that as a sanitized setup snapshot, not as a failed automated smoke run. Finish the account-backed chat check only after you intentionally configure a provider you are allowed to use.
+
+After running the manual checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted. It does not store prompts, screenshots, account names, profile paths, or auth output.
+
+### Native Folder Picker
+
+1. In Settings, find `WORKSPACE_ROOT` or `SKILLS_DIR`.
+2. Click `Choose folder`.
+3. Confirm a native folder picker opens visibly.
+4. Click `Cancel` and confirm Settings stays usable and the field is unchanged.
+5. Repeat and choose a harmless local test folder.
+6. Confirm only the intended field updates and shows `Unsaved changes`.
+7. Save only if you intend to change `.env.local`; otherwise reload the page.
+
+Pass criteria:
+
+- The browser does not freeze.
+- Cancel does not change the field.
+- A selected folder updates the intended field.
+- No raw account or auth paths are shown outside the selected folder path.
+
+### Claude Open Login
+
+1. In Settings, select the intended Claude profile.
+2. Click `Open Login`.
+3. Confirm a visible terminal or Claude auth window opens.
+4. Close or cancel the login flow unless you intentionally want to authenticate.
+5. Return to Settings and confirm the page remains responsive.
+6. If you intentionally authenticated, click `Test CLI` and confirm the result is sanitized.
+
+Pass criteria:
+
+- Login never runs silently on page load.
+- The launched terminal or auth window is visible to the user.
+- Settings does not display account emails, organization names, raw OAuth paths, tokens, or full profile folder names.
+- If auth is blocked by account policy, the UI shows a clean actionable failure.
+
+### Account-Backed Chat
+
+Run this only with an account or API key you are allowed to use. The automated smoke test verifies chat UI, streaming errors, retry, citations, and readiness states with mocked/local-safe inputs; this manual check proves the real selected provider can answer.
+
+1. In Settings, choose the intended provider mode.
+2. For API mode, confirm `ANTHROPIC_API_KEY` is present locally without copying its value into notes.
+3. For Claude CLI mode, select the intended profile and click `Test CLI`.
+4. Confirm the provider/auth row is ready or shows only an intentional account-policy failure.
+5. Open Chat.
+6. Ask the demo prompt from this runbook.
+7. Confirm the answer cites the indexed skill and includes the expected readiness phrase.
+8. Switch back to Settings and confirm diagnostics/readiness output stays sanitized.
+
+Pass criteria:
+
+- The app sends only after explicit user action.
+- Provider errors render as actionable UI text rather than crashing the page.
+- No account email, organization name, API key, OAuth path, raw profile path, or token appears in Chat, Settings, Doctor, runtime status, or diagnostics.
+- Switching provider settings follows the documented runtime behavior for provider keys.
+
+Evidence to record:
+
+- Use the Settings `Manual QA Evidence` panel for session-local pass/fail state.
+- Keep external notes sanitized.
+- Record only the local browser, date, checked buttons, and generic failure category when separate issue notes are needed.
 
 `npm test` executes every `src/**/*.test.ts` file and release script helper test under `scripts/**/*.test.mjs`. Prefer the npm script for the full sweep so source and release-helper coverage stay in sync.
 
@@ -203,8 +268,8 @@ Capture this evidence for a V1 release-candidate checkpoint:
 11. Untracked text hygiene scan result.
 12. Privacy scan result.
 13. Local artifact cleanup dry-run result.
-13. Manual external QA result for native folder picker, Open Login, and account-backed chat.
-14. Final diff review.
+14. Manual external QA result for native folder picker, Open Login, and account-backed chat.
+15. Final diff review.
 
 Commit and push only after explicit approval.
 
