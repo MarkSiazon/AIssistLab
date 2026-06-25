@@ -34,7 +34,7 @@ export interface ManualExternalQaSummary {
   statusLabel: "Complete" | "Needs review" | "Not complete";
 }
 
-export const manualExternalQaStorageKey =
+const manualExternalQaStorageKey =
   "skill-workshop-manual-external-qa-evidence";
 
 export const manualExternalQaCommand = "npm run qa:manual";

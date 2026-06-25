@@ -1,6 +1,6 @@
-export const GUIDED_FORM_AUTOSAVE_SCHEMA_VERSION = 1;
+const GUIDED_FORM_AUTOSAVE_SCHEMA_VERSION = 1;
 export const GUIDED_FORM_AUTOSAVE_MAX_LENGTH = 6000;
-export const GUIDED_FORM_AUTOSAVE_STEP_COUNT = 4;
+const GUIDED_FORM_AUTOSAVE_STEP_COUNT = 4;
 
 export interface GuidedFormSnapshotInput {
   step: number;

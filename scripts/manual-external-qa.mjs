@@ -210,7 +210,7 @@ async function withTemporaryManualQaServer(callback) {
   }
 }
 
-export async function fetchManualQaEndpoint(baseUrl, pathName, fetchImpl = fetch) {
+async function fetchManualQaEndpoint(baseUrl, pathName, fetchImpl = fetch) {
   const url = new URL(pathName, `${baseUrl}/`);
   const response = await fetchImpl(url, {
     headers: {
@@ -233,7 +233,7 @@ export async function fetchManualQaEndpoint(baseUrl, pathName, fetchImpl = fetch
   };
 }
 
-export async function loadManualQaSnapshot(baseUrl, fetchImpl = fetch) {
+async function loadManualQaSnapshot(baseUrl, fetchImpl = fetch) {
   const entries = [];
   for (const pathName of endpointPaths) {
     entries.push(await fetchManualQaEndpoint(baseUrl, pathName, fetchImpl));
@@ -346,7 +346,7 @@ export async function runManualQaHelper({
   return formatManualQaReport(baseUrl, entries);
 }
 
-export async function runManualQaCli(options = parseManualQaArgs()) {
+async function runManualQaCli(options = parseManualQaArgs()) {
   if (options.help) return manualQaUsage();
   if (options.startServer) {
     return await withTemporaryManualQaServer((baseUrl) =>

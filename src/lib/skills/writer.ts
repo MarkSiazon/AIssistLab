@@ -20,9 +20,3 @@ export async function writeSkill(
 export async function deleteSkill(skillName: string): Promise<void> {
   await moveSkillToTrash(skillName);
 }
-
-export async function unlinkSkill(skillName: string): Promise<void> {
-  const filePath = getSkillFilePath(skillName);
-  if (!filePath) throw new Error("Invalid skill name");
-  await fs.unlink(filePath);
-}

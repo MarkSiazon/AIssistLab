@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Skill } from "@/types/skill";
-import { getSkillsPath, readSkill } from "@/lib/skills/reader";
+import { readSkill } from "@/lib/skills/reader";
 import { writeSkill } from "@/lib/skills/writer";
 import { buildSkillQualityReport } from "./quality";
 import { isSafeSkillName, validateSkillInput } from "./validation";
@@ -174,8 +174,4 @@ export async function applySkillImportPreview(input: {
   delete cache[input.previewId];
   await writeImportPreviewCache(cache);
   return { ok: true, written, skipped, renamed };
-}
-
-export function getSkillsImportTargetDisplay(): string {
-  return sanitizeDisplayPath(getSkillsPath());
 }
