@@ -1,5 +1,5 @@
 import { jsonRequestInit, readResponseJson } from "@/lib/api/client";
-import type { SkillValidationError } from "@/lib/ui/skill-editor-model";
+import type { SkillValidationError } from "@/lib/skills/validation";
 
 export interface SkillEditorSaveInput {
   mode: "create" | "edit";

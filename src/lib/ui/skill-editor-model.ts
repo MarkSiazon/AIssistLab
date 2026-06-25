@@ -1,18 +1,8 @@
 import { countLabel } from "@/lib/format/count-label";
 import { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
+import type { SkillValidationError as DomainSkillValidationError } from "@/lib/skills/validation";
 
-export interface SkillValidationError {
-  field:
-    | "name"
-    | "description"
-    | "body"
-    | "tags"
-    | "paths"
-    | "shell"
-    | "frontmatter";
-  code: string;
-  message: string;
-}
+export type SkillValidationError = DomainSkillValidationError;
 
 export type SkillValidationField = SkillValidationError["field"];
 

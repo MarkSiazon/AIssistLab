@@ -1,7 +1,8 @@
 import { countLabel } from "@/lib/format/count-label";
+import type { UiAlertTone, UiIssueTone } from "@/lib/ui/tone";
 
-type SkillsImportPreviewRowTone = "ok" | "warn" | "error";
-type SkillsImportPreviewIssueTone = "warn" | "error";
+type SkillsImportPreviewRowTone = UiAlertTone;
+type SkillsImportPreviewIssueTone = UiIssueTone;
 
 interface SkillsImportPreviewRowIssueInput {
   message: string;

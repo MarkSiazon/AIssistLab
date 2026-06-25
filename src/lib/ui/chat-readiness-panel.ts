@@ -10,10 +10,11 @@ import type {
   RuntimeProviderSource,
 } from "@/lib/rag/llm-types";
 import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
+import type { UiTone } from "@/lib/ui/tone";
 
 type ChatProvider = LlmProvider;
 type ChatRuntimeSource = RuntimeProviderSource;
-export type ChatStatusTone = "ok" | "warn" | "error" | "neutral";
+export type ChatStatusTone = UiTone;
 
 export interface ChatReadinessStatus {
   provider: ChatProvider;

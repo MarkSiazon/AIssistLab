@@ -1,6 +1,7 @@
 import { countLabel } from "@/lib/format/count-label";
+import type { UiAlertTone } from "@/lib/ui/tone";
 
-type SkillsImportPreviewSummaryTone = "ok" | "warn" | "error";
+type SkillsImportPreviewSummaryTone = UiAlertTone;
 
 export interface SkillsImportPreviewSummaryInput {
   totalCount: number;

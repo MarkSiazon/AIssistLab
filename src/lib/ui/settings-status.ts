@@ -1,11 +1,12 @@
 import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
+import type { UiAlertTone, UiTone } from "@/lib/ui/tone";
 
-export type SettingsDoctorStatus = "ok" | "warn" | "error";
+export type SettingsDoctorStatus = UiAlertTone;
 export type SettingsDoctorSeverity = "blocking" | "warning" | "optional";
 export type SettingsReleaseStatus = ReleaseReadinessStatus;
 export type SettingsFirstRunStatus = "ready" | "needs_action" | "optional";
 export type SettingsPathState = "idle" | "checking" | "ok" | "error";
-export type SettingsTone = "ok" | "warn" | "error" | "neutral";
+export type SettingsTone = UiTone;
 
 export interface SettingsProfileStatus {
   label: string;

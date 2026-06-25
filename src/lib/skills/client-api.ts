@@ -1,6 +1,11 @@
 import { jsonRequestInit, requestJson } from "@/lib/api/client";
+import type {
+  DuplicateStrategy,
+  SkillImportPreview,
+  SkillImportSource,
+} from "@/lib/skills/importer-types";
 import type { SkillLibraryIndexState } from "@/lib/skills/library-readiness";
-import type { ImportPreview } from "@/lib/ui/skills-import-panel-model";
+import type { DeletedSkillSummary } from "@/lib/skills/trash";
 
 export interface SkillsListResponse {
   skills: {
@@ -10,20 +15,14 @@ export interface SkillsListResponse {
     updatedAt: string;
   }[];
   total: number;
-  latestDeleted: {
-    skillName: string;
-    deletedAt: string;
-  } | null;
+  latestDeleted: DeletedSkillSummary | null;
 }
 
 interface SkillBodyResponse {
   body?: unknown;
 }
 
-export type SkillsImportPreviewRequest =
-  | { sourceType: "folder"; path: string }
-  | { sourceType: "archive"; archiveBase64: string; fileName: string }
-  | { sourceType: "github"; url: string };
+export type SkillsImportPreviewRequest = SkillImportSource;
 
 export interface SkillsImportApplyResponse {
   skipped?: unknown[];
@@ -70,8 +69,8 @@ export async function restoreDeletedSkill(name: string): Promise<void> {
 
 export async function previewSkillsImport(
   body: SkillsImportPreviewRequest,
-): Promise<ImportPreview> {
-  return requestJson<ImportPreview>(
+): Promise<SkillImportPreview> {
+  return requestJson<SkillImportPreview>(
     "/api/skills/import/preview",
     jsonRequestInit("POST", body),
     "Import preview failed.",
@@ -80,7 +79,7 @@ export async function previewSkillsImport(
 
 export async function applySkillsImport(input: {
   previewId: string;
-  duplicateStrategy: string;
+  duplicateStrategy: DuplicateStrategy;
 }): Promise<SkillsImportApplyResponse> {
   return requestJson<SkillsImportApplyResponse>(
     "/api/skills/import/apply",

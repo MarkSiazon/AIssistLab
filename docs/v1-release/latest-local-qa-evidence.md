@@ -35,6 +35,12 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - LLM provider and runtime-source types now resolve through the canonical LLM type module instead of repeating provider/source unions across chat readiness, runtime settings, Setup Doctor, settings client, and UI helper models.
 - Settings client and UI Claude profile/status helpers now alias the canonical Claude discovery and CLI status types instead of restating profile, auth, and smoke-test response shapes.
 - Settings client, first-run, chat readiness, and Claude settings UI helpers now reuse canonical runtime-status and Claude CLI test-result shapes instead of maintaining partial local copies.
+- Generic UI tone types now resolve through `src/lib/ui/tone.ts` instead of repeating status-tone unions across Settings, Chat readiness, and Skills import presentation helpers.
+- Skills import preview actions now reuse the canonical import source type from the import panel model instead of maintaining a duplicate folder/archive/GitHub source union.
+- Skills import apply actions now reuse the canonical import duplicate-strategy type instead of maintaining a duplicate skip/overwrite/rename union.
+- Skills import UI preview shapes now alias the canonical importer domain preview/source/strategy types, and the skills client no longer imports preview response types from the UI model.
+- Skills restore/list UI and client response shapes now alias the canonical deleted-skill trash summary instead of restating partial deleted-skill metadata.
+- Skill editor UI and save-client validation error shapes now reuse the canonical skills validation error type instead of restating editor-local validation fields.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.

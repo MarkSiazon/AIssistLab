@@ -1,11 +1,12 @@
-type SkillsImportPreviewSourceType = "folder" | "archive" | "github";
+import type { SkillsImportSourceType } from "@/lib/ui/skills-import-panel-model";
+
 type SkillsImportPreviewReadinessTone =
   | "checking"
   | "ready"
   | "needs-action";
 
 export interface SkillsImportPreviewActionInput {
-  sourceType: SkillsImportPreviewSourceType;
+  sourceType: SkillsImportSourceType;
   hasSource: boolean;
   isLoading: boolean;
   hasPreview: boolean;
@@ -20,7 +21,7 @@ export interface SkillsImportPreviewActionState {
 }
 
 const sourceCopy: Record<
-  SkillsImportPreviewSourceType,
+  SkillsImportSourceType,
   {
     buttonLabel: string;
     missingAriaLabel: string;

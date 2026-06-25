@@ -1,31 +1,22 @@
 import { countLabel } from "@/lib/format/count-label";
+import type {
+  DuplicateStrategy,
+  SkillImportPreview,
+  SkillImportPreviewItem,
+  SkillImportSource,
+} from "@/lib/skills/importer-types";
+import type { DeletedSkillSummary as SkillDeletedSummary } from "@/lib/skills/trash";
+import type { UiAlertTone } from "@/lib/ui/tone";
 
-export type SkillsImportSourceType = "folder" | "archive" | "github";
-export type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
+export type SkillsImportSourceType = SkillImportSource["sourceType"];
+export type SkillsImportDuplicateStrategy = DuplicateStrategy;
 
-export interface DeletedSkillSummary {
-  skillName: string;
-  deletedAt: string;
-}
+export type DeletedSkillSummary = SkillDeletedSummary;
 
-export interface ImportPreviewItem {
-  name: string;
-  displayName: string;
-  validationErrors: { message: string }[];
-  qualityWarnings: { message: string; category?: string }[];
-  duplicate: boolean;
-}
+export type ImportPreviewItem = SkillImportPreviewItem;
+export type ImportPreview = SkillImportPreview;
 
-export interface ImportPreview {
-  ok: boolean;
-  previewId: string;
-  sourceType: SkillsImportSourceType;
-  sourceDisplay: string;
-  skills: ImportPreviewItem[];
-  warnings: string[];
-}
-
-export type SkillsImportChipTone = "ok" | "warn" | "error" | undefined;
+export type SkillsImportChipTone = UiAlertTone | undefined;
 
 export function importChipClass(tone: SkillsImportChipTone): string {
   if (tone === "error") return "skills-import-chip-error";

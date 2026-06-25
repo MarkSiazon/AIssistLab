@@ -2,8 +2,9 @@ import type { ClaudeProfileSummary } from "@/lib/claude/discovery";
 import type { ClaudeCliStatus } from "@/lib/rag/claude-cli-status";
 import type { ClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
 import type { ActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
+import type { UiTone } from "@/lib/ui/tone";
 
-type SettingsClaudePanelTone = "ok" | "warn" | "error" | "neutral";
+type SettingsClaudePanelTone = UiTone;
 
 export type SettingsClaudeProfileSummary = ClaudeProfileSummary;
 export type SettingsClaudeCliStatus = ClaudeCliStatus;

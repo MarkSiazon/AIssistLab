@@ -1,6 +1,5 @@
 import { countLabel } from "@/lib/format/count-label";
-
-type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
+import type { SkillsImportDuplicateStrategy } from "@/lib/ui/skills-import-panel-model";
 
 export interface SkillsImportActionInput {
   hasPreview: boolean;
