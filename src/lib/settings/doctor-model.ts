@@ -96,14 +96,14 @@ export function providerFromEnv(
     : "anthropic_api";
 }
 
-export function sanitizeDoctorText(value: string): string {
+function sanitizeDoctorText(value: string): string {
   return sanitizeCliOutput(value)
     .replace(/[A-Z]:\\Users\\[^\\\s"]+/gi, "~")
     .replace(/SecretOrg/gi, "[redacted]")
     .replace(/\bOrganization:\s*[^\n\r]+/gi, "Organization: [redacted]");
 }
 
-export function severityForStatus(
+function severityForStatus(
   status: DoctorCheckStatus,
 ): ReadinessSeverity {
   if (status === "error") return "blocking";
