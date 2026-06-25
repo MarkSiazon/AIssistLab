@@ -7,6 +7,7 @@ import {
   fetchWithTimeout,
   getFreePort,
   pushLog,
+  waitForServerReady,
 } from "./lib/server-utils.mjs";
 import {
   assertVisibleButtonsAccountedFor,
@@ -130,25 +131,6 @@ function assert(condition, message) {
 
 async function exists(filePath) {
   return Boolean(await stat(filePath).catch(() => null));
-}
-
-async function waitForServer(baseUrl, child, logs) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < 90000) {
-    if (child.exitCode !== null) {
-      throw new Error(`Next production server exited early.\n${logs.join("\n")}`);
-    }
-    try {
-      const response = await fetchWithTimeout(`${baseUrl}/`, {
-        headers: { host: new URL(baseUrl).host },
-      }, 2000);
-      if (response.ok) return;
-    } catch {
-      // Server is still starting.
-    }
-    await delay(1000);
-  }
-  throw new Error(`Timed out waiting for Next production server.\n${logs.join("\n")}`);
 }
 
 async function expectForbiddenLocalApi(
@@ -1251,7 +1233,12 @@ async function main() {
   child.stderr.on("data", (chunk) => pushLog(logs, chunk));
 
   try {
-    await waitForServer(baseUrl, child, logs);
+    await waitForServerReady({
+      baseUrl,
+      child,
+      logs,
+      serverName: "production server",
+    });
     await runApiSmoke(baseUrl);
     await runBrowserSmoke(baseUrl);
     console.log(`Production smoke passed at ${baseUrl}`);

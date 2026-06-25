@@ -33,3 +33,32 @@ export async function fetchWithTimeout(url, init = {}, timeoutMs = 30000) {
     clearTimeout(timer);
   }
 }
+
+export async function waitForServerReady({
+  baseUrl,
+  child,
+  logs,
+  probePath = "/",
+  serverName = "server",
+  timeoutMs = 90000,
+  probeTimeoutMs = 2000,
+}) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (child.exitCode !== null) {
+      throw new Error(`Next ${serverName} exited early.\n${logs.join("\n")}`);
+    }
+    try {
+      const response = await fetchWithTimeout(
+        `${baseUrl}${probePath}`,
+        { headers: { host: new URL(baseUrl).host } },
+        probeTimeoutMs,
+      );
+      if (response.ok) return;
+    } catch {
+      // Server is still starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  throw new Error(`Timed out waiting for Next ${serverName}.\n${logs.join("\n")}`);
+}

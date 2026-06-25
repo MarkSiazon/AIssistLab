@@ -3,7 +3,7 @@ import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
-import { getFreePort, pushLog } from "./lib/server-utils.mjs";
+import { getFreePort, pushLog, waitForServerReady } from "./lib/server-utils.mjs";
 import {
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
@@ -307,25 +307,6 @@ async function restoreOptionalText(filePath, content) {
     return;
   }
   await writeFile(filePath, content, "utf8");
-}
-
-async function waitForServer(baseUrl, child, logs) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < 90000) {
-    if (child.exitCode !== null) {
-      throw new Error(`Next dev server exited early.\n${logs.join("\n")}`);
-    }
-    try {
-      const response = await fetch(`${baseUrl}/api/chat/status`, {
-        headers: { host: new URL(baseUrl).host },
-      });
-      if (response.ok) return;
-    } catch {
-      // Server is still starting.
-    }
-    await delay(1000);
-  }
-  throw new Error(`Timed out waiting for Next dev server.\n${logs.join("\n")}`);
 }
 
 async function jsonFetch(baseUrl, pathName, init = {}) {
@@ -3753,7 +3734,13 @@ async function main() {
   child.stderr.on("data", (chunk) => pushLog(logs, chunk));
 
   try {
-    await waitForServer(baseUrl, child, logs);
+    await waitForServerReady({
+      baseUrl,
+      child,
+      logs,
+      probePath: "/api/chat/status",
+      serverName: "dev server",
+    });
     await runApiSmoke(baseUrl, workspace);
     await runBrowserSmoke(baseUrl, runRoot, importSource, archivePath);
     console.log(`Local smoke passed at ${baseUrl}`);

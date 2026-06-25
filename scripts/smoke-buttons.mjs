@@ -1,7 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
-import { fetchWithTimeout, getFreePort, pushLog } from "./lib/server-utils.mjs";
+import {
+  getFreePort,
+  pushLog,
+  waitForServerReady,
+} from "./lib/server-utils.mjs";
 
 const routeNavigationTimeoutMs = 60000;
 const routes = ["/settings", "/skills", "/chat", "/export", "/editor/guided"];
@@ -49,27 +53,6 @@ function assert(condition, message) {
 function isRiskyButtonLabel(label) {
   if (!label) return true;
   return riskyButtonLabelPatterns.some((pattern) => pattern.test(label));
-}
-
-async function waitForServer(baseUrl, child, logs) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < 90000) {
-    if (child.exitCode !== null) {
-      throw new Error(`Next dev server exited early.\n${logs.join("\n")}`);
-    }
-    try {
-      const response = await fetchWithTimeout(
-        `${baseUrl}/settings`,
-        { headers: { host: new URL(baseUrl).host } },
-        2000,
-      );
-      if (response.ok) return;
-    } catch {
-      // Server is still starting.
-    }
-    await delay(1000);
-  }
-  throw new Error(`Timed out waiting for Next dev server.\n${logs.join("\n")}`);
 }
 
 async function gotoRouteAndExpectText(page, baseUrl, route) {
@@ -294,7 +277,15 @@ async function main() {
   let browser = null;
 
   try {
-    if (server) await waitForServer(baseUrl, server.child, server.logs);
+    if (server) {
+      await waitForServerReady({
+        baseUrl,
+        child: server.child,
+        logs: server.logs,
+        probePath: "/settings",
+        serverName: "dev server",
+      });
+    }
     browser = await chromium.launch();
     const page = await browser.newPage({
       viewport: { width: 1440, height: 1100 },
