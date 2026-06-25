@@ -8,6 +8,7 @@ import { ExportReadinessPanel } from "@/components/export/ExportReadinessPanel";
 import { ExportSelectionToolbar } from "@/components/export/ExportSelectionToolbar";
 import { ExportSkillList } from "@/components/export/ExportSkillList";
 import { requestJson } from "@/lib/api/client";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import { markDiagnosticsExportedThisSession } from "@/lib/ui/diagnostics-export-session";
 import { buildExportEmptyActions } from "@/lib/ui/export-empty-state";
 import { assignSafeInternalLocation } from "@/lib/ui/safe-navigation";
@@ -31,11 +32,14 @@ const fetchReadiness = (url: string) =>
 
 export default function ExportPage() {
   const { data, isLoading } = useSWR<{ skills: SkillSummary[] }>(
-    "/api/skills",
+    API_ROUTES.skills,
     fetchSkills,
   );
   const { data: readiness, error: readinessError } =
-    useSWR<ReleaseReadinessResponse>("/api/release/readiness", fetchReadiness);
+    useSWR<ReleaseReadinessResponse>(
+      API_ROUTES.releaseReadiness,
+      fetchReadiness,
+    );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [includeDiagnostics, setIncludeDiagnostics] = useState(true);
 

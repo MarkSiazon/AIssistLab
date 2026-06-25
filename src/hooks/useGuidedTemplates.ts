@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { optionalJson } from "@/lib/api/client";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import {
   templateDefaultId,
   type SkillTemplateSummary,
@@ -14,7 +15,9 @@ export function useGuidedTemplates(
   const [templates, setTemplates] = useState<SkillTemplateSummary[]>([]);
 
   useEffect(() => {
-    optionalJson<{ templates?: SkillTemplateSummary[] }>("/api/skills/templates")
+    optionalJson<{ templates?: SkillTemplateSummary[] }>(
+      API_ROUTES.skillsTemplates,
+    )
       .then((payload) => {
         const nextTemplates = Array.isArray(payload?.templates)
           ? payload.templates

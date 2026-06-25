@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { requestJson } from "@/lib/api/client";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import {
   indexStatusAnnouncement,
   indexStatusCountsLabel,
@@ -16,11 +18,11 @@ import {
 type RagIndexState = RagIndexStatusSnapshot;
 
 const NAV = [
-  { href: "/skills", label: "Skills", icon: "layers" },
-  { href: "/chat", label: "RAG Chat", icon: "message" },
-  { href: "/editor", label: "New Skill", icon: "edit" },
-  { href: "/export", label: "Export", icon: "archive" },
-  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: APP_ROUTES.skills, label: "Skills", icon: "layers" },
+  { href: APP_ROUTES.chat, label: "RAG Chat", icon: "message" },
+  { href: APP_ROUTES.editor, label: "New Skill", icon: "edit" },
+  { href: APP_ROUTES.export, label: "Export", icon: "archive" },
+  { href: APP_ROUTES.settings, label: "Settings", icon: "settings" },
 ];
 
 function NavIcon({ name }: { name: string }) {
@@ -96,7 +98,7 @@ export function Sidebar() {
     setIndexError(null);
     try {
       const data = await requestJson<RagIndexState>(
-        "/api/index",
+        API_ROUTES.index,
         undefined,
         "Unable to load index",
       );
@@ -140,7 +142,7 @@ export function Sidebar() {
     setStatus(null);
     try {
       const data = await requestJson<RagIndexState>(
-        "/api/index",
+        API_ROUTES.index,
         { method: "POST" },
         "Error rebuilding index",
       );
@@ -175,7 +177,7 @@ export function Sidebar() {
         {NAV.map((item) => {
           const active =
             pathname === item.href ||
-            (item.href !== "/" && pathname.startsWith(item.href));
+            pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

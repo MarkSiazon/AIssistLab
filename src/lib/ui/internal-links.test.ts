@@ -6,6 +6,7 @@ import {
   readSource,
   relativeSourcePath,
 } from "@/lib/test-utils/static-source";
+import { isAppRouteExpression } from "@/lib/test-utils/route-expressions";
 import { MAIN_CONTENT_ID } from "./route-announcement";
 
 function collectLiteralIds(source: string): Set<string> {
@@ -144,6 +145,7 @@ for (const file of files) {
 
     if (expression === "`#${MAIN_CONTENT_ID}`") continue;
     if (isRouteHelperExpression(expression)) continue;
+    if (isAppRouteExpression(expression)) continue;
     if (isGuardedHrefExpression(source, expression)) continue;
 
     if (expression === "item.href" && relativePath === "src/components/layout/Sidebar.tsx") {

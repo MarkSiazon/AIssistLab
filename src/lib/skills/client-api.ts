@@ -1,4 +1,9 @@
 import { jsonRequestInit, requestJson } from "@/lib/api/client";
+import {
+  API_ROUTES,
+  apiSkillRestoreRoute,
+  apiSkillRoute,
+} from "@/lib/routes/api-routes";
 import type {
   DuplicateStrategy,
   SkillImportPreview,
@@ -36,7 +41,7 @@ export function fetchSkillsJson<T>(url: string): Promise<T> {
 
 export async function rebuildSkillsIndex(): Promise<SkillLibraryIndexState> {
   return requestJson<SkillLibraryIndexState>(
-    "/api/index",
+    API_ROUTES.index,
     { method: "POST" },
     "Index rebuild failed.",
   );
@@ -44,7 +49,7 @@ export async function rebuildSkillsIndex(): Promise<SkillLibraryIndexState> {
 
 export async function fetchSkillBody(name: string): Promise<string> {
   const payload = await requestJson<SkillBodyResponse>(
-    `/api/skills/${encodeURIComponent(name)}`,
+    apiSkillRoute(name),
     undefined,
     "Unable to load skill preview.",
   );
@@ -53,7 +58,7 @@ export async function fetchSkillBody(name: string): Promise<string> {
 
 export async function deleteSkillByName(name: string): Promise<void> {
   await requestJson(
-    `/api/skills/${encodeURIComponent(name)}`,
+    apiSkillRoute(name),
     jsonRequestInit("DELETE", { confirmName: name }),
     "Delete failed.",
   );
@@ -61,7 +66,7 @@ export async function deleteSkillByName(name: string): Promise<void> {
 
 export async function restoreDeletedSkill(name: string): Promise<void> {
   await requestJson(
-    `/api/skills/${encodeURIComponent(name)}/restore`,
+    apiSkillRestoreRoute(name),
     { method: "POST" },
     "Restore failed.",
   );
@@ -71,7 +76,7 @@ export async function previewSkillsImport(
   body: SkillsImportPreviewRequest,
 ): Promise<SkillImportPreview> {
   return requestJson<SkillImportPreview>(
-    "/api/skills/import/preview",
+    API_ROUTES.skillsImportPreview,
     jsonRequestInit("POST", body),
     "Import preview failed.",
   );
@@ -82,7 +87,7 @@ export async function applySkillsImport(input: {
   duplicateStrategy: DuplicateStrategy;
 }): Promise<SkillsImportApplyResponse> {
   return requestJson<SkillsImportApplyResponse>(
-    "/api/skills/import/apply",
+    API_ROUTES.skillsImportApply,
     jsonRequestInit("POST", {
       previewId: input.previewId,
       confirm: true,

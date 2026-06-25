@@ -13,6 +13,7 @@ import {
 } from "@/hooks/useSkillEditorBootstrap";
 import { useSkillEditorSaveWorkflow } from "@/hooks/useSkillEditorSaveWorkflow";
 import { useSkillEditorValidationState } from "@/hooks/useSkillEditorValidationState";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { skillEditorHref } from "@/lib/ui/skill-action-links";
 
 export interface SkillEditorFormStateInput {
@@ -119,7 +120,7 @@ export function useSkillEditorFormState({
 
   function requestCancel() {
     if (!hasUnsavedChanges) {
-      router.push("/skills");
+      router.push(APP_ROUTES.skills);
       return;
     }
 
@@ -128,7 +129,7 @@ export function useSkillEditorFormState({
 
   function discardAndLeave() {
     setConfirmDiscard(false);
-    router.push("/skills");
+    router.push(APP_ROUTES.skills);
   }
 
   function applyTemplate(template: SkillTemplate) {

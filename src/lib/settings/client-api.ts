@@ -4,6 +4,7 @@ import {
   postJson,
   requestJsonWithFetcher,
 } from "@/lib/api/client";
+import { API_ROUTES, apiSettingsPathExistsRoute } from "@/lib/routes/api-routes";
 import type {
   ActiveRuntimeProviderStatus,
   ApiErrorPayload,
@@ -32,7 +33,7 @@ export async function fetchSettingsEnv(
     Partial<SettingsEnvData> & ApiErrorPayload
   >(
     fetcher,
-    "/api/settings",
+    API_ROUTES.settings,
     undefined,
     "Settings API is unavailable in this server context.",
   );
@@ -58,7 +59,7 @@ export async function fetchRuntimeStatus(
 ): Promise<ActiveRuntimeProviderStatus> {
   return requestJsonWithFetcher<ActiveRuntimeProviderStatus>(
     fetcher,
-    "/api/settings/runtime",
+    API_ROUTES.settingsRuntime,
     undefined,
     "Unable to load runtime status",
   );
@@ -73,7 +74,7 @@ export async function fetchChatReadiness(
     suggestedAction?: unknown;
   }>(
     fetcher,
-    "/api/chat/status",
+    API_ROUTES.chatStatus,
     undefined,
     "Unable to load chat readiness",
   );
@@ -96,7 +97,7 @@ export async function fetchIndexStatus(
 ): Promise<PublicIndexState> {
   return requestJsonWithFetcher<PublicIndexState>(
     fetcher,
-    "/api/index",
+    API_ROUTES.index,
     undefined,
     "Unable to load index status",
   );
@@ -107,7 +108,7 @@ export async function fetchSkillQualityReport(
 ): Promise<SkillQualityReport> {
   return requestJsonWithFetcher<SkillQualityReport>(
     fetcher,
-    "/api/skills/validation",
+    API_ROUTES.skillsValidation,
     undefined,
     "Unable to load skill quality report",
   );
@@ -118,7 +119,7 @@ export async function fetchReleaseReadiness(
 ): Promise<ReleaseReadinessReport> {
   return requestJsonWithFetcher<ReleaseReadinessReport>(
     fetcher,
-    "/api/release/readiness",
+    API_ROUTES.releaseReadiness,
     undefined,
     "Unable to load release readiness",
   );
@@ -129,7 +130,7 @@ export async function fetchDoctorReport(
 ): Promise<SetupDoctorReport> {
   return requestJsonWithFetcher<SetupDoctorReport>(
     fetcher,
-    "/api/settings/doctor",
+    API_ROUTES.settingsDoctor,
     undefined,
     "Unable to load Setup Doctor",
   );
@@ -140,7 +141,7 @@ export async function fetchClaudeCliStatus(
 ): Promise<ClaudeCliStatus> {
   return requestJsonWithFetcher<ClaudeCliStatus>(
     fetcher,
-    "/api/settings/claude-cli",
+    API_ROUTES.settingsClaudeCli,
     undefined,
     "Unable to load Claude CLI status",
   );
@@ -152,7 +153,7 @@ export async function openClaudeLogin(
 ): Promise<OpenClaudeLoginResponse> {
   return requestJsonWithFetcher<OpenClaudeLoginResponse>(
     fetcher,
-    "/api/settings/claude-cli",
+    API_ROUTES.settingsClaudeCli,
     postJson(input),
     "Unable to open Claude login",
   );
@@ -164,7 +165,7 @@ export async function testClaudeCli(
 ): Promise<ClaudeCliTestResult> {
   return requestJsonWithFetcher<ClaudeCliTestResult>(
     fetcher,
-    "/api/settings/claude-cli/test",
+    API_ROUTES.settingsClaudeCliTest,
     postJson(input),
     "Claude CLI test failed",
   );
@@ -176,7 +177,7 @@ export async function saveSettingsFields(
 ): Promise<SaveSettingsResponse> {
   return requestJsonWithFetcher<SaveSettingsResponse>(
     fetcher,
-    "/api/settings",
+    API_ROUTES.settings,
     postJson(input),
     "Save failed",
   );
@@ -188,7 +189,7 @@ export async function saveSettingsRaw(
 ): Promise<SaveSettingsResponse> {
   return requestJsonWithFetcher<SaveSettingsResponse>(
     fetcher,
-    "/api/settings",
+    API_ROUTES.settings,
     postJson({ raw }),
     "Save failed",
   );
@@ -199,7 +200,7 @@ export async function rebuildRagIndex(
 ): Promise<PublicIndexState> {
   return requestJsonWithFetcher<PublicIndexState>(
     fetcher,
-    "/api/index",
+    API_ROUTES.index,
     { method: "POST" },
     "Unable to rebuild index",
   );
@@ -211,7 +212,7 @@ export async function checkSettingsPath(
 ): Promise<{ exists: boolean; isDirectory: boolean }> {
   return requestJsonWithFetcher<{ exists: boolean; isDirectory: boolean }>(
     fetcher,
-    `/api/settings/path-exists?path=${encodeURIComponent(path)}`,
+    apiSettingsPathExistsRoute(path),
     undefined,
     "Unable to validate path",
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { EmptyStateIcon } from "@/components/ui/EmptyStateIcon";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { isManagedSkillName } from "@/lib/skills/name";
 import { skillEditorHref, skillExportHref } from "@/lib/ui/skill-action-links";
 import type { SkillDeleteActionState } from "@/lib/ui/skill-delete-action";
@@ -210,12 +211,15 @@ export function SkillPreviewPane({
           </div>
           <div className="skills-preview-empty-actions">
             <Link
-              href="/editor/guided"
+              href={APP_ROUTES.guidedBuilder}
               className="ui-button ui-button-primary text-sm"
             >
               Guided Builder
             </Link>
-            <Link href="/editor" className="ui-button ui-button-secondary text-sm">
+            <Link
+              href={APP_ROUTES.editor}
+              className="ui-button ui-button-secondary text-sm"
+            >
               New Skill
             </Link>
             <a

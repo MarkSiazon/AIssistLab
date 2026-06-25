@@ -1,10 +1,13 @@
+import { appSkillEditorRoute } from "@/lib/routes/app-routes";
+import { API_ROUTES } from "@/lib/routes/api-routes";
+
 export function skillEditorHref(skillName: string): string {
-  return `/editor/${encodeURIComponent(skillName)}`;
+  return appSkillEditorRoute(skillName);
 }
 
 export function skillExportHref(skillName: string): string {
   const params = new URLSearchParams({ skill: skillName });
-  return `/api/export?${params.toString()}`;
+  return `${API_ROUTES.export}?${params.toString()}`;
 }
 
 export function skillsZipExportHref(input: {
@@ -22,5 +25,5 @@ export function skillsZipExportHref(input: {
   }
 
   const query = params.toString();
-  return query ? `/api/export/zip?${query}` : "/api/export/zip";
+  return query ? `${API_ROUTES.exportZip}?${query}` : API_ROUTES.exportZip;
 }

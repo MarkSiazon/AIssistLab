@@ -10,6 +10,10 @@ import {
 } from "react";
 import { readResponseJson } from "@/lib/api/client";
 import {
+  apiSettingsBrowseRoute,
+  apiSettingsNativeFolderRoute,
+} from "@/lib/routes/api-routes";
+import {
   normalizeInputPath,
   splitBreadcrumbs,
   type BrowseResult,
@@ -65,9 +69,7 @@ export function usePathPickerBrowse({
       setError(null);
 
       try {
-        const res = await fetch(
-          `/api/settings/browse?path=${encodeURIComponent(path)}`,
-        );
+        const res = await fetch(apiSettingsBrowseRoute(path));
         const data = (await readResponseJson(res)) as BrowseResult;
 
         if (!isCurrentRequest()) return;
@@ -140,7 +142,7 @@ export function usePathPickerBrowse({
         path: normalizeInputPath(value || browseFrom || ""),
         title: label,
       });
-      const res = await fetch(`/api/settings/native-folder?${params}`);
+      const res = await fetch(apiSettingsNativeFolderRoute(params));
       const data = (await readResponseJson(res)) as NativeFolderResponse;
 
       if (data.path) {

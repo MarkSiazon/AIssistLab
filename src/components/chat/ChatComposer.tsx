@@ -3,6 +3,7 @@ import type {
   KeyboardEvent,
   RefObject,
 } from "react";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import type { ChatReadinessActionVisibility } from "@/lib/ui/chat-empty-state";
 import type { ChatComposerActionState } from "@/lib/ui/chat-composer-action";
 import type { ChatStatusTone } from "@/lib/ui/chat-readiness-panel";
@@ -70,7 +71,7 @@ export function ChatComposer({
         <div className="chat-composer-status-actions">
           {(sendBlocked || statusError) && (
             <Link
-              href="/settings"
+              href={APP_ROUTES.settings}
               className="ui-button ui-button-secondary text-xs"
             >
               Settings
@@ -88,7 +89,7 @@ export function ChatComposer({
           )}
           {(sendBlocked || statusError) && (
             <Link
-              href="/export?diagnostics=true"
+              href={APP_ROUTES.exportDiagnostics}
               className="ui-button ui-button-subtle text-xs"
             >
               Export Diagnostics

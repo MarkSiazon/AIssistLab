@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 
 export function SkillsListHeader({ total }: { total: number | null }) {
   return (
@@ -12,10 +13,16 @@ export function SkillsListHeader({ total }: { total: number | null }) {
         Skills {typeof total === "number" ? `(${total})` : ""}
       </h1>
       <div className="skills-header-actions">
-        <Link href="/editor/guided" className="ui-button ui-button-secondary text-xs">
+        <Link
+          href={APP_ROUTES.guidedBuilder}
+          className="ui-button ui-button-secondary text-xs"
+        >
           Guided
         </Link>
-        <Link href="/editor" className="ui-button ui-button-primary text-xs">
+        <Link
+          href={APP_ROUTES.editor}
+          className="ui-button ui-button-primary text-xs"
+        >
           New
         </Link>
       </div>

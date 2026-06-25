@@ -47,6 +47,11 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Repeated status color, label, and tone mappings now use shared status presentation helpers while preserving existing Settings, Guided Builder, and Skills readiness public helper APIs.
 - Shared status presentation mappings now have direct unit coverage in addition to the existing consumer helper tests.
 - Shared app route constants now back repeated model-layer Settings, Chat, Export, Skills, and Guided Builder action links while preserving existing public action helper outputs.
+- Rendered app links, primary navigation, root redirect, route-changing hooks, Settings readiness action context, and route announcements now use the same shared app route constants instead of repeating first-party route literals in components.
+- Client-side API endpoints now resolve through shared API route constants and encoded route builders for chat, settings, skills, export, guided-builder, editor, path picker, and index workflows instead of repeating `/api/...` literals across UI clients.
+- Static route-literal ownership coverage now prevents first-party app and API route strings from drifting back into non-route source modules.
+- Static route and navigation safety tests now share route-expression recognition through a test utility instead of rebuilding matching logic per test.
+- Static source test helpers now include shared multi-root, multi-extension collection so route ownership and navigation safety scans use the same deterministic file discovery.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.

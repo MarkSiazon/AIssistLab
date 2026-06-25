@@ -4,6 +4,7 @@ import {
   type FirstRunChecklistAction,
   type FirstRunChecklistInput,
 } from "@/lib/settings/first-run-checklist";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import {
   getFirstRunActionDisabledHint,
   isFirstRunActionDisabled,
@@ -103,13 +104,13 @@ export function useSettingsFirstRunActions({
         return;
       }
       if (action === "open-chat") {
-        assignSafeInternalLocation(window.location, "/chat");
+        assignSafeInternalLocation(window.location, APP_ROUTES.chat);
         return;
       }
       if (action === "export-diagnostics") {
         setDiagnosticsExported(true);
         markDiagnosticsExportedThisSession();
-        assignSafeInternalLocation(window.location, "/export?diagnostics=true");
+        assignSafeInternalLocation(window.location, APP_ROUTES.exportDiagnostics);
       }
     },
     [rebuildIndex, saveSettings, setDiagnosticsExported, testClaudeCli],

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { EmptyStateIcon } from "@/components/ui/EmptyStateIcon";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import type { SkillSummary } from "@/lib/ui/skills-page-model";
 
 interface SkillsListContentProps {
@@ -111,13 +112,16 @@ export function SkillsListContent({
               </button>
             ) : (
               <Link
-                href="/editor/guided"
+                href={APP_ROUTES.guidedBuilder}
                 className="ui-button ui-button-primary text-sm"
               >
                 Guided Builder
               </Link>
             )}
-            <Link href="/editor" className="ui-button ui-button-secondary text-sm">
+            <Link
+              href={APP_ROUTES.editor}
+              className="ui-button ui-button-secondary text-sm"
+            >
               New Skill
             </Link>
             {!hasSearch && (

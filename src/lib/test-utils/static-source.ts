@@ -27,6 +27,20 @@ export function collectTsxFiles(...roots: string[]): string[] {
   );
 }
 
+export function collectSourceFiles(
+  roots: string[],
+  extensions: string[],
+): string[] {
+  return roots.flatMap((root) =>
+    extensions.flatMap((extension) =>
+      collectFilesByExtension(
+        path.isAbsolute(root) ? root : path.join(process.cwd(), root),
+        extension,
+      ),
+    ),
+  );
+}
+
 export function lineNumber(source: string, index: number): number {
   return source.slice(0, index).split(/\r?\n/).length;
 }

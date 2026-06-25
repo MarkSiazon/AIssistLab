@@ -5,6 +5,8 @@ import Link from "next/link";
 import { SkillEditorForm } from "@/components/editor/SkillEditorForm";
 import { EmptyStateIcon } from "@/components/ui/EmptyStateIcon";
 import { requestJson } from "@/lib/api/client";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+import { apiSkillRoute } from "@/lib/routes/api-routes";
 import { Skill } from "@/types/skill";
 
 export function EditSkillPageClient({ skillName }: { skillName: string }) {
@@ -14,7 +16,7 @@ export function EditSkillPageClient({ skillName }: { skillName: string }) {
 
   useEffect(() => {
     requestJson<Skill>(
-      `/api/skills/${encodeURIComponent(skillName)}`,
+      apiSkillRoute(skillName),
       undefined,
       "Skill not found",
     )
@@ -56,7 +58,10 @@ export function EditSkillPageClient({ skillName }: { skillName: string }) {
               {error ?? "The selected skill could not be found."}
             </div>
           </div>
-          <Link href="/skills" className="ui-button ui-button-primary">
+          <Link
+            href={APP_ROUTES.skills}
+            className="ui-button ui-button-primary"
+          >
             Back to Skills
           </Link>
         </div>

@@ -15,6 +15,7 @@ import {
   type SkillsListResponse,
 } from "@/lib/skills/client-api";
 import { useSkillsImportController } from "@/hooks/useSkillsImportController";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import { buildSkillDeleteActionState } from "@/lib/ui/skill-delete-action";
 import { buildSkillQualitySummary } from "@/lib/ui/skills-library-readiness-panel";
 import { indexRebuiltMessage } from "@/lib/ui/index-status-summary";
@@ -25,14 +26,14 @@ import {
 
 export function useSkillsPageController() {
   const { data, isLoading, error } = useSWR<SkillsListResponse>(
-    "/api/skills",
+    API_ROUTES.skills,
     fetchSkillsJson,
   );
   const { data: indexStatus, mutate: refreshIndexStatus } =
-    useSWR<SkillLibraryIndexState>("/api/index", fetchSkillsJson);
+    useSWR<SkillLibraryIndexState>(API_ROUTES.index, fetchSkillsJson);
   const { data: qualityReport, mutate: refreshQualityReport } =
     useSWR<SkillLibraryQualityReport>(
-      "/api/skills/validation",
+      API_ROUTES.skillsValidation,
       fetchSkillsJson,
     );
 
@@ -85,7 +86,7 @@ export function useSkillsPageController() {
 
   async function refreshLibraryState() {
     await Promise.all([
-      mutate("/api/skills"),
+      mutate(API_ROUTES.skills),
       refreshQualityReport(),
       refreshIndexStatus(),
     ]);

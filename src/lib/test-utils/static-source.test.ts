@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   collectFilesByExtension,
+  collectSourceFiles,
   lineNumber,
   readSource,
   relativeSourcePath,
@@ -22,6 +23,7 @@ try {
   writeFileSync(path.join(tempRoot, "a.test.tsx"), "a", "utf-8");
   writeFileSync(path.join(tempRoot, "nested", "b.test.tsx"), "b", "utf-8");
   writeFileSync(path.join(tempRoot, "nested", "ignored.ts"), "ignored", "utf-8");
+  writeFileSync(path.join(tempRoot, "nested", "c.test.ts"), "c", "utf-8");
 
   assert.deepEqual(
     collectFilesByExtension(tempRoot, ".tsx").map((file) =>
@@ -33,6 +35,20 @@ try {
       "z.test.tsx",
     ],
     "source collection should be deterministic and recursive",
+  );
+
+  assert.deepEqual(
+    collectSourceFiles([tempRoot], [".ts", ".tsx"]).map((file) =>
+      path.relative(tempRoot, file),
+    ),
+    [
+      path.join("nested", "c.test.ts"),
+      path.join("nested", "ignored.ts"),
+      "a.test.tsx",
+      path.join("nested", "b.test.tsx"),
+      "z.test.tsx",
+    ],
+    "multi-extension source collection should preserve root and extension order",
   );
 
   const nestedFile = path.join(tempRoot, "nested", "b.test.tsx");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { isSafeInternalActionHref } from "@/lib/ui/internal-action-href";
 import {
   buildExportReadinessMetrics,
@@ -135,7 +136,10 @@ export function ExportReadinessPanel({
           </div>
         </div>
         <div className="export-readiness-actions">
-          <Link href="/settings" className="ui-button ui-button-secondary text-xs">
+          <Link
+            href={APP_ROUTES.settings}
+            className="ui-button ui-button-secondary text-xs"
+          >
             Open Settings
           </Link>
           <button

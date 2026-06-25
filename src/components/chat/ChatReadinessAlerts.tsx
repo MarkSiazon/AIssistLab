@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import type { ChatPageStatus } from "@/lib/ui/chat-page-model";
 import { indexSuggestedAction } from "@/lib/ui/index-status-summary";
 
@@ -42,13 +43,13 @@ export function ChatBlockedAlert({
       )}
       <div className="chat-alert-actions">
         <Link
-          href="/settings"
+          href={APP_ROUTES.settings}
           className="ui-button ui-button-secondary chat-danger-action text-xs"
         >
           Open Settings
         </Link>
         <Link
-          href="/export?diagnostics=true"
+          href={APP_ROUTES.exportDiagnostics}
           className="ui-button ui-button-secondary text-xs"
         >
           Export Diagnostics

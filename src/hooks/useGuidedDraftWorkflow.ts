@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiErrorMessage, readResponseJson } from "@/lib/api/client";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import {
   type GuidedDraft,
   type GuidedFeedback,
@@ -88,7 +90,7 @@ export function useGuidedDraftWorkflow({
     const payload = await postGuided<{
       ok: boolean;
       feedback: GuidedFeedback;
-    }>("/api/skills/guided/feedback");
+    }>(API_ROUTES.skillsGuidedFeedback);
     if (!payload) return;
     setFeedback(payload.feedback);
     setDraft(null);
@@ -109,7 +111,7 @@ export function useGuidedDraftWorkflow({
     }
 
     const payload = await postGuided<{ ok: boolean; draft: GuidedDraft }>(
-      "/api/skills/guided/draft",
+      API_ROUTES.skillsGuidedDraft,
     );
     if (!payload) return null;
     setFeedback(payload.draft.feedback);
@@ -138,7 +140,7 @@ export function useGuidedDraftWorkflow({
       );
       return;
     }
-    router.push("/editor?guidedDraft=1");
+    router.push(APP_ROUTES.editorGuidedDraft);
   }
 
   return {

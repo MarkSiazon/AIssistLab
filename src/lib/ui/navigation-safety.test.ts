@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import {
-  collectFilesByExtension,
+  collectSourceFiles,
   lineNumber,
   readSource,
   relativeSourcePath,
 } from "@/lib/test-utils/static-source";
+import { isAppRouteExpression } from "@/lib/test-utils/route-expressions";
 
 const sourceRoots = ["src/app", "src/components", "src/hooks", "src/lib"];
 const allowedDirectNavigationFiles = new Set([
@@ -72,10 +73,7 @@ function isSafeRouterArgument(argument: string): boolean {
   return /^skillEditorHref\(/.test(argument);
 }
 
-const files = sourceRoots.flatMap((root) => [
-  ...collectFilesByExtension(path.join(process.cwd(), root), ".ts"),
-  ...collectFilesByExtension(path.join(process.cwd(), root), ".tsx"),
-]);
+const files = collectSourceFiles(sourceRoots, [".ts", ".tsx"]);
 const issues: string[] = [];
 
 for (const file of files) {
@@ -94,7 +92,10 @@ for (const file of files) {
   let routerMatch: RegExpExecArray | null;
   while ((routerMatch = routerPattern.exec(source))) {
     const argument = readCallArgument(source, routerPattern.lastIndex);
-    if (!argument || !isSafeRouterArgument(argument)) {
+    if (
+      !argument ||
+      (!isSafeRouterArgument(argument) && !isAppRouteExpression(argument))
+    ) {
       issues.push(
         `${relativePath}:${lineNumber(
           source,

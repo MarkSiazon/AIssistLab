@@ -3,6 +3,7 @@ import {
   getSettingsReleaseActionPresentation,
   shouldShowReleaseSectionAction,
 } from "@/lib/ui/release-readiness-actions";
+import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { isSafeInternalActionHref } from "@/lib/ui/internal-action-href";
 import {
   getSettingsReleaseReadinessPanelState,
@@ -180,7 +181,7 @@ export function ReleaseReadinessPanel({
                     section,
                     primaryAction: state.primaryAction,
                     topActionVisible: Boolean(report.summary.topAction),
-                    currentPath: "/settings",
+                    currentPath: APP_ROUTES.settings,
                   }) &&
                     (() => {
                       const presentation = getSettingsReleaseActionPresentation({

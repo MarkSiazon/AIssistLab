@@ -1,4 +1,5 @@
 import { jsonRequestInit, readResponseJson } from "@/lib/api/client";
+import { API_ROUTES, apiSkillRoute } from "@/lib/routes/api-routes";
 import type { SkillValidationError } from "@/lib/skills/validation";
 
 export interface SkillEditorSaveInput {
@@ -38,7 +39,7 @@ export async function saveSkillEditor(input: SkillEditorSaveInput): Promise<Skil
   const response =
     input.mode === "create"
       ? await fetch(
-          "/api/skills",
+          API_ROUTES.skills,
           jsonRequestInit("POST", {
             name: input.name,
             frontmatter,
@@ -46,7 +47,7 @@ export async function saveSkillEditor(input: SkillEditorSaveInput): Promise<Skil
           }),
         )
       : await fetch(
-          `/api/skills/${encodeURIComponent(input.name)}`,
+          apiSkillRoute(input.name),
           jsonRequestInit("PUT", {
             frontmatter,
             body: input.body,

@@ -4,6 +4,7 @@ import {
   readResponseJson,
   requestJson,
 } from "@/lib/api/client";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import type {
   ChatReadinessReleaseSummary,
   ChatReadinessStatus,
@@ -29,7 +30,7 @@ export interface ChatStreamHandlers {
 
 export async function fetchChatStatus(): Promise<ChatStatus> {
   return requestJson<ChatStatus>(
-    "/api/chat/status",
+    API_ROUTES.chatStatus,
     undefined,
     "Unable to load chat status",
   );
@@ -37,7 +38,7 @@ export async function fetchChatStatus(): Promise<ChatStatus> {
 
 export async function fetchChatReleaseReadiness(): Promise<ReleaseReadinessSummary> {
   return requestJson<ReleaseReadinessSummary>(
-    "/api/release/readiness",
+    API_ROUTES.releaseReadiness,
     undefined,
     "Unable to load release readiness",
   );
@@ -45,7 +46,7 @@ export async function fetchChatReleaseReadiness(): Promise<ReleaseReadinessSumma
 
 export async function rebuildChatIndex(): Promise<void> {
   await requestJson<unknown>(
-    "/api/index",
+    API_ROUTES.index,
     { method: "POST" },
     "Unable to rebuild index",
   );
@@ -78,7 +79,7 @@ export async function streamChatResponse(
   query: string,
   handlers: ChatStreamHandlers,
 ): Promise<void> {
-  const response = await fetch("/api/chat", {
+  const response = await fetch(API_ROUTES.chat, {
     ...jsonRequestInit("POST", { query }),
   });
 

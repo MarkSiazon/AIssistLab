@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { optionalJson } from "@/lib/api/client";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import { getBrowserSessionStorage } from "@/lib/ui/browser-storage";
 import {
   extraFrontmatterFields,
@@ -56,7 +57,7 @@ export function useSkillEditorBootstrap({
 
   useEffect(() => {
     if (mode !== "create") return;
-    optionalJson<{ templates?: SkillTemplate[] }>("/api/skills/templates")
+    optionalJson<{ templates?: SkillTemplate[] }>(API_ROUTES.skillsTemplates)
       .then((payload) => {
         if (Array.isArray(payload?.templates)) setTemplates(payload.templates);
       })

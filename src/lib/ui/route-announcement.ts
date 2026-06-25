@@ -1,3 +1,5 @@
+import { APP_ROUTES } from "@/lib/routes/app-routes";
+
 export const MAIN_CONTENT_ID = "main-content";
 
 interface RouteAnnouncement {
@@ -6,13 +8,13 @@ interface RouteAnnouncement {
 }
 
 const ROUTE_LABELS: Array<[prefix: string, label: string]> = [
-  ["/editor/guided", "Guided Skill Builder"],
-  ["/editor/", "Skill Editor"],
-  ["/editor", "New Skill"],
-  ["/skills", "Skills"],
-  ["/chat", "RAG Chat"],
-  ["/export", "Export"],
-  ["/settings", "Settings"],
+  [APP_ROUTES.guidedBuilder, "Guided Skill Builder"],
+  [`${APP_ROUTES.editor}/`, "Skill Editor"],
+  [APP_ROUTES.editor, "New Skill"],
+  [APP_ROUTES.skills, "Skills"],
+  [APP_ROUTES.chat, "RAG Chat"],
+  [APP_ROUTES.export, "Export"],
+  [APP_ROUTES.settings, "Settings"],
 ];
 
 function normalizePathname(pathname: string | null): string {
