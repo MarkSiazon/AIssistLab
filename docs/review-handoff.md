@@ -2,13 +2,13 @@
 
 Updated: 2026-06-25, Asia/Manila
 
-This handoff summarizes the current uncommitted workspace state for review. The parent workspace and `rag-interface/` are separate Git repositories in this checkout.
+This handoff summarizes the current pushed workspace state for review. The parent workspace and `rag-interface/` are separate Git repositories in this checkout.
 
 ## Parent Workspace
 
 Branch: `dev`
 
-Remote state: after `git fetch --all --prune`, `origin/dev` and `origin/feat/auto-branch-analyzer-skill` are gone. The remaining `origin/main` points at the V1 app-root history (`9484f0a`, `fix(release): harden local QA and Claude login`), not the current parent wrapper layout. Local `dev` is an ancestor of `origin/main`, but the trees have different roots: parent `HEAD` contains `.claude/`, `CLAUDE.md`, and legacy root docs, while `origin/main` contains the app files that are also present locally under `rag-interface/`.
+Remote state: `origin/dev` now points at the parent wrapper workspace (`34d75a3`, `chore(workspace): harden claude cli v1 handoff`). `origin/main` points at the V1 app-root history (`1bb997a`, `chore(qa): stabilize v1 release smoke coverage`), which is mirrored locally by the nested `rag-interface/` repository. The two branches intentionally have different root layouts: parent `dev` contains `.claude/`, `CLAUDE.md`, parent docs, and wrapper verification scripts, while `main` contains the app-root files that are also present locally under `rag-interface/`.
 
 Parent changes:
 
@@ -92,11 +92,9 @@ Use `rag-interface/docs/v1-release/manual-external-qa.md` and the Settings Manua
 
 ## Commit Notes
 
-No commit or push has been made.
+Pushed commits:
 
-Recommended commit split when explicitly approved:
+1. Parent `dev`: `34d75a3 chore(workspace): harden claude cli v1 handoff`.
+2. Nested app `main`: `1bb997a chore(qa): stabilize v1 release smoke coverage`.
 
-1. Parent workspace hardening and handoff docs.
-2. Nested V1 app smoke/readiness stabilization.
-
-Do not pull or merge parent remote branches in the dirty tree without first deciding whether this checkout should remain a parent wrapper with nested `rag-interface/` or move to the app-root `origin/main` layout. The local parent skill still writes PR bodies to `docs/pr-description.md`; keep that behavior if the wrapper layout is preserved.
+Do not pull or merge parent remote branches without first deciding whether this checkout should remain a parent wrapper with nested `rag-interface/` or move to the app-root `origin/main` layout. The local parent skill still writes PR bodies to `docs/pr-description.md`; keep that behavior if the wrapper layout is preserved.

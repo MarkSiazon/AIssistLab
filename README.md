@@ -80,6 +80,6 @@ Manual checks remain outside automation by design:
 
 - The parent workspace and `rag-interface/` are separate Git repositories in this checkout.
 - The parent `.gitignore` ignores `rag-interface/` so parent status only reports parent-owned workspace files.
-- After the latest fetch, the parent remote only has `origin/main`, which points at the app-root history mirrored locally by `rag-interface/`; do not blindly pull that branch into the parent wrapper layout.
+- The parent remote has `origin/dev` for this wrapper workspace and `origin/main` for the app-root history mirrored locally by `rag-interface/`; do not blindly merge those layouts.
 - Do not commit or push unless explicitly approved.
 - Keep `.env.local`, provider keys, account identifiers, OAuth paths, and raw profile paths out of tracked docs and diagnostics.

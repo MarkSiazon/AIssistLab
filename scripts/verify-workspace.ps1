@@ -51,6 +51,7 @@ function Test-ParentTextFile {
 function Test-ParentTextHygiene {
   param(
     [Parameter(Mandatory = $true)]
+    [AllowEmptyCollection()]
     [string[]] $Files,
     [Parameter(Mandatory = $true)]
     [string] $Scope,
@@ -103,17 +104,19 @@ function Test-ParentTextHygiene {
 }
 
 Invoke-Step "Parent untracked text hygiene" {
-  $files = @(git -C $repoRoot ls-files --others --exclude-standard) |
+  $files = @(git -C $repoRoot ls-files --others --exclude-standard |
     Where-Object { Test-ParentTextFile $_ }
+  )
   Test-ParentTextHygiene -Files $files -Scope "untracked"
 }
 
 Invoke-Step "Parent changed text ASCII hygiene" {
   $tracked = @(git -C $repoRoot diff --name-only --diff-filter=ACMRT)
   $untracked = @(git -C $repoRoot ls-files --others --exclude-standard)
-  $files = @($tracked + $untracked) |
+  $files = @($tracked + $untracked |
     Where-Object { Test-ParentTextFile $_ } |
     Sort-Object -Unique
+  )
   Test-ParentTextHygiene -Files $files -Scope "changed/untracked" -RequireAscii
 }
 
