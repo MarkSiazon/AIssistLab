@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { Skill } from "@/types/skill";
 import { readSkill } from "@/lib/skills/reader";
 import { writeSkill } from "@/lib/skills/writer";
-import { buildSkillQualityReport } from "./quality";
+import { buildSkillQualityReport, filterSkillQualityWarnings } from "./quality";
 import { isSafeSkillName, validateSkillInput } from "./validation";
 import {
   readImportPreviewCache,
@@ -65,9 +65,7 @@ async function publicItems(
         hasSkillFile: true,
         fileCount: candidate.fileCount,
         validationErrors: validation.errors,
-        qualityWarnings: quality.issues.filter(
-          (issue) => issue.severity === "warn",
-        ),
+        qualityWarnings: filterSkillQualityWarnings(quality.issues),
         duplicate: Boolean(await readSkill(candidate.name)),
       };
     }),

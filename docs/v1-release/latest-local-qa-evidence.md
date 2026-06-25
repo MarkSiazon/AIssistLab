@@ -35,6 +35,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
 - Skill library readiness now consumes the canonical Skill Quality report shape and shared severity counters instead of maintaining duplicate quality report/counting logic.
+- Skill import previews now use the canonical Skill Quality warning filter and shared count-label formatting for preview issue summaries.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

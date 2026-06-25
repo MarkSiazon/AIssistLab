@@ -1,4 +1,4 @@
-import { pluralNoun } from "@/lib/format/count-label";
+import { countLabel } from "@/lib/format/count-label";
 
 type SkillsImportPreviewRowTone = "ok" | "warn" | "error";
 type SkillsImportPreviewIssueTone = "warn" | "error";
@@ -61,10 +61,10 @@ export function buildSkillsImportPreviewRowState(
 
   const summaryParts: string[] = [];
   if (errorCount > 0) {
-    summaryParts.push(`${errorCount} ${pluralNoun(errorCount, "error")}`);
+    summaryParts.push(countLabel(errorCount, "error"));
   }
   if (warningCount > 0) {
-    summaryParts.push(`${warningCount} ${pluralNoun(warningCount, "warning")}`);
+    summaryParts.push(countLabel(warningCount, "warning"));
   }
   if (input.duplicate) {
     summaryParts.push("duplicate");
@@ -115,9 +115,10 @@ export function buildSkillsImportPreviewRowState(
     hiddenIssueCount,
     hiddenIssueMessage:
       hiddenIssueCount > 0
-        ? `${hiddenIssueCount} more ${pluralNoun(
+        ? `${countLabel(
             hiddenIssueCount,
-            "issue",
+            "more issue",
+            "more issues",
           )} hidden in this compact preview.`
         : null,
   };

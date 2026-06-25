@@ -55,6 +55,12 @@ async function main() {
     errorCount: 3,
     warningCount: report.issues.length - 3,
   });
+  assert.equal(
+    quality
+      .filterSkillQualityWarnings(report.issues)
+      .every((issue) => issue.severity === "warn"),
+    true,
+  );
 
   const v2 = quality.buildSkillQualityReport([
     skill({

@@ -64,6 +64,12 @@ export function countSkillQualityIssues(
   };
 }
 
+export function filterSkillQualityWarnings(
+  issues: readonly SkillQualityIssue[],
+): SkillQualityIssue[] {
+  return issues.filter((issue) => issue.severity === "warn");
+}
+
 function headingLevels(body: string): number[] {
   return body
     .split("\n")
