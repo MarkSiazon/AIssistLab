@@ -11,7 +11,9 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/manual-external-qa.md`.
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
-- Push state: release QA stabilization has been committed and pushed to `origin/main`; current cleanup and audit edits still require a commit and push after local verification.
+- Dependency cleanup removed unused class-name helper packages and the redundant external `natural` type package; `natural` now uses its bundled type declarations.
+- The release runbook now points at `npm test` as the authoritative test sweep instead of keeping a partial duplicate manual loop.
+- Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
 
@@ -56,6 +58,7 @@ npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
 npm run audit:assets
 npm run cleanup:artifacts:dry-run
 npm run cleanup:project:dry-run
+npm audit --audit-level=moderate
 npm run lint
 npm run smoke:buttons
 npm run smoke:local

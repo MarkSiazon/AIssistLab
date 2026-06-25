@@ -162,19 +162,7 @@ Both helpers print only sanitized status plus the manual checklist, including wh
 
 After running those checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted.
 
-`npm test` executes every `src/**/*.test.ts` file and release script helper tests under `scripts/**/*.test.mjs`. If you need to run the same sweep manually:
-
-```powershell
-$failed = @()
-Get-ChildItem -Recurse src -Filter *.test.ts | Sort-Object FullName | ForEach-Object {
-  npx --yes tsx $_.FullName
-  if ($LASTEXITCODE -ne 0) { $failed += $_.FullName }
-}
-if ($failed.Count -gt 0) {
-  $failed | ForEach-Object { Write-Error $_ }
-  exit 1
-}
-```
+`npm test` executes every `src/**/*.test.ts` file and release script helper test under `scripts/**/*.test.mjs`. Prefer the npm script for the full sweep so source and release-helper coverage stay in sync.
 
 ## Privacy Gate
 
@@ -203,10 +191,12 @@ Capture this evidence for a V1 release-candidate checkpoint:
 5. Dependency audit result.
 6. Browser smoke for `/settings`, `/skills`, `/chat`, `/export`, and `/editor/guided`.
 7. API smoke for `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
-8. Untracked text hygiene scan result.
-9. Privacy scan result.
-10. Manual external QA result for native folder picker, Open Login, and account-backed chat.
-11. Final diff review.
+8. Asset usage audit result.
+9. Untracked text hygiene scan result.
+10. Privacy scan result.
+11. Local artifact cleanup dry-run result.
+12. Manual external QA result for native folder picker, Open Login, and account-backed chat.
+13. Final diff review.
 
 Commit and push only after explicit approval.
 
