@@ -17,7 +17,7 @@ import {
 import type { SettingsFieldType } from "@/lib/ui/settings-active-values-panel";
 import { isSettingsPathValidationFieldType } from "@/lib/ui/settings-path-validation";
 
-export interface SettingsEnvPathValidator {
+interface SettingsEnvPathValidator {
   (
     key: string,
     value: string,

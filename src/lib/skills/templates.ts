@@ -1,4 +1,4 @@
-export type SkillTemplateCategory =
+type SkillTemplateCategory =
   | "reference"
   | "workflow"
   | "command"

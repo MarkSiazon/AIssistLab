@@ -11,7 +11,7 @@ import {
 } from "@/lib/settings/runtime-config";
 
 export type DoctorCheckStatus = "ok" | "warn" | "error";
-export type ReadinessSeverity = "blocking" | "warning" | "optional";
+type ReadinessSeverity = "blocking" | "warning" | "optional";
 
 export type DoctorCheckGroup =
   | "workspace"

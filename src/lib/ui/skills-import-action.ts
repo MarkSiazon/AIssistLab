@@ -1,4 +1,4 @@
-export type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
+type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
 
 export interface SkillsImportActionInput {
   hasPreview: boolean;

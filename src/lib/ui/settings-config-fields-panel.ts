@@ -7,7 +7,7 @@ export interface SettingsConfigSection {
   fields: readonly SettingsConfigField[];
 }
 
-export interface SettingsConfigFieldRow {
+interface SettingsConfigFieldRow {
   field: SettingsConfigField;
   fieldId: string;
   hintId: string;

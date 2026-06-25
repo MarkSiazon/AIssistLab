@@ -33,13 +33,6 @@ export interface Skill {
   updatedAt: string;
 }
 
-export interface SkillSummary {
-  name: string;
-  description: string;
-  tags: string[];
-  updatedAt: string;
-}
-
 export interface SkillChunk {
   skillName: string;
   chunkIndex: number;

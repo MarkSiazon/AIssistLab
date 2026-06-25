@@ -1,7 +1,7 @@
-export type SkillsImportPreviewRowTone = "ok" | "warn" | "error";
-export type SkillsImportPreviewIssueTone = "warn" | "error";
+type SkillsImportPreviewRowTone = "ok" | "warn" | "error";
+type SkillsImportPreviewIssueTone = "warn" | "error";
 
-export interface SkillsImportPreviewRowIssueInput {
+interface SkillsImportPreviewRowIssueInput {
   message: string;
   category?: string;
 }
@@ -14,7 +14,7 @@ export interface SkillsImportPreviewRowInput {
   maxVisibleIssues?: number;
 }
 
-export interface SkillsImportPreviewVisibleIssue {
+interface SkillsImportPreviewVisibleIssue {
   key: string;
   tone: SkillsImportPreviewIssueTone;
   message: string;

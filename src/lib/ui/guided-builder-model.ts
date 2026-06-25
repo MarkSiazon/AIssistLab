@@ -7,7 +7,7 @@ export interface SkillTemplateSummary {
   category: string;
 }
 
-export interface FeedbackCategory {
+interface FeedbackCategory {
   id: string;
   status: FeedbackStatus;
   message: string;

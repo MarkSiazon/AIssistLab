@@ -4,7 +4,7 @@ import { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
 export { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
-export type SkillValidationCode =
+type SkillValidationCode =
   | "invalid_name"
   | "missing_description"
   | "empty_body"

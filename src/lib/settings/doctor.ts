@@ -18,7 +18,6 @@ export type {
   DoctorCheckGroup,
   DoctorCheckStatus,
   DoctorPathState,
-  ReadinessSeverity,
   SetupDoctorCheck,
   SetupDoctorInput,
   SetupDoctorReport,

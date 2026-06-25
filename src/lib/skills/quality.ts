@@ -2,7 +2,7 @@ import { Skill } from "@/types/skill";
 import { parseFrontmatter } from "@/lib/markdown/frontmatter";
 import { validateSkillInput } from "@/lib/skills/validation";
 
-export type SkillQualityCode =
+type SkillQualityCode =
   | "duplicate_skill_name"
   | "missing_description"
   | "description_too_generic"
@@ -16,7 +16,7 @@ export type SkillQualityCode =
   | "heading_level_jump"
   | "invalid_skill";
 
-export type SkillQualityCategory =
+type SkillQualityCategory =
   | "discoverability"
   | "safety"
   | "maintainability"

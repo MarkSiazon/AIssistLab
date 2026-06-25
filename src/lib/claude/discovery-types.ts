@@ -6,7 +6,7 @@ export type ClaudeCommandSource =
   | "path"
   | "missing";
 
-export type ClaudeProfileSource = "default" | "discovered" | "manual";
+type ClaudeProfileSource = "default" | "discovered" | "manual";
 
 export interface ClaudeCommandCandidate {
   command: string;

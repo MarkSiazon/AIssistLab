@@ -3,7 +3,7 @@ import type {
   SkillQualityReport,
 } from "@/lib/skills/quality";
 
-export interface SkillQualityIssueItem {
+interface SkillQualityIssueItem {
   key: string;
   skillName: string;
   categoryLabel: string;

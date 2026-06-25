@@ -1,4 +1,4 @@
-export type SkillsImportPreviewSummaryTone = "ok" | "warn" | "error";
+type SkillsImportPreviewSummaryTone = "ok" | "warn" | "error";
 
 export interface SkillsImportPreviewSummaryInput {
   totalCount: number;

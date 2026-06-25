@@ -26,12 +26,12 @@ export interface SettingsClaudeCliTestSummary {
   error: string | null;
 }
 
-export interface SettingsClaudeProfileOption {
+interface SettingsClaudeProfileOption {
   value: string;
   label: string;
 }
 
-export interface SettingsClaudeProfileTestState {
+interface SettingsClaudeProfileTestState {
   label: string;
   detail: string;
   color: string;

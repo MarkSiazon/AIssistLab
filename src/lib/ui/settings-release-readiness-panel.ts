@@ -3,12 +3,12 @@ import {
   type ReleaseActionSection,
 } from "./release-readiness-actions";
 
-export type SettingsReleaseReadinessStatus =
+type SettingsReleaseReadinessStatus =
   | "ready"
   | "needs_action"
   | "blocked";
 
-export type SettingsReleaseReadinessSectionId =
+type SettingsReleaseReadinessSectionId =
   | "workspace"
   | "provider"
   | "index"
@@ -39,7 +39,7 @@ export interface SettingsReleaseReadinessReport {
   sections: SettingsReleaseReadinessSection[];
 }
 
-export interface SettingsReleaseReadinessSnapshotItem {
+interface SettingsReleaseReadinessSnapshotItem {
   id: string;
   label: string;
   status: SettingsReleaseReadinessStatus;

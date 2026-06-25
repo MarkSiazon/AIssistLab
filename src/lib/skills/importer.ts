@@ -27,7 +27,6 @@ export { sanitizeImportErrorMessage } from "./importer-utils";
 export type {
   DuplicateStrategy,
   SkillImportPreview,
-  SkillImportPreviewItem,
   SkillImportSource,
 } from "./importer-types";
 

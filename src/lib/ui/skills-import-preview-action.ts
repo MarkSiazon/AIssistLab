@@ -1,5 +1,5 @@
-export type SkillsImportPreviewSourceType = "folder" | "archive" | "github";
-export type SkillsImportPreviewReadinessTone =
+type SkillsImportPreviewSourceType = "folder" | "archive" | "github";
+type SkillsImportPreviewReadinessTone =
   | "checking"
   | "ready"
   | "needs-action";

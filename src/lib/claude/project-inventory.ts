@@ -21,8 +21,6 @@ import {
 
 export type {
   ClaudeProjectInventory,
-  ClaudeProjectInventoryCheck,
-  ClaudeProjectInventoryStatus,
 } from "@/lib/claude/project-inventory-types";
 
 function buildWorkspaceErrorInventory(

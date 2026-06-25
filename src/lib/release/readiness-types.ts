@@ -5,7 +5,7 @@ import type { SetupDoctorReport } from "@/lib/settings/doctor";
 import type { SkillQualityReport } from "@/lib/skills/quality";
 
 export type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
-export type ReleaseReadinessSectionId =
+type ReleaseReadinessSectionId =
   | "workspace"
   | "provider"
   | "index"

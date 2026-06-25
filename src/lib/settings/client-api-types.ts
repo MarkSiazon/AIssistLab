@@ -76,7 +76,7 @@ export interface ClaudeCliStatus {
   };
 }
 
-export type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
+type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
 
 export interface ReleaseReadinessReport {
   schemaVersion: 1;

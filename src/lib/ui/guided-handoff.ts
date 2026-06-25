@@ -1,11 +1,11 @@
-export type GuidedHandoffStatus = "blocked" | "needs_review" | "needs_build" | "ready";
+type GuidedHandoffStatus = "blocked" | "needs_review" | "needs_build" | "ready";
 export type GuidedHandoffPrimaryAction = "review" | "build" | "open";
 
-export interface GuidedHandoffFeedbackCategory {
+interface GuidedHandoffFeedbackCategory {
   status: "ok" | "warn" | "error";
 }
 
-export interface GuidedHandoffFeedback {
+interface GuidedHandoffFeedback {
   score: number;
   categories: GuidedHandoffFeedbackCategory[];
 }

@@ -1,6 +1,6 @@
 export type GuidedChecklistStatus = "ready" | "needs_action" | "optional";
 
-export interface GuidedChecklistItem {
+interface GuidedChecklistItem {
   id: string;
   label: string;
   status: GuidedChecklistStatus;

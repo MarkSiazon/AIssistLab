@@ -3,12 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { withEnv, type TestEnvValue } from "./env";
 
-export interface TempSkillFile {
+interface TempSkillFile {
   name: string;
   content: string;
 }
 
-export type TempWorkspaceEnvValue =
+type TempWorkspaceEnvValue =
   | string
   | undefined
   | ((workspace: Pick<TempWorkspace, "root" | "skillsPath">) => string | undefined);

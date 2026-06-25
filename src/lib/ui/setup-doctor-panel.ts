@@ -5,7 +5,7 @@ import type {
   SetupDoctorReport,
 } from "@/lib/settings/doctor";
 
-export interface SetupDoctorPanelGroup {
+interface SetupDoctorPanelGroup {
   id: DoctorCheckGroup;
   label: string;
   checks: SetupDoctorCheck[];

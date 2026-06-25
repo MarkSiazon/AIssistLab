@@ -19,7 +19,7 @@ export interface ClaudeProjectInventory {
   reloadHints: string[];
 }
 
-export interface ClaudeProjectCountItem {
+interface ClaudeProjectCountItem {
   label: string;
   value: number;
 }

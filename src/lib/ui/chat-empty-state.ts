@@ -1,17 +1,16 @@
-export type ChatEmptyIndexStatus =
+type ChatEmptyIndexStatus =
   | "ready"
   | "stale"
   | "missing"
   | "rebuilding"
   | "failed";
 
-export type ChatEmptyLinkActionId =
+type ChatEmptyLinkActionId =
   | "settings"
   | "guided-builder"
   | "skills-library"
   | "export-diagnostics";
-export type ChatEmptyButtonActionId = "rebuild-index";
-export type ChatEmptyActionId = ChatEmptyLinkActionId | ChatEmptyButtonActionId;
+type ChatEmptyButtonActionId = "rebuild-index";
 
 export interface ChatEmptyStateStatus {
   canSend: boolean;
@@ -26,12 +25,12 @@ interface ChatEmptyActionBase {
   variant: "primary" | "secondary";
 }
 
-export interface ChatEmptyLinkAction extends ChatEmptyActionBase {
+interface ChatEmptyLinkAction extends ChatEmptyActionBase {
   id: ChatEmptyLinkActionId;
   href: string;
 }
 
-export interface ChatEmptyButtonAction extends ChatEmptyActionBase {
+interface ChatEmptyButtonAction extends ChatEmptyActionBase {
   id: ChatEmptyButtonActionId;
 }
 

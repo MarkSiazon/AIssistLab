@@ -1,4 +1,4 @@
-export type SettingsClaudePanelTone = "ok" | "warn" | "error" | "neutral";
+type SettingsClaudePanelTone = "ok" | "warn" | "error" | "neutral";
 
 export interface SettingsClaudeProfileSummary {
   id: string;
@@ -45,20 +45,20 @@ export interface SettingsClaudeTestResult {
   error: string | null;
 }
 
-export interface SettingsClaudeStatusCard {
+interface SettingsClaudeStatusCard {
   label: string;
   value: string;
   detail: string;
   tone: SettingsClaudePanelTone;
 }
 
-export interface SettingsClaudeDetailRow {
+interface SettingsClaudeDetailRow {
   label: string;
   value: string;
   meta: string;
 }
 
-export interface SettingsClaudeTestPresentation {
+interface SettingsClaudeTestPresentation {
   hasRun: boolean;
   label: string;
   tone: SettingsClaudePanelTone;

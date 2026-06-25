@@ -1,20 +1,17 @@
-export type ExportEmptyLinkActionId = "guided-builder" | "skills-library";
-export type ExportEmptyButtonActionId = "export-diagnostics";
-export type ExportEmptyActionId =
-  | ExportEmptyLinkActionId
-  | ExportEmptyButtonActionId;
+type ExportEmptyLinkActionId = "guided-builder" | "skills-library";
+type ExportEmptyButtonActionId = "export-diagnostics";
 
 interface ExportEmptyActionBase {
   label: string;
   variant: "primary" | "secondary";
 }
 
-export interface ExportEmptyLinkAction extends ExportEmptyActionBase {
+interface ExportEmptyLinkAction extends ExportEmptyActionBase {
   id: ExportEmptyLinkActionId;
   href: string;
 }
 
-export interface ExportEmptyButtonAction extends ExportEmptyActionBase {
+interface ExportEmptyButtonAction extends ExportEmptyActionBase {
   id: ExportEmptyButtonActionId;
 }
 

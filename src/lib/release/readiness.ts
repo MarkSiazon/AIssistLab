@@ -11,9 +11,6 @@ import type {
 export type {
   ReleaseReadinessInput,
   ReleaseReadinessResponse,
-  ReleaseReadinessSection,
-  ReleaseReadinessSectionId,
-  ReleaseReadinessStatus,
 } from "@/lib/release/readiness-types";
 
 export function buildReleaseReadinessReport({
