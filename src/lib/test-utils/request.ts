@@ -1,6 +1,6 @@
-export const TEST_LOCAL_ORIGIN = "http://127.0.0.1:3000";
+const TEST_LOCAL_ORIGIN = "http://127.0.0.1:3000";
 export const TEST_LOCAL_HOST = "127.0.0.1:3000";
-export const TEST_NON_LOCAL_HOST = "example.com";
+const TEST_NON_LOCAL_HOST = "example.com";
 
 export interface TestRequestInit extends RequestInit {
   host?: string;
