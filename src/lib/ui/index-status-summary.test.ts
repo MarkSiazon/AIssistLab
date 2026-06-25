@@ -9,6 +9,10 @@ async function main() {
   assert.equal(indexSummary.indexStatusLabel("rebuilding"), "Rebuilding");
   assert.equal(indexSummary.indexStatusLabel("failed"), "Failed");
 
+  assert.equal(indexSummary.indexStatusColor("ready"), "var(--green)");
+  assert.equal(indexSummary.indexStatusColor("failed"), "var(--red)");
+  assert.equal(indexSummary.indexStatusColor("stale"), "var(--yellow)");
+
   assert.equal(
     indexSummary.indexStatusAnnouncement(null, true, null),
     "RAG index status: checking index.",

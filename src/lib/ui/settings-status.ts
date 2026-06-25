@@ -1,12 +1,5 @@
-import {
-  indexStatusColor as baseIndexStatusColor,
-  indexStatusLabel as baseIndexStatusLabel,
-  type RagIndexStatus,
-} from "./index-status-summary";
-
 export type SettingsDoctorStatus = "ok" | "warn" | "error";
 export type SettingsDoctorSeverity = "blocking" | "warning" | "optional";
-export type SettingsIndexStatus = RagIndexStatus;
 export type SettingsReleaseStatus = "ready" | "needs_action" | "blocked";
 export type SettingsFirstRunStatus = "ready" | "needs_action" | "optional";
 export type SettingsPathState = "idle" | "checking" | "ok" | "error";
@@ -32,14 +25,6 @@ export function doctorSeverityLabel(
   if (severity === "blocking") return "Blocking";
   if (severity === "warning") return "Warning";
   return "Optional";
-}
-
-export function indexStatusColor(status: SettingsIndexStatus): string {
-  return baseIndexStatusColor(status);
-}
-
-export function indexStatusLabel(status: SettingsIndexStatus): string {
-  return baseIndexStatusLabel(status);
 }
 
 export function releaseStatusColor(status: SettingsReleaseStatus): string {

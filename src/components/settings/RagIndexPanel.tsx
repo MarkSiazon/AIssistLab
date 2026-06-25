@@ -1,9 +1,9 @@
 import type { PublicIndexState } from "@/lib/rag/index-state";
-import { indexStatusCountsLabel } from "@/lib/ui/index-status-summary";
 import {
   indexStatusColor,
+  indexStatusCountsLabel,
   indexStatusLabel,
-} from "@/lib/ui/settings-status";
+} from "@/lib/ui/index-status-summary";
 
 interface RagIndexPanelProps {
   indexStatus: PublicIndexState | null;

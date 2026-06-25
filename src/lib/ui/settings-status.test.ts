@@ -4,8 +4,6 @@ import {
   doctorStatusColor,
   firstRunStatusClass,
   firstRunStatusColor,
-  indexStatusColor,
-  indexStatusLabel,
   pathStateLabel,
   pathStateTone,
   pathStateBadgePresentation,
@@ -24,15 +22,6 @@ async function main() {
   assert.equal(doctorSeverityLabel("blocking"), "Blocking");
   assert.equal(doctorSeverityLabel("warning"), "Warning");
   assert.equal(doctorSeverityLabel("optional"), "Optional");
-
-  assert.equal(indexStatusColor("ready"), "var(--green)");
-  assert.equal(indexStatusColor("failed"), "var(--red)");
-  assert.equal(indexStatusColor("stale"), "var(--yellow)");
-  assert.equal(indexStatusLabel("ready"), "Ready");
-  assert.equal(indexStatusLabel("stale"), "Stale");
-  assert.equal(indexStatusLabel("missing"), "Missing");
-  assert.equal(indexStatusLabel("rebuilding"), "Rebuilding");
-  assert.equal(indexStatusLabel("failed"), "Failed");
 
   assert.equal(releaseStatusColor("ready"), "var(--green)");
   assert.equal(releaseStatusColor("blocked"), "var(--red)");
