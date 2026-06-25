@@ -7,9 +7,11 @@ This note records the latest local, privacy-safe verification state for the V1 r
 ## Current Checkpoint
 
 - Branch: `main`
-- Release QA checkpoint: committed and pushed on `origin/main`.
+- Release QA checkpoint: previous stabilization committed and pushed on `origin/main`; current cleanup and audit edits are local until committed.
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/manual-external-qa.md`.
-- Push state: release QA stabilization has been committed and pushed to `origin/main`; this file records the current privacy-safe evidence snapshot.
+- Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
+- Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
+- Push state: release QA stabilization has been committed and pushed to `origin/main`; current cleanup and audit edits still require a commit and push after local verification.
 
 ## Automated Verification
 
@@ -36,6 +38,7 @@ Covered by that gate:
 - local browser/API smoke
 - manual QA helper auto smoke
 - project cleanup dry-run postflight
+- asset usage audit
 - diff whitespace check
 - untracked text hygiene scan
 - privacy scan
@@ -45,9 +48,13 @@ Additional focused checks also passed:
 ```bash
 npx --yes tsx src/lib/ui/editor-tab-navigation.test.ts
 npx --yes tsx src/lib/settings/client-api.test.ts
+npx --yes tsx scripts/audit-assets.test.mjs
+npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
 npx --yes tsx scripts/cleanup-project-processes.test.mjs
 npx --yes tsx scripts/smoke/smoke-buttons-static.test.mjs
 npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
+npm run audit:assets
+npm run cleanup:artifacts:dry-run
 npm run cleanup:project:dry-run
 npm run lint
 npm run smoke:buttons
@@ -82,6 +89,13 @@ npm run cleanup:project:dry-run
 ```
 
 A final scoped process scan found no leftover project servers.
+
+Ignored local build and smoke artifacts can be removed after verification with:
+
+```bash
+npm run cleanup:artifacts:dry-run
+npm run cleanup:artifacts
+```
 
 ## Manual Gates Still Required
 

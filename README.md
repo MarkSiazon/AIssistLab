@@ -218,6 +218,10 @@ npm run cleanup:project
 
 `npm run cleanup:project:dry-run` lists repo-owned Next, smoke, test, release, and manual QA helper process trees that can be cleaned up when a local run is stale. `npm run cleanup:project` stops only those detected project process trees. It requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure, so it is safe to use without affecting other Codex conversations.
 
+`npm run cleanup:artifacts:dry-run` lists ignored local build and smoke artifacts such as `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo`. `npm run cleanup:artifacts` removes only those generated files; it does not touch `.env.local`, `node_modules`, tracked docs, screenshots, or source files.
+
+`npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by text source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
+
 ## Documentation
 
 - [Docs index](docs/README.md)

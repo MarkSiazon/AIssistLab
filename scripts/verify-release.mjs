@@ -104,6 +104,7 @@ runCommand("Project process cleanup dry run postflight", "npm", [
   "run",
   "cleanup:project:dry-run",
 ]);
+runCommand("Asset usage audit", "npm", ["run", "audit:assets"]);
 runCommand("Diff whitespace check", "git", ["diff", "--check"]);
 runUntrackedTextHygieneScan();
 runPrivacyScan();

@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -106,6 +106,7 @@ npm audit
 npm run smoke:local
 npm run smoke:buttons
 npm run smoke:production
+npm run audit:assets
 git diff --check
 ```
 
@@ -114,6 +115,8 @@ git diff --check
 `npm run smoke:buttons` clicks low-risk visible buttons across the main local routes and fails on console errors or real failed requests. It intentionally skips auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
 
 `npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
+
+`npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
 If a local smoke/dev run is interrupted and memory or ports look stale, inspect project-owned process trees first:
 
@@ -128,6 +131,20 @@ npm run cleanup:project
 ```
 
 The cleanup command requires this repo path plus a known Next or release-script command signature and excludes Codex/MCP infrastructure so other Codex conversations are not targeted.
+
+To remove ignored local build and smoke artifacts after a verification run, inspect first:
+
+```bash
+npm run cleanup:artifacts:dry-run
+```
+
+Then remove only the generated `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` artifacts:
+
+```bash
+npm run cleanup:artifacts
+```
+
+The artifact cleanup does not delete `.env.local`, `node_modules`, tracked docs, screenshots, or source files.
 
 When the local app is already running, use the manual external QA helper to print the current sanitized readiness summary and remaining device/account checks:
 

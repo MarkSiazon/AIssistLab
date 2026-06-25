@@ -15,6 +15,9 @@
     "qa:manual:auto": "node scripts/manual-external-qa.mjs --start-server",
     "cleanup:project": "node scripts/cleanup-project-processes.mjs --yes",
     "cleanup:project:dry-run": "node scripts/cleanup-project-processes.mjs --dry-run",
+    "cleanup:artifacts": "node scripts/cleanup-local-artifacts.mjs --yes",
+    "cleanup:artifacts:dry-run": "node scripts/cleanup-local-artifacts.mjs --dry-run",
+    "audit:assets": "node scripts/audit-assets.mjs",
     "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {
