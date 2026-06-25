@@ -5,7 +5,7 @@ This folder is the source of truth for project planning, release notes, and road
 ## Start Here
 
 - [V1 release notes](v1-release/release-notes.md)
-- [V1 release-candidate runbook](v1-release/release-candidate-runbook.md)
+- [V1 release-candidate runbook](v1-release/release-candidate-runbook.md) - source of truth for command gates, cleanup commands, and manual external QA.
 - [Latest local QA evidence](v1-release/latest-local-qa-evidence.md)
 - [V1 autonomous hardening runbook](v1-release/autonomous-hardening-runbook.md)
 - [V1 roadmap](v1-roadmap/roadmap.md)

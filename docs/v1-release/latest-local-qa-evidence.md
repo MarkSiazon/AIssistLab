@@ -46,6 +46,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Export readiness now uses the canonical release-status label and color helpers directly instead of maintaining pass-through readiness wrappers.
 - Settings RAG index panels now use canonical index-status label and color helpers directly instead of maintaining settings pass-through wrappers.
 - Sidebar, Settings, Skills, and Chat index messages now share canonical index-status copy and count formatting helpers.
+- README verification guidance now points to the release-candidate runbook for detailed command, cleanup, and manual QA coverage instead of duplicating the maintained runbook text.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

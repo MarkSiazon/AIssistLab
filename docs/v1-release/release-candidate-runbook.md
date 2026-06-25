@@ -124,6 +124,8 @@ git diff --check
 
 `npm run audit:dead-code` uses Knip with repo-specific Next route, script, and test entry points. It fails on unused files, unused dependencies, unlisted dependencies/binaries, or unresolved imports while allowing the expected Windows system helpers used by local smoke and cleanup scripts.
 
+### Cleanup And Stale Processes
+
 If a local smoke/dev run is interrupted and memory or ports look stale, inspect project-owned process trees first:
 
 ```bash
