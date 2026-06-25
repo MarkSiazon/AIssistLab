@@ -8,7 +8,11 @@ const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 export const LOCAL_ARTIFACT_TARGETS = [
   ".next",
   ".local-workspace",
+  "out",
+  "build",
+  "coverage",
   "tsconfig.tsbuildinfo",
+  "next-env.d.ts",
 ];
 
 function artifactPath(root, relativePath) {

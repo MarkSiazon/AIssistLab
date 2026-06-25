@@ -9,7 +9,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Branch: `main`
 - Release QA checkpoint: cleanup and audit stabilization is recorded on `main`; use the push-state line below for the current commit/sync state.
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/release-candidate-runbook.md#manual-external-qa`.
-- Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
+- Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, `out`, `build`, `coverage`, `tsconfig.tsbuildinfo`, and `next-env.d.ts` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
 - Dependency cleanup removed unused class-name helper packages and the redundant external `natural` type package; `natural` now uses its bundled type declarations.
 - Dead-code auditing is now part of the release gate through repo-specific Knip entry points for Next routes, scripts, and tests.
@@ -46,8 +46,26 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Export readiness now uses the canonical release-status label and color helpers directly instead of maintaining pass-through readiness wrappers.
 - Settings RAG index panels now use canonical index-status label and color helpers directly instead of maintaining settings pass-through wrappers.
 - Sidebar, Settings, Skills, and Chat index messages now share canonical index-status copy and count formatting helpers.
-- README verification guidance now points to the release-candidate runbook for detailed command, cleanup, and manual QA coverage instead of duplicating the maintained runbook text.
+- README verification guidance now points to the release-candidate runbook for detailed command, focused debugging, cleanup, and manual QA coverage instead of duplicating the maintained runbook text.
 - Smoke runners now share the server-readiness polling helper while preserving runner-specific probe paths and error labels.
+- Local and production smoke runners now share browser issue tracking while preserving expected-issue and production-guard filtering behavior.
+- Local and production chat smokes now share mock chat stream construction while preserving runner-specific preview, text, and error payloads.
+- Local and production chat smokes now share the chat status fixture while preserving runner-specific suggested questions and stale-index prompts.
+- Local and production Settings smokes now share the Claude CLI status fixture builder while preserving provider, version, and selected-profile differences.
+- Local and production route smokes now share the index-status fixture builder for ready, missing, and stale index scenarios.
+- Local and production Settings smokes now share settings-env and runtime-status fixture builders while preserving route-specific response fields.
+- Production Settings smokes now share the Setup Doctor success fixture instead of carrying a full doctor report payload inline in the runner.
+- Local and production Skills smokes now share skill-quality, skills-list, and export-skills fixture builders for repeated no-issue and export payloads.
+- Local skills import smokes now share import-preview skill, import-preview envelope, and import-apply result builders for failure and duplicate scenarios.
+- Production editor smokes now use the shared skill-template fixture payload instead of carrying an inline template list in the runner.
+- Local and production smoke runners now share release readiness fixture builders while keeping scenario-specific sections, scores, and actions in each runner.
+- Local and production smoke runners now share JSON, event-stream, and attachment route fulfillment for repeated mocked API responses while preserving runner-specific status codes, filenames, and payloads.
+- Local and production chat smokes now share mock clipboard installation and copied-text reads through the smoke browser-init helper.
+- Strict unused-export auditing now runs through `npm run audit:exports` and is part of the release gate instead of an ad hoc Knip command.
+- The V1 spec index now points at the release-candidate runbook for maintained command gates instead of carrying a duplicate acceptance-gate command list.
+- Local artifact cleanup now includes ignored `out`, `build`, `coverage`, and `next-env.d.ts` outputs in the same safe repo-root allowlist used for `.next` and smoke workspaces.
+- The release gate now reports local artifact cleanup dry-run state after smoke/manual-helper checks so generated outputs are visible before final cleanup.
+- The privacy/security checklist release-verifier summary now matches the current gate coverage for cleanup dry-runs and asset/docs/dead-code/unused-export audits.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -58,7 +76,7 @@ The latest full release gate passed:
 npm run verify:release
 ```
 
-The same nested full release gate also passed through the parent workspace verifier:
+An earlier nested full release gate also passed through the parent workspace verifier:
 
 ```powershell
 .\scripts\verify-workspace.ps1 -FullRelease
@@ -73,84 +91,38 @@ Covered by that gate:
 - production server smoke
 - dependency audit
 - local browser/API smoke
+- safe button smoke
 - manual QA helper auto smoke
 - project cleanup dry-run postflight
+- local artifact cleanup dry-run postflight
 - asset usage audit
 - documentation link audit
 - dead-code audit
+- unused-export audit
 - diff whitespace check
 - untracked text hygiene scan
 - privacy scan
 
-Additional focused checks also passed:
+Latest focused checks for the current cleanup and smoke-helper pass:
 
 ```bash
-npx --yes tsx src/lib/ui/editor-tab-navigation.test.ts
-npx --yes tsx src/lib/ui/skill-editor-model.test.ts
-npx --yes tsx src/lib/settings/client-api.test.ts
-npx --yes tsx src/lib/settings/doctor.test.ts
-npx --yes tsx src/lib/skills/validation.test.ts
-npx --yes tsx src/lib/claude/discovery.test.ts
-npx --yes tsx src/lib/rag/claude-cli-runtime.test.ts
-npx --yes tsx src/app/api/settings/native-folder/route.test.ts
-npx --yes tsx src/lib/skills/guided-builder.test.ts
-npx --yes tsx src/lib/ui/skill-editor-model.test.ts
-npx --yes tsx src/lib/api/client.test.ts
-npx --yes tsx src/lib/settings/client-api.test.ts
-npx --yes tsx src/lib/async-ttl-cache.test.ts
-npx --yes tsx src/lib/settings/first-run-checklist.test.ts
-npx --yes tsx src/lib/settings/path-browser.test.ts
-npx --yes tsx src/lib/settings/runtime-config.test.ts
-npx --yes tsx src/lib/format/count-label.test.ts
-npx --yes tsx src/lib/release/readiness.test.ts
-npx --yes tsx src/lib/release/readiness-report.test.ts
-npx --yes tsx src/lib/ui/chat-empty-state.test.ts
-npx --yes tsx src/lib/ui/export-empty-state.test.ts
-npx --yes tsx src/lib/ui/guided-checklist.test.ts
-npx --yes tsx src/lib/ui/guided-handoff.test.ts
-npx --yes tsx src/lib/ui/setup-doctor-panel.test.ts
-npx --yes tsx src/lib/ui/settings-claude-panel.test.ts
-npx --yes tsx src/lib/ui/settings-claude-profile-field.test.ts
-npx --yes tsx src/lib/ui/settings-config-fields-panel.test.ts
-npx --yes tsx src/lib/ui/settings-release-readiness-panel.test.ts
-npx --yes tsx src/lib/ui/skills-import-action.test.ts
-npx --yes tsx src/lib/ui/skills-import-preview-action.test.ts
-npx --yes tsx src/lib/ui/skills-import-preview-row.test.ts
-npx --yes tsx src/lib/ui/skills-import-preview-summary.test.ts
-npx --yes tsx src/lib/ui/skills-library-readiness-panel.test.ts
-npx --yes tsx src/lib/ui/skills-page-model.test.ts
-npx --yes tsx src/lib/skills/importer.test.ts
-npx --yes tsx src/lib/local-access.test.ts
-npx --yes tsx src/app/api/settings/local-guards.test.ts
-npx --yes tsx src/app/api/settings/claude-cli/profiles/route.test.ts
-npx --yes tsx src/lib/rag/claude-cli-test-state.test.ts
-npx --yes tsx src/lib/release/readiness-report.test.ts
-npx --yes tsx src/lib/ui/chat-readiness-panel.test.ts
-npx --yes tsx src/lib/skills/guided-autosave.test.ts
-npx --yes tsx src/lib/skills/importer.test.ts
-npx --yes tsx src/lib/ui/manual-external-qa-panel.test.ts
-npx --yes tsx src/lib/test-utils/request.test.ts
-npx --yes tsx src/lib/chat/client-api.test.ts
-npx --yes tsx src/lib/ui/settings-path-display.test.ts
-npx --yes tsx scripts/lib/repo-files.test.mjs
-npx --yes tsx scripts/audit-docs.test.mjs
-npx --yes tsx scripts/audit-dead-code.test.mjs
-npx --yes tsx scripts/manual-external-qa.test.mjs
-npx --yes tsx scripts/audit-assets.test.mjs
 npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
-npx --yes tsx scripts/cleanup-project-processes.test.mjs
-npx --yes tsx scripts/smoke/smoke-buttons-static.test.mjs
-npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
+npx --yes tsx scripts/smoke/browser-init.test.mjs
+npx --yes tsx scripts/smoke/browser-issues.test.mjs
+npx --yes tsx scripts/smoke/chat-mocks.test.mjs
+npx --yes tsx scripts/smoke/claude-mocks.test.mjs
+npx --yes tsx scripts/smoke/index-mocks.test.mjs
+npx --yes tsx scripts/smoke/settings-mocks.test.mjs
+npx --yes tsx scripts/smoke/skills-mocks.test.mjs
+npx --yes tsx scripts/smoke/release-mocks.test.mjs
+npx --yes tsx scripts/smoke/route-fulfill.test.mjs
 npm run audit:assets
 npm run audit:docs
 npm run audit:dead-code
-npx knip --exports --include-entry-exports --no-progress --max-show-issues 80
+npm run audit:exports
 npm run cleanup:artifacts:dry-run
 npm run cleanup:project:dry-run
-npm audit --audit-level=moderate
-npm run lint
-npm run smoke:buttons
-npm run smoke:local
+git diff --check
 ```
 
 Before the passing run, Playwright Chromium revision `1228` was installed into the machine-level Playwright cache because the existing cache only had revision `1223` and this repo uses Playwright `1.61.0`.

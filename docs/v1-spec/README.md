@@ -32,11 +32,11 @@ These specs turn the V1 roadmap into implementation-ready slices. Each iteration
 
 ## Shared Acceptance Gates
 
-Every iteration must pass:
+Use the [V1 release-candidate runbook](../v1-release/release-candidate-runbook.md#command-gates) as the maintained source of truth for command gates, cleanup, privacy scans, and manual QA. Do not duplicate the command list in individual specs unless an iteration needs an extra focused check.
+
+Every iteration should still document:
 
 - Targeted unit/API tests for changed behavior.
-- `npm run lint`.
-- `npm run build`.
-- Browser smoke for touched pages.
-- Privacy scan for public API responses touched by the iteration.
+- Browser smoke or UI evidence for touched pages.
+- Privacy evidence for touched public APIs.
 - Final diff review showing no unrelated changes.

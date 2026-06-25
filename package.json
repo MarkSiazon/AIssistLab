@@ -20,6 +20,7 @@
     "audit:assets": "node scripts/audit-assets.mjs",
     "audit:docs": "node scripts/audit-docs.mjs",
     "audit:dead-code": "knip --include files,dependencies,unlisted,binaries,unresolved --no-progress",
+    "audit:exports": "knip --exports --include-entry-exports --no-progress --max-show-issues 120",
     "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {

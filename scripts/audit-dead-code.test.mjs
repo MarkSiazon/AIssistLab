@@ -11,10 +11,22 @@ assert.equal(
   "package.json must expose the dead-code audit",
 );
 
+assert.equal(
+  packageJson.scripts["audit:exports"],
+  "knip --exports --include-entry-exports --no-progress --max-show-issues 120",
+  "package.json must expose the unused-export audit",
+);
+
 assert.match(
   verifyReleaseSource,
   /Dead code audit[\s\S]*audit:dead-code/,
   "verify:release must run the dead-code audit",
+);
+
+assert.match(
+  verifyReleaseSource,
+  /Unused export audit[\s\S]*audit:exports/,
+  "verify:release must run the unused-export audit",
 );
 
 assert.deepEqual(

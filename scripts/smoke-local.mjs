@@ -15,8 +15,39 @@ import {
   markVisibleLinksCoveredByHref,
   markVisibleLinksCoveredByLabel,
 } from "./smoke/dom-coverage.mjs";
+import { trackBrowserIssues } from "./smoke/browser-issues.mjs";
+import {
+  buildMockChatStatusPayload,
+  buildMockChatStreamBody,
+} from "./smoke/chat-mocks.mjs";
+import { buildMockClaudeCliStatusPayload } from "./smoke/claude-mocks.mjs";
 import { assertRouteInteractionState } from "./smoke/interaction-assertions.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
+import {
+  buildMockReleaseReadinessPayload,
+  buildMockReleaseReadinessSection,
+} from "./smoke/release-mocks.mjs";
+import {
+  fulfillAttachment,
+  fulfillEventStream,
+  fulfillJson,
+} from "./smoke/route-fulfill.mjs";
+import {
+  installMockClipboard,
+  readMockClipboardText,
+} from "./smoke/browser-init.mjs";
+import { buildMockIndexStatusPayload } from "./smoke/index-mocks.mjs";
+import {
+  buildMockRuntimeStatusPayload,
+  buildMockSettingsEnvPayload,
+} from "./smoke/settings-mocks.mjs";
+import {
+  buildMockImportApplyPayload,
+  buildMockImportPreviewPayload,
+  buildMockImportPreviewSkill,
+  buildMockSkillQualityPayload,
+  buildMockSkillsListPayload,
+} from "./smoke/skills-mocks.mjs";
 import { assertRouteSemanticState } from "./smoke/semantic-assertions.mjs";
 import { createZip, extractZipEntries } from "./smoke/zip-utils.mjs";
 
@@ -1346,11 +1377,7 @@ async function runMockedNativeFolderPickerSmoke(page, workspacePath) {
 
   await page.route("**/api/settings/native-folder**", async (route) => {
     const response = responses.shift() ?? responses.at(-1);
-    await route.fulfill({
-      status: response.status,
-      contentType: "application/json",
-      body: JSON.stringify(response.body),
-    });
+    await fulfillJson(route, response.body, { status: response.status });
   });
 
   try {
@@ -1673,45 +1700,13 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
 }
 
 function mockClaudeCliStatusPayload(lastCliSmokeTest = null) {
-  const selectedProfile = {
-    id: "default",
-    label: "Default profile",
-    source: "default",
-    displayPath: "~\\.claude",
-    selected: true,
-    exists: true,
-    auth: {
-      checked: true,
-      loggedIn: true,
-      method: "Subscription",
-      error: null,
-    },
-  };
-
-  return {
+  return buildMockClaudeCliStatusPayload(lastCliSmokeTest, {
     provider: "claude_code_cli",
     enabled: true,
-    cliPath: "claude",
-    configuredCliPath: "auto",
-    cliPathSource: "path",
-    loginCommand: "claude auth login",
-    loginCommandSource: "path",
-    loginHelperAvailable: false,
-    canOpenLogin: true,
-    configDirConfigured: false,
-    installed: true,
     version: "smoke",
-    profiles: [selectedProfile],
-    selectedProfile,
+    displayPath: "~\\.claude",
     selectedProfileFingerprint: "smoke-default-profile",
-    lastCliSmokeTest,
-    auth: {
-      checked: true,
-      loggedIn: true,
-      method: "Subscription",
-      error: null,
-    },
-  };
+  });
 }
 
 async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
@@ -1744,26 +1739,17 @@ async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
               profileId: "default",
               configFingerprint: "smoke-default-profile",
             };
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(lastCliSmokeTest),
-      });
+      await fulfillJson(route, lastCliSmokeTest);
       return;
     }
 
     if (pathname === "/api/settings/claude-cli" && request.method() === "POST") {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({ loginCommand: "claude auth login" }),
-      });
+      await fulfillJson(route, { loginCommand: "claude auth login" });
       return;
     }
 
     if (pathname === "/api/settings/claude-cli" && request.method() === "GET") {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(mockClaudeCliStatusPayload(lastCliSmokeTest)),
-      });
+      await fulfillJson(route, mockClaudeCliStatusPayload(lastCliSmokeTest));
       return;
     }
 
@@ -1830,54 +1816,47 @@ async function runMockedSettingsClaudeActionsSmoke(page, baseUrl) {
 
 function mockReleaseReadinessPayload(mode) {
   const sectionDefaults = [
-    {
+    buildMockReleaseReadinessSection({
       id: "workspace",
       label: "Workspace",
-      status: "ready",
       message: "Workspace paths are ready.",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "provider",
       label: "Provider",
-      status: "ready",
       message: "Provider is ready.",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "index",
       label: "Index",
-      status: "ready",
       message: "Index is ready.",
       actionLabel: "Rebuild Index",
       actionHref: "/settings",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "skills",
       label: "Skills",
-      status: "ready",
       message: "Skill quality is ready.",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "claude_project",
       label: "Claude Project",
-      status: "ready",
       message: "Claude project inventory is ready.",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "chat",
       label: "Chat",
-      status: "ready",
       message: "Chat is ready.",
       actionLabel: "Go to Chat",
       actionHref: "/chat",
-    },
-    {
+    }),
+    buildMockReleaseReadinessSection({
       id: "diagnostics",
       label: "Diagnostics",
-      status: "ready",
       message: "Diagnostics export is ready.",
       actionLabel: "Go to Export",
       actionHref: "/export?diagnostics=true",
-    },
+    }),
   ];
 
   const overrides = {
@@ -1918,18 +1897,14 @@ function mockReleaseReadinessPayload(mode) {
         ? "Review provider settings."
         : null;
 
-  return {
-    schemaVersion: 1,
+  return buildMockReleaseReadinessPayload({
     generatedAt: "2026-06-20T00:00:00.000Z",
-    summary: {
-      status,
-      score: mode === "diagnostics" ? 92 : 70,
-      topAction,
-      canChat: mode !== "chat",
-      canExportDiagnostics: true,
-    },
+    status,
+    score: mode === "diagnostics" ? 92 : 70,
+    topAction,
+    canChat: mode !== "chat",
     sections,
-  };
+  });
 }
 
 async function runMockedSettingsReleaseActionsSmoke(page, baseUrl) {
@@ -1937,10 +1912,7 @@ async function runMockedSettingsReleaseActionsSmoke(page, baseUrl) {
   let settingsSaveCount = 0;
 
   await page.route("**/api/release/readiness", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(mockReleaseReadinessPayload(mode)),
-    });
+    await fulfillJson(route, mockReleaseReadinessPayload(mode));
   });
   await page.route("**/api/settings", async (route) => {
     if (route.request().method() !== "POST") {
@@ -1949,19 +1921,13 @@ async function runMockedSettingsReleaseActionsSmoke(page, baseUrl) {
     }
 
     settingsSaveCount += 1;
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        raw: "LLM_PROVIDER=anthropic_api\n",
-        parsed: { LLM_PROVIDER: "anthropic_api" },
-        activeRuntime: {
-          provider: "anthropic_api",
-          claudeCliEnabled: false,
-          configDirConfigured: false,
-          source: "runtime",
-        },
-      }),
-    });
+    await fulfillJson(route, buildMockSettingsEnvPayload({
+      raw: "LLM_PROVIDER=anthropic_api\n",
+      parsed: { LLM_PROVIDER: "anthropic_api" },
+      includePath: false,
+      includeRuntimeApplied: false,
+      activeRuntime: buildMockRuntimeStatusPayload(),
+    }));
   });
 
   try {
@@ -2034,44 +2000,26 @@ async function runMockedSkillsImportFailureSmoke(page, baseUrl) {
       expectBrowserIssue(
         /console: Failed to load resource: the server responded with a status of 500/,
       );
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "Smoke import preview failed." }),
-      });
+      await fulfillJson(route, { error: "Smoke import preview failed." }, { status: 500 });
       return;
     }
 
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        ok: true,
-        previewId: "smoke-import-preview-failure",
-        sourceType: "folder",
-        sourceDisplay: "Smoke source",
-        skills: [
-          {
-            name: "smoke-failure-import-skill",
-            displayName: "smoke-failure-import-skill.md",
-            validationErrors: [],
-            qualityWarnings: [],
-            duplicate: false,
-          },
-        ],
-        warnings: [],
-      }),
-    });
+    await fulfillJson(route, buildMockImportPreviewPayload({
+      previewId: "smoke-import-preview-failure",
+      sourceDisplay: "Smoke source",
+      skills: [
+        buildMockImportPreviewSkill({
+          name: "smoke-failure-import-skill",
+        }),
+      ],
+    }));
   });
   await page.route("**/api/skills/import/apply", async (route) => {
     expectBrowserIssue(/http 500: .*\/api\/skills\/import\/apply$/);
     expectBrowserIssue(
       /console: Failed to load resource: the server responded with a status of 500/,
     );
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({ error: "Smoke import apply failed." }),
-    });
+    await fulfillJson(route, { error: "Smoke import apply failed." }, { status: 500 });
   });
 
   try {
@@ -2107,25 +2055,18 @@ async function runMockedSkillsImportDuplicateSmoke(page, baseUrl) {
   const applyStrategies = [];
 
   await page.route("**/api/skills/import/preview", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        ok: true,
-        previewId: "smoke-duplicate-import-preview",
-        sourceType: "folder",
-        sourceDisplay: "Smoke duplicate source",
-        skills: [
-          {
-            name: "release-readiness-smoke",
-            displayName: "release-readiness-smoke.md",
-            validationErrors: [],
-            qualityWarnings: ["Smoke duplicate has updated content."],
-            duplicate: true,
-          },
-        ],
-        warnings: ["Smoke duplicate preview warning."],
-      }),
-    });
+    await fulfillJson(route, buildMockImportPreviewPayload({
+      previewId: "smoke-duplicate-import-preview",
+      sourceDisplay: "Smoke duplicate source",
+      skills: [
+        buildMockImportPreviewSkill({
+          name: "release-readiness-smoke",
+          qualityWarnings: ["Smoke duplicate has updated content."],
+          duplicate: true,
+        }),
+      ],
+      warnings: ["Smoke duplicate preview warning."],
+    }));
   });
 
   await page.route("**/api/skills/import/apply", async (route) => {
@@ -2141,22 +2082,17 @@ async function runMockedSkillsImportDuplicateSmoke(page, baseUrl) {
       `Unexpected duplicate strategy ${payload.duplicateStrategy}`,
     );
     applyStrategies.push(payload.duplicateStrategy);
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(
-        payload.duplicateStrategy === "rename"
-          ? {
-              skipped: [],
-              renamed: [{ from: "release-readiness-smoke", to: "release-readiness-smoke-2" }],
-              written: ["release-readiness-smoke-2"],
-            }
-          : {
-              skipped: [],
-              renamed: [],
-              written: ["release-readiness-smoke"],
-            },
-      ),
-    });
+    await fulfillJson(
+      route,
+      payload.duplicateStrategy === "rename"
+        ? buildMockImportApplyPayload({
+            renamed: [{ from: "release-readiness-smoke", to: "release-readiness-smoke-2" }],
+            written: ["release-readiness-smoke-2"],
+          })
+        : buildMockImportApplyPayload({
+            written: ["release-readiness-smoke"],
+          }),
+    );
   });
 
   try {
@@ -2435,57 +2371,35 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
       await route.continue();
       return;
     }
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        skills: [],
-        total: 0,
-        latestDeleted: null,
-      }),
-    });
+    await fulfillJson(route, buildMockSkillsListPayload());
   });
   await page.route("**/api/index", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        status: "missing",
-        skillCount: 0,
-        chunkCount: 0,
-        staleReason: "Smoke empty state has no skills.",
-      }),
-    });
+    await fulfillJson(route, buildMockIndexStatusPayload({
+      status: "missing",
+      skillCount: 0,
+      chunkCount: 0,
+      staleReason: "Smoke empty state has no skills.",
+    }));
   });
   await page.route("**/api/skills/validation", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        totalSkills: 0,
-        issueCount: 0,
-        issues: [],
-      }),
-    });
+    await fulfillJson(route, buildMockSkillQualityPayload({ totalSkills: 0 }));
   });
   await page.route("**/api/release/readiness", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        summary: {
-          status: "needs_action",
-          score: 65,
-          topAction: "Create or import a skill.",
-          canChat: false,
-          canExportDiagnostics: true,
-        },
-        sections: [],
-      }),
+    await fulfillJson(route, {
+      summary: {
+        status: "needs_action",
+        score: 65,
+        topAction: "Create or import a skill.",
+        canChat: false,
+        canExportDiagnostics: true,
+      },
+      sections: [],
     });
   });
   await page.route("**/api/export/zip**", async (route) => {
-    await route.fulfill({
-      headers: {
-        "content-disposition": 'attachment; filename="smoke-empty-diagnostics.zip"',
-        "content-type": "application/zip",
-      },
+    await fulfillAttachment(route, {
+      contentType: "application/zip",
+      filename: "smoke-empty-diagnostics.zip",
       body: createZip({
         "diagnostics/readiness.json": JSON.stringify({
           status: "needs_action",
@@ -2663,67 +2577,33 @@ async function runChatSmoke(page, baseUrl) {
 }
 
 function mockChatStatusPayload() {
-  return {
-    provider: "anthropic_api",
-    runtimeSource: "runtime",
-    canSend: true,
-    blockingReason: null,
-    suggestedAction: null,
-    claudeCliEnabled: false,
+  return buildMockChatStatusPayload({
     suggestedQuestions: ["What should I test in smoke chat?"],
-    index: {
-      status: "ready",
-      skillCount: 1,
-      chunkCount: 2,
-      staleReason: null,
-      error: null,
-    },
-    lastCliSmokeTest: null,
-  };
+  });
 }
 
 function mockStaleChatStatusPayload(status = "stale") {
-  return {
-    ...mockChatStatusPayload(),
+  return buildMockChatStatusPayload({
+    suggestedQuestions: ["What should I test in smoke chat?"],
     suggestedAction: "Rebuild Index to refresh citations.",
-    index: {
-      status,
-      skillCount: 1,
-      chunkCount: 2,
-      staleReason:
-        status === "stale" ? "Smoke test changed the index state." : null,
-      error: null,
-    },
-  };
+    indexStatus: status,
+    staleReason:
+      status === "stale" ? "Smoke test changed the index state." : null,
+  });
 }
 
 function mockChatStreamBody(kind) {
-  const citations = {
-    type: "citations",
-    sources: [
-      {
-        skillName: "release-readiness-smoke",
-        section: "1-8",
-        score: 0.91,
-        preview: "Mock citation preview for chat UI smoke.",
-      },
-    ],
-  };
-
   if (kind === "error") {
-    return [
-      JSON.stringify(citations),
-      JSON.stringify({ type: "error", message: "Mock provider failure" }),
-      "",
-    ].join("\n");
+    return buildMockChatStreamBody({
+      preview: "Mock citation preview for chat UI smoke.",
+      errorMessage: "Mock provider failure",
+    });
   }
 
-  return [
-    JSON.stringify(citations),
-    JSON.stringify({ type: "text", text: "Mock assistant " }),
-    JSON.stringify({ type: "text", text: "response." }),
-    "",
-  ].join("\n");
+  return buildMockChatStreamBody({
+    preview: "Mock citation preview for chat UI smoke.",
+    textChunks: ["Mock assistant ", "response."],
+  });
 }
 
 async function openFirstChatCitationPreview(page) {
@@ -2745,29 +2625,17 @@ async function openFirstChatCitationPreview(page) {
 async function runMockedChatInteractionSmoke(page, baseUrl) {
   let chatRequestCount = 0;
 
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: {
-        writeText: async (value) => {
-          window.__smokeCopiedText = value;
-        },
-      },
-    });
-  });
+  await installMockClipboard(page);
 
   await page.route("**/api/chat/status", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(mockChatStatusPayload()),
-    });
+    await fulfillJson(route, mockChatStatusPayload());
   });
   await page.route("**/api/chat", async (route) => {
     chatRequestCount += 1;
-    await route.fulfill({
-      contentType: "text/event-stream",
-      body: mockChatStreamBody(chatRequestCount === 2 ? "error" : "success"),
-    });
+    await fulfillEventStream(
+      route,
+      mockChatStreamBody(chatRequestCount === 2 ? "error" : "success"),
+    );
   });
 
   try {
@@ -2789,7 +2657,7 @@ async function runMockedChatInteractionSmoke(page, baseUrl) {
 
     await clickButton(page, "Copy assistant message");
     await expectText(page, "Copied");
-    const copiedText = await page.evaluate(() => window.__smokeCopiedText);
+    const copiedText = await readMockClipboardText(page);
     assert(
       copiedText === "Mock assistant response.",
       "Chat Copy did not write the assistant message text",
@@ -2839,7 +2707,9 @@ async function runMockedChatClipboardFailureSmoke(browser, browserIssues, baseUr
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.setDefaultNavigationTimeout(90000);
   page.setDefaultTimeout(60000);
-  attachBrowserIssueTracking(page, browserIssues);
+  trackBrowserIssues(page, browserIssues, {
+    consumeIssue: consumeExpectedBrowserIssue,
+  });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -2853,16 +2723,10 @@ async function runMockedChatClipboardFailureSmoke(browser, browserIssues, baseUr
   });
 
   await page.route("**/api/chat/status", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(mockChatStatusPayload()),
-    });
+    await fulfillJson(route, mockChatStatusPayload());
   });
   await page.route("**/api/chat", async (route) => {
-    await route.fulfill({
-      contentType: "text/event-stream",
-      body: mockChatStreamBody("success"),
-    });
+    await fulfillEventStream(route, mockChatStreamBody("success"));
   });
 
   try {
@@ -2885,23 +2749,16 @@ async function runMockedChatReadinessFailureSmoke(page, baseUrl) {
     expectBrowserIssue(
       /console: Failed to load resource: the server responded with a status of 500/,
     );
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({ error: "Smoke chat status failed." }),
-    });
+    await fulfillJson(route, { error: "Smoke chat status failed." }, { status: 500 });
   });
 
   await page.route("**/api/release/readiness", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        summary: {
-          status: "blocked",
-          topAction: "Open Settings.",
-          canExportDiagnostics: true,
-        },
-      }),
+    await fulfillJson(route, {
+      summary: {
+        status: "blocked",
+        topAction: "Open Settings.",
+        canExportDiagnostics: true,
+      },
     });
   });
 
@@ -2943,40 +2800,30 @@ async function runMockedChatRebuildSmoke(page, baseUrl) {
   let indexRebuilt = false;
 
   await page.route("**/api/chat/status", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(
-        indexRebuilt
-          ? mockChatStatusPayload()
-          : mockStaleChatStatusPayload("stale"),
-      ),
-    });
+    await fulfillJson(
+      route,
+      indexRebuilt ? mockChatStatusPayload() : mockStaleChatStatusPayload("stale"),
+    );
   });
   await page.route("**/api/release/readiness", async (route) => {
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        summary: {
-          status: indexRebuilt ? "ready" : "needs_action",
-          topAction: indexRebuilt ? null : "Rebuild Index.",
-          canExportDiagnostics: true,
-        },
-      }),
+    await fulfillJson(route, {
+      summary: {
+        status: indexRebuilt ? "ready" : "needs_action",
+        topAction: indexRebuilt ? null : "Rebuild Index.",
+        canExportDiagnostics: true,
+      },
     });
   });
   await page.route("**/api/index", async (route) => {
     if (route.request().method() === "POST") {
       indexRebuilt = true;
     }
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        status: indexRebuilt ? "ready" : "stale",
-        skillCount: 1,
-        chunkCount: 2,
-        staleReason: indexRebuilt ? null : "Smoke test changed the index state.",
-      }),
-    });
+    await fulfillJson(route, buildMockIndexStatusPayload({
+      status: indexRebuilt ? "ready" : "stale",
+      skillCount: 1,
+      chunkCount: 2,
+      staleReason: indexRebuilt ? null : "Smoke test changed the index state.",
+    }));
   });
 
   try {
@@ -3156,10 +3003,9 @@ async function runMockedEditorSaveFailureSmoke(page, baseUrl) {
     expectBrowserIssue(
       /console: Failed to load resource: the server responded with a status of 500/,
     );
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({
+    await fulfillJson(
+      route,
+      {
         error: "Smoke editor save failed.",
         validationErrors: [
           {
@@ -3168,8 +3014,9 @@ async function runMockedEditorSaveFailureSmoke(page, baseUrl) {
             message: "Smoke server validation failed.",
           },
         ],
-      }),
-    });
+      },
+      { status: 500 },
+    );
   });
 
   try {
@@ -3427,31 +3274,13 @@ async function runMobileLayoutSmoke(page, baseUrl) {
   }
 }
 
-function attachBrowserIssueTracking(page, browserIssues) {
-  page.on("pageerror", (error) => {
-    const stack = error.stack || error.message;
-    const issue = `pageerror: ${stack}`;
-    if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-  });
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      const issue = `console: ${message.text()}`;
-      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-    }
-  });
-  page.on("response", (response) => {
-    if (response.status() >= 500) {
-      const issue = `http ${response.status()}: ${response.url()}`;
-      if (!consumeExpectedBrowserIssue(issue)) browserIssues.push(issue);
-    }
-  });
-}
-
 async function runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, baseUrl) {
   const page = await browser.newPage({ viewport: { width: 1024, height: 900 } });
   page.setDefaultNavigationTimeout(90000);
   page.setDefaultTimeout(60000);
-  attachBrowserIssueTracking(page, browserIssues);
+  trackBrowserIssues(page, browserIssues, {
+    consumeIssue: consumeExpectedBrowserIssue,
+  });
   await page.addInitScript(() => {
     Object.defineProperty(window, "localStorage", {
       configurable: true,
@@ -3501,7 +3330,9 @@ async function runGuidedBlockedSessionStorageSmoke(browser, browserIssues, baseU
   const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
   page.setDefaultNavigationTimeout(90000);
   page.setDefaultTimeout(60000);
-  attachBrowserIssueTracking(page, browserIssues);
+  trackBrowserIssues(page, browserIssues, {
+    consumeIssue: consumeExpectedBrowserIssue,
+  });
   await page.addInitScript(() => {
     Object.defineProperty(window, "sessionStorage", {
       configurable: true,
@@ -3623,7 +3454,9 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
       { once: true },
     );
   });
-  attachBrowserIssueTracking(page, browserIssues);
+  trackBrowserIssues(page, browserIssues, {
+    consumeIssue: consumeExpectedBrowserIssue,
+  });
 
   try {
     await runNavigationSmoke(page, baseUrl);

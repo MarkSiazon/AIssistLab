@@ -196,28 +196,7 @@ Full release gate:
 npm run verify:release
 ```
 
-This runs tests, lint, build, smokes, audits, cleanup dry-runs, and privacy checks. See the runbook command gates for the current exact sequence.
-
-Useful focused commands:
-
-```bash
-npm test
-npm run lint
-npm run build
-npm audit
-npm run smoke:local
-npm run smoke:buttons
-npm run smoke:production
-npm run audit:assets
-npm run audit:docs
-npm run audit:dead-code
-npm run qa:manual
-npm run qa:manual:auto
-npm run cleanup:artifacts:dry-run
-npm run cleanup:artifacts
-npm run cleanup:project:dry-run
-npm run cleanup:project
-```
+This runs tests, lint, build, smokes, audits, cleanup dry-runs, and privacy checks. See the runbook command gates for the current exact sequence and focused debugging commands.
 
 Manual QA remains device/account-owned: native folder picker visibility, Claude Open Login, and real account-backed chat must be confirmed by the local user after the automated gate passes.
 

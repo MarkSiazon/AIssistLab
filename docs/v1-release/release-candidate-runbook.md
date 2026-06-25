@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, local artifact cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, unused-export audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -109,6 +109,7 @@ npm run smoke:production
 npm run audit:assets
 npm run audit:docs
 npm run audit:dead-code
+npm run audit:exports
 git diff --check
 ```
 
@@ -123,6 +124,8 @@ git diff --check
 `npm run audit:docs` fails when README or docs markdown files link to missing repo-local files or missing markdown headings. It ignores external source/research links.
 
 `npm run audit:dead-code` uses Knip with repo-specific Next route, script, and test entry points. It fails on unused files, unused dependencies, unlisted dependencies/binaries, or unresolved imports while allowing the expected Windows system helpers used by local smoke and cleanup scripts.
+
+`npm run audit:exports` uses Knip's exported-symbol audit, including entry exports, to keep public helper/type surfaces narrow after refactors.
 
 ### Cleanup And Stale Processes
 
@@ -146,7 +149,7 @@ To remove ignored local build and smoke artifacts after a verification run, insp
 npm run cleanup:artifacts:dry-run
 ```
 
-Then remove only the generated `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` artifacts:
+Then remove only the generated `.next`, `.local-workspace`, `out`, `build`, `coverage`, `tsconfig.tsbuildinfo`, and `next-env.d.ts` artifacts:
 
 ```bash
 npm run cleanup:artifacts
