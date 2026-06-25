@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, documentation link audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -107,6 +107,7 @@ npm run smoke:local
 npm run smoke:buttons
 npm run smoke:production
 npm run audit:assets
+npm run audit:docs
 git diff --check
 ```
 
@@ -117,6 +118,8 @@ git diff --check
 `npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
+
+`npm run audit:docs` fails when README or docs markdown files link to missing repo-local files or missing markdown headings. It ignores external source/research links.
 
 If a local smoke/dev run is interrupted and memory or ports look stale, inspect project-owned process trees first:
 
@@ -192,11 +195,12 @@ Capture this evidence for a V1 release-candidate checkpoint:
 6. Browser smoke for `/settings`, `/skills`, `/chat`, `/export`, and `/editor/guided`.
 7. API smoke for `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
 8. Asset usage audit result.
-9. Untracked text hygiene scan result.
-10. Privacy scan result.
-11. Local artifact cleanup dry-run result.
-12. Manual external QA result for native folder picker, Open Login, and account-backed chat.
-13. Final diff review.
+9. Documentation link audit result.
+10. Untracked text hygiene scan result.
+11. Privacy scan result.
+12. Local artifact cleanup dry-run result.
+13. Manual external QA result for native folder picker, Open Login, and account-backed chat.
+14. Final diff review.
 
 Commit and push only after explicit approval.
 

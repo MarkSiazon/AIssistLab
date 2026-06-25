@@ -222,6 +222,8 @@ npm run cleanup:project
 
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by text source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
+`npm run audit:docs` fails when README or `docs/**/*.md` links point at missing repo-local files or missing markdown headings. External research/source links are intentionally ignored by this local integrity check.
+
 ## Documentation
 
 - [Docs index](docs/README.md)

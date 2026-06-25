@@ -18,6 +18,7 @@
     "cleanup:artifacts": "node scripts/cleanup-local-artifacts.mjs --yes",
     "cleanup:artifacts:dry-run": "node scripts/cleanup-local-artifacts.mjs --dry-run",
     "audit:assets": "node scripts/audit-assets.mjs",
+    "audit:docs": "node scripts/audit-docs.mjs",
     "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {
