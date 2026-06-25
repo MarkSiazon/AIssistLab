@@ -1,10 +1,10 @@
 #!/bin/bash
 # ============================================================
-# Formatter — PostToolUse / Edit + Write
+# Formatter - PostToolUse / Edit + Write
 # Runs after Claude edits or writes a file.
-# • .md  → trims trailing whitespace, ensures final newline
-# • .ts / .tsx / .js / .jsx → runs Prettier if available
-# • .json → validates and pretty-prints (2-space indent)
+# - .md -> trims trailing whitespace, ensures final newline
+# - .ts / .tsx / .js / .jsx -> runs Prettier if available
+# - .json -> validates and pretty-prints (2-space indent)
 # Non-blocking: always exits 0 (PostToolUse cannot block).
 # Uses Node.js for JSON parsing (python3 not required).
 # ============================================================
@@ -32,7 +32,7 @@ fi
 
 EXT="${FILE_PATH##*.}"
 
-# ── Markdown: trim trailing whitespace + ensure final newline ──
+# -- Markdown: trim trailing whitespace + ensure final newline ----
 if [ "$EXT" = "md" ]; then
     node -e "
 const fs = require('fs');
@@ -47,7 +47,7 @@ if (cleaned !== text) {
     exit 0
 fi
 
-# ── TypeScript / JavaScript: Prettier (if available) ──────────
+# -- TypeScript / JavaScript: Prettier (if available) -------------
 if [[ "$EXT" =~ ^(ts|tsx|js|jsx|mjs|cjs)$ ]]; then
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     RAG_DIR="$(cd "$SCRIPT_DIR/../../rag-interface" 2>/dev/null && pwd || echo "")"
@@ -61,7 +61,7 @@ if [[ "$EXT" =~ ^(ts|tsx|js|jsx|mjs|cjs)$ ]]; then
     exit 0
 fi
 
-# ── JSON: validate + pretty-print via Node.js ─────────────────
+# -- JSON: validate + pretty-print via Node.js --------------------
 if [ "$EXT" = "json" ]; then
     node -e "
 const fs = require('fs');

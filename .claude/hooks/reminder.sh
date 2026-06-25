@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Reminder — SessionStart (startup + compact)
+# Reminder - SessionStart (startup + compact)
 # Stdout is injected into Claude's context at session start
 # and after context compaction, keeping conventions fresh.
 # ============================================================
@@ -9,7 +9,7 @@ cat << 'REMINDER'
 ## Workspace Context (auto-injected by reminder hook)
 
 **Project:** Claude Code skill development workspace
-**Root:** `C:/Codes Local/Workshop - Claude Code CLI/`
+**Root:** `C:/Codes Local/zStale-Projects/Proj - Claude_Code CLI/`
 
 ### Key Paths
 | Path | Purpose |
@@ -19,7 +19,7 @@ cat << 'REMINDER'
 | `.claude/hooks/` | Hook scripts (this file lives here) |
 | `.claude/settings.json` | Hook config (hooks wiring + MCP enable flag) |
 | `.mcp.json` | MCP server definitions (context7) |
-| `rag-interface/` | Next.js 14 RAG web app for managing skills |
+| `rag-interface/` | Next.js 16 RAG web app for managing skills |
 | `rag-interface/src/lib/rag/` | TF-IDF indexer, retriever, Claude generator |
 | `rag-interface/src/app/api/` | API routes: chat, skills, export, settings |
 
@@ -47,11 +47,11 @@ The body is a markdown prompt. Use `$ARGUMENTS` for user-passed args.
 | `context7` | Add `use context7` to any prompt involving a third-party library. It injects live, version-accurate docs into context. Example: "How do I stream in Next.js App Router? use context7" |
 
 ### Active Skill
-- **`pr-description`** — generates PR title, description, changelog entry, commit hygiene report
+- **`auto-branch-analyzer-to-pr`** - generates PR title, description, changelog entry, and commit hygiene report
 
 ### RAG Interface Stack
-Next.js 14 · TypeScript · Tailwind · `@anthropic-ai/sdk` · `natural` (TF-IDF) · `swr`
-Model used: `claude-sonnet-4-6`
+Next.js 16 | TypeScript | Tailwind | `@anthropic-ai/sdk` | `natural` (TF-IDF) | `swr`
+Verified release command: `npm run verify:release` from `rag-interface/`
 
 REMINDER
 

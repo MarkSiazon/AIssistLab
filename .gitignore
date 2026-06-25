@@ -1,0 +1,23 @@
+# Nested repositories
+rag-interface/
+
+# Dependency and build outputs
+node_modules/
+.next/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+
+# Local env and temp artifacts
+.env
+.env.*
+!.env.example
+.tmp/
+.codex/
+.worktrees/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

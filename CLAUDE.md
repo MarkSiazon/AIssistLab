@@ -16,7 +16,7 @@ Skills live in `.claude/skills/<skill-name>/SKILL.md` (directory form) or `.clau
 
 - Invoked as `/skill-name [optional args]` inside Claude Code
 - The `$ARGUMENTS` variable holds any text the user passes after the skill name
-- Skills are prompt files — Claude reads them as instructions and executes the steps using its tools
+- Skills are prompt files - Claude reads them as instructions and executes the steps using its tools
 
 ## `auto-branch-analyzer-to-pr` Skill
 
@@ -26,14 +26,14 @@ Skills live in `.claude/skills/<skill-name>/SKILL.md` (directory form) or `.clau
 
 **Usage:**
 
-- `/auto-branch-analyzer-to-pr` → compares against `dev` (default)
-- `/auto-branch-analyzer-to-pr main` → compares against `main`
+- `/auto-branch-analyzer-to-pr` -> compares against `dev` (default)
+- `/auto-branch-analyzer-to-pr main` -> compares against `main`
 
 **What it does (6 steps):**
 
 1. Detects current branch; handles detached HEAD and missing base branch
 2. Runs `git log`, `git diff --stat`, and `git diff` to gather context
-3. **Commit hygiene check** — audits commit messages against Conventional Commits format; outputs a `## ⚠ Commit Hygiene Issues` report if any are non-compliant
+3. **Commit hygiene check** - audits commit messages against Conventional Commits format; outputs a `## Commit Hygiene Issues` report if any are non-compliant
 4. Generates PR description (Title, Summary, Changes, Files Affected, Testing Notes) derived from the actual diff, not just commit messages
-5. **Changelog entry** — generates a [Keep a Changelog](https://keepachangelog.com/) `[Unreleased]` block from the same diff
-6. **Saves** the PR description to `pr-description.md` in the repo root and prints `gh pr create` commands for the user
+5. **Changelog entry** - generates a [Keep a Changelog](https://keepachangelog.com/) `[Unreleased]` block from the same diff
+6. **Saves** the PR description to `docs/pr-description.md` and prints `gh pr create` commands for the user

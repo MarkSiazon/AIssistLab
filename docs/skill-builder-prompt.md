@@ -1,4 +1,4 @@
-Create a skill called pr-description that generates a standardized PR title and description by analyzing all commits and diffs on the current branch compared to a base branch.
+Create a skill called auto-branch-analyzer-to-pr that generates a standardized PR title and description by analyzing all commits and diffs on the current branch compared to a base branch.
 
 Put it in .claude/skills/. Make it accept $ARGUMENTS for the base branch (default to dev if not provided).
 
@@ -60,7 +60,7 @@ Scope is derived from the primary area of change (e.g., settings, auth, api, ui)
 
 Rules for the output:
 
-Every bullet must be concrete and specific — no filler like "updated code" or "made improvements"
+Every bullet must be concrete and specific - no filler like "updated code" or "made improvements"
 
 Derive bullets from the actual diff content, not just commit message summaries
 
@@ -74,18 +74,18 @@ Output as raw markdown ready to copy-paste into GitHub/GitLab PR form
 
 Example usage:
 
-/pr-description → compares current branch against dev
+/auto-branch-analyzer-to-pr -> compares current branch against dev
 
-/pr-description main → compares against main
+/auto-branch-analyzer-to-pr main -> compares against main
 
-/pr-description staging → compares against staging
+/auto-branch-analyzer-to-pr staging -> compares against staging
 
 Edge cases to handle:
 
-No commits ahead of base → tell user there's nothing to compare
+No commits ahead of base -> tell user there's nothing to compare
 
-Base branch doesn't exist locally → suggest git fetch origin <base>
+Base branch doesn't exist locally -> suggest git fetch origin <base>
 
-Detached HEAD → warn the user
+Detached HEAD -> warn the user
 
-Enormous diffs (50+ files) → summarize by module/directory instead of per-file
+Enormous diffs (50+ files) -> summarize by module/directory instead of per-file
