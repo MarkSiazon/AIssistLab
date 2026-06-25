@@ -1,18 +1,15 @@
 import assert from "node:assert/strict";
-import {
-  displayLocalPath,
-  displaySettingsPath,
-} from "./settings-path-display";
+import { displaySettingsPath } from "./settings-path-display";
 
 function main() {
   assert.equal(
-    displayLocalPath("C:\\Users\\Someone\\.config\\profiles\\work"),
+    displaySettingsPath("C:\\Users\\Someone\\.config\\profiles\\work"),
     "~\\.config\\profiles\\work",
     "local Windows home paths should be collapsed before display",
   );
 
   assert.equal(
-    displayLocalPath("Configured for person@example.com"),
+    displaySettingsPath("Configured for person@example.com"),
     "Configured for [redacted-email]",
     "email-like account identifiers should be redacted",
   );

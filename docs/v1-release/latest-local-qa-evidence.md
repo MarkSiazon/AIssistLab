@@ -24,6 +24,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Manual QA helper internals, guided autosave versioning constants, and manual QA storage keys are now private, and unused skill import/unlink helpers were removed.
 - Test request origin and non-local host constants are now private behind the request helper builders.
 - Chat stream line parsing is now private behind the public streaming client, with parser behavior covered through stream-level tests.
+- Settings path privacy sanitization is now private behind the public settings path formatter.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -78,6 +79,7 @@ npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx src/lib/ui/manual-external-qa-panel.test.ts
 npx --yes tsx src/lib/test-utils/request.test.ts
 npx --yes tsx src/lib/chat/client-api.test.ts
+npx --yes tsx src/lib/ui/settings-path-display.test.ts
 npx --yes tsx scripts/lib/repo-files.test.mjs
 npx --yes tsx scripts/audit-docs.test.mjs
 npx --yes tsx scripts/manual-external-qa.test.mjs

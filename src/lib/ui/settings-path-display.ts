@@ -1,4 +1,4 @@
-export function displayLocalPath(value: string): string {
+function displayLocalPath(value: string): string {
   return value
     .replace(/[A-Z]:\\Users\\[^\\\s"]+/gi, "~")
     .replace(/[^\s\\/@]+@[^\s\\/]+\.[^\s\\/]+/gi, "[redacted-email]");
