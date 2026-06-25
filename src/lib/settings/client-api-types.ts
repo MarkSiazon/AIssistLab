@@ -1,7 +1,11 @@
 import type { ApiFetcher } from "@/lib/api/client";
+import type { ClaudeProfileSummary as CanonicalClaudeProfileSummary } from "@/lib/claude/discovery";
+import type { ClaudeCliStatus as CanonicalClaudeCliStatus } from "@/lib/rag/claude-cli-status";
+import type { ClaudeCliTestResult as CanonicalClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
 import type { FirstRunChatStatus } from "@/lib/settings/first-run-checklist";
 import type { PublicIndexState } from "@/lib/rag/index-state";
 import type { ReleaseReadinessResponse } from "@/lib/release/readiness-types";
+import type { ActiveRuntimeProviderStatus as CanonicalActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
 import type { SetupDoctorReport } from "@/lib/settings/doctor";
 import type { SkillQualityReport } from "@/lib/skills/quality";
 
@@ -18,62 +22,10 @@ export interface ClaudeProfileSelectionPayload {
   manualConfigDir?: string;
 }
 
-export interface ActiveRuntimeProviderStatus {
-  provider: "anthropic_api" | "claude_code_cli";
-  claudeCliEnabled: boolean;
-  configDirConfigured: boolean;
-  source: "runtime" | "process";
-}
-
-export interface ClaudeCliTestResult {
-  checked: boolean;
-  ok: boolean | null;
-  output: string | null;
-  error: string | null;
-  provider?: "anthropic_api" | "claude_code_cli";
-  profileId?: string;
-  configFingerprint?: string;
-}
-
-export interface ClaudeProfileSummary {
-  id: string;
-  label: string;
-  source: "default" | "discovered" | "manual";
-  displayPath: string;
-  selected: boolean;
-  exists: boolean;
-  auth: {
-    checked: boolean;
-    loggedIn: boolean | null;
-    method: string | null;
-    error: string | null;
-  };
-}
-
-export interface ClaudeCliStatus {
-  provider: "anthropic_api" | "claude_code_cli";
-  enabled: boolean;
-  cliPath: string;
-  configuredCliPath: string;
-  cliPathSource: "env" | "native-install" | "path";
-  loginCommand: string;
-  loginCommandSource: "env" | "sibling" | "user-bin" | "path" | "missing";
-  loginHelperAvailable: boolean;
-  canOpenLogin: boolean;
-  configDirConfigured: boolean;
-  installed: boolean;
-  version: string | null;
-  profiles: ClaudeProfileSummary[];
-  selectedProfile: ClaudeProfileSummary;
-  selectedProfileFingerprint: string;
-  lastCliSmokeTest: ClaudeCliTestResult | null;
-  auth: {
-    checked: boolean;
-    loggedIn: boolean | null;
-    method: string | null;
-    error: string | null;
-  };
-}
+export type ActiveRuntimeProviderStatus = CanonicalActiveRuntimeProviderStatus;
+export type ClaudeCliTestResult = CanonicalClaudeCliTestResult;
+export type ClaudeProfileSummary = CanonicalClaudeProfileSummary;
+export type ClaudeCliStatus = CanonicalClaudeCliStatus;
 
 export type ReleaseReadinessReport = ReleaseReadinessResponse;
 

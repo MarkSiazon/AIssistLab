@@ -2,8 +2,10 @@ import fs from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { ENV_PATH, parseEnv } from "@/lib/settings/env";
-
-type RuntimeLlmProvider = "anthropic_api" | "claude_code_cli";
+import type {
+  LlmProvider,
+  RuntimeProviderSource,
+} from "@/lib/rag/llm-types";
 
 export const PROVIDER_RUNTIME_KEYS = [
   "LLM_PROVIDER",
@@ -18,10 +20,10 @@ export const PROVIDER_RUNTIME_KEYS = [
 export type ProviderRuntimeKey = (typeof PROVIDER_RUNTIME_KEYS)[number];
 
 export interface ActiveRuntimeProviderStatus {
-  provider: RuntimeLlmProvider;
+  provider: LlmProvider;
   claudeCliEnabled: boolean;
   configDirConfigured: boolean;
-  source: "runtime" | "process";
+  source: RuntimeProviderSource;
 }
 
 type RuntimeProviderValues = Record<ProviderRuntimeKey, string>;

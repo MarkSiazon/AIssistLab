@@ -1,7 +1,8 @@
 import type { PublicIndexState } from "@/lib/rag/index-state";
+import type { LlmProvider } from "@/lib/rag/llm-types";
 
 export interface ChatReadinessInput {
-  provider: "anthropic_api" | "claude_code_cli";
+  provider: LlmProvider;
   claudeCliEnabled: boolean;
   index: PublicIndexState;
   apiKey: string | undefined;

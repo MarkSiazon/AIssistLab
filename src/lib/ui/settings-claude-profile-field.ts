@@ -1,30 +1,13 @@
+import type { ClaudeProfileSummary } from "@/lib/claude/discovery";
+import type { ClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
 import {
   profileOptionLabel,
   profileStatusColor,
   profileStatusText,
 } from "@/lib/ui/settings-status";
 
-export interface SettingsClaudeProfileSummary {
-  id: string;
-  label: string;
-  source: "default" | "discovered" | "manual";
-  displayPath: string;
-  selected: boolean;
-  exists: boolean;
-  auth: {
-    checked: boolean;
-    loggedIn: boolean | null;
-    method: string | null;
-    error: string | null;
-  };
-}
-
-export interface SettingsClaudeCliTestSummary {
-  checked: boolean;
-  ok: boolean | null;
-  output: string | null;
-  error: string | null;
-}
+export type SettingsClaudeProfileSummary = ClaudeProfileSummary;
+export type SettingsClaudeCliTestSummary = ClaudeCliTestResult;
 
 interface SettingsClaudeProfileOption {
   value: string;

@@ -1,49 +1,19 @@
+import type { ClaudeProfileSummary } from "@/lib/claude/discovery";
+import type { ClaudeCliStatus } from "@/lib/rag/claude-cli-status";
+import type { ClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
+import type { ActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
+
 type SettingsClaudePanelTone = "ok" | "warn" | "error" | "neutral";
 
-export interface SettingsClaudeProfileSummary {
-  id: string;
-  label: string;
-  displayPath: string;
-  auth: {
-    checked: boolean;
-    loggedIn: boolean | null;
-    method: string | null;
-    error: string | null;
-  };
-}
+export type SettingsClaudeProfileSummary = ClaudeProfileSummary;
+export type SettingsClaudeCliStatus = ClaudeCliStatus;
 
-export interface SettingsClaudeCliStatus {
-  provider: "anthropic_api" | "claude_code_cli";
-  enabled: boolean;
-  cliPath: string;
-  configuredCliPath: string;
-  cliPathSource: "env" | "native-install" | "path";
-  loginCommand: string;
-  loginCommandSource: "env" | "sibling" | "user-bin" | "path" | "missing";
-  loginHelperAvailable: boolean;
-  canOpenLogin: boolean;
-  installed: boolean;
-  version: string | null;
-  selectedProfile: SettingsClaudeProfileSummary;
-  auth: {
-    checked: boolean;
-    loggedIn: boolean | null;
-    method: string | null;
-    error: string | null;
-  };
-}
+export type SettingsClaudeRuntimeStatus = Pick<
+  ActiveRuntimeProviderStatus,
+  "provider" | "source"
+>;
 
-export interface SettingsClaudeRuntimeStatus {
-  provider: "anthropic_api" | "claude_code_cli";
-  source: "runtime" | "process";
-}
-
-export interface SettingsClaudeTestResult {
-  checked: boolean;
-  ok: boolean | null;
-  output: string | null;
-  error: string | null;
-}
+export type SettingsClaudeTestResult = ClaudeCliTestResult;
 
 interface SettingsClaudeStatusCard {
   label: string;

@@ -4,10 +4,15 @@ import {
   indexStatusTitle,
   type RagIndexStatus,
 } from "@/lib/ui/index-status-summary";
+import type { ClaudeCliTestResult } from "@/lib/rag/claude-cli-test-state";
+import type {
+  LlmProvider,
+  RuntimeProviderSource,
+} from "@/lib/rag/llm-types";
 import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
 
-type ChatProvider = "anthropic_api" | "claude_code_cli";
-type ChatRuntimeSource = "runtime" | "process";
+type ChatProvider = LlmProvider;
+type ChatRuntimeSource = RuntimeProviderSource;
 export type ChatStatusTone = "ok" | "warn" | "error" | "neutral";
 
 export interface ChatReadinessStatus {
@@ -23,11 +28,7 @@ export interface ChatReadinessStatus {
     staleReason: string | null;
     error: string | null;
   };
-  lastCliSmokeTest: {
-    checked: boolean;
-    ok: boolean | null;
-    error: string | null;
-  } | null;
+  lastCliSmokeTest: ClaudeCliTestResult | null;
 }
 
 export interface ChatReadinessReleaseSummary {

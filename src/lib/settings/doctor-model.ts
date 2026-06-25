@@ -1,5 +1,6 @@
 import type { ClaudeProjectInventory } from "@/lib/claude/project-inventory";
 import type { RagIndexStateStatus } from "@/lib/rag/index-state";
+import type { LlmProvider } from "@/lib/rag/llm-types";
 import {
   sanitizeCliOutput,
   type ClaudeCliStatus,
@@ -86,7 +87,7 @@ export function isPlaceholderApiKey(value: string | undefined): boolean {
 
 export function providerFromEnv(
   env: Record<string, string>,
-): "anthropic_api" | "claude_code_cli" {
+): LlmProvider {
   return env.LLM_PROVIDER === "claude_code_cli"
     ? "claude_code_cli"
     : "anthropic_api";

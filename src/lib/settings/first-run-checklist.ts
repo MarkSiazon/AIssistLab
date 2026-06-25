@@ -1,5 +1,6 @@
 import { countLabel } from "@/lib/format/count-label";
 import type { RagIndexStateStatus } from "@/lib/rag/index-state-types";
+import type { ActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
 
 export type FirstRunChecklistStatus = "ready" | "needs_action" | "optional";
 export type FirstRunChecklistAction =
@@ -24,10 +25,10 @@ interface FirstRunIndexState {
   error?: string | null;
 }
 
-interface FirstRunRuntimeStatus {
-  provider: "anthropic_api" | "claude_code_cli";
-  source: "runtime" | "process";
-}
+type FirstRunRuntimeStatus = Pick<
+  ActiveRuntimeProviderStatus,
+  "provider" | "source"
+>;
 
 export interface FirstRunChatStatus {
   canSend: boolean;
