@@ -3,7 +3,7 @@ import {
   type GuidedChecklistState,
 } from "@/lib/ui/guided-checklist";
 
-export interface GuidedSummaryMetric {
+interface GuidedSummaryMetric {
   label: string;
   value: number;
 }

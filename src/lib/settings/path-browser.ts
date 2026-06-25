@@ -2,9 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-export type PathBrowserEntryType = "drive" | "dir";
+type PathBrowserEntryType = "drive" | "dir";
 
-export interface PathBrowserEntry {
+interface PathBrowserEntry {
   name: string;
   fullPath: string;
   type: PathBrowserEntryType;
@@ -19,7 +19,7 @@ export interface PathBrowseResult {
   error?: string;
 }
 
-export interface PathSearchMatch {
+interface PathSearchMatch {
   fullPath: string;
   parent: string;
   label: string;

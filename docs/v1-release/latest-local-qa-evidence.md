@@ -29,6 +29,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Claude discovery regex escaping, selected-profile helpers, and native-install path lookup are no longer exposed through public discovery module surfaces.
 - Claude CLI path, config-dir, and login-command readers are no longer re-exported through the legacy LLM config barrel.
 - Native folder picker process launching, guided-draft normalization, unused skill writer delete wrapper, and editor body-size limit re-export were removed from public runtime surfaces.
+- Component import panel aliases, guided summary metric types, API error payload helpers, cache get-options, Claude discovery barrel aliases, first-run internal states, runtime-provider aliases, and path-browser entry/search shapes were narrowed from unused exported type surfaces.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -76,6 +77,11 @@ npx --yes tsx src/lib/rag/claude-cli-runtime.test.ts
 npx --yes tsx src/app/api/settings/native-folder/route.test.ts
 npx --yes tsx src/lib/skills/guided-builder.test.ts
 npx --yes tsx src/lib/ui/skill-editor-model.test.ts
+npx --yes tsx src/lib/api/client.test.ts
+npx --yes tsx src/lib/async-ttl-cache.test.ts
+npx --yes tsx src/lib/settings/first-run-checklist.test.ts
+npx --yes tsx src/lib/settings/path-browser.test.ts
+npx --yes tsx src/lib/settings/runtime-config.test.ts
 npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx src/lib/local-access.test.ts
 npx --yes tsx src/app/api/settings/local-guards.test.ts

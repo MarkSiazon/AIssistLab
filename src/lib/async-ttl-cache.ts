@@ -3,7 +3,7 @@ export interface AsyncTtlCacheOptions {
   now?: () => number;
 }
 
-export interface AsyncTtlCacheGetOptions {
+interface AsyncTtlCacheGetOptions {
   forceRefresh?: boolean;
 }
 

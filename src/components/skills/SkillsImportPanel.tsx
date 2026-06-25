@@ -13,14 +13,6 @@ import type {
   SkillsImportSourceType,
 } from "@/lib/ui/skills-import-panel-model";
 
-export type {
-  DeletedSkillSummary,
-  ImportPreview,
-  ImportPreviewItem,
-  SkillsImportDuplicateStrategy,
-  SkillsImportSourceType,
-} from "@/lib/ui/skills-import-panel-model";
-
 interface SkillsImportPanelProps {
   latestDeleted?: DeletedSkillSummary | null;
   restoreAction: SkillRestoreActionState;

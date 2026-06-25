@@ -14,14 +14,14 @@ export interface FirstRunDoctorCheck {
   suggestedFix?: string;
 }
 
-export interface FirstRunIndexState {
+interface FirstRunIndexState {
   status: "ready" | "stale" | "missing" | "rebuilding" | "failed";
   skillCount: number;
   staleReason?: string | null;
   error?: string | null;
 }
 
-export interface FirstRunRuntimeStatus {
+interface FirstRunRuntimeStatus {
   provider: "anthropic_api" | "claude_code_cli";
   source: "runtime" | "process";
 }

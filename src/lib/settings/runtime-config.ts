@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { ENV_PATH, parseEnv } from "@/lib/settings/env";
 
-export type RuntimeLlmProvider = "anthropic_api" | "claude_code_cli";
+type RuntimeLlmProvider = "anthropic_api" | "claude_code_cli";
 
 export const PROVIDER_RUNTIME_KEYS = [
   "LLM_PROVIDER",

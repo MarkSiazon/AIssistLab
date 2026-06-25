@@ -13,14 +13,10 @@ export {
   resolveClaudeProfileSelection,
 } from "@/lib/claude/discovery-profiles";
 export type {
-  ClaudeCommandCandidate,
   ClaudeCommandSource,
   ClaudeInternalProfile,
   ClaudeProfileAuthState,
   ClaudeProfileSelectionInput,
-  ClaudeProfileSource,
-  ClaudeProfileState,
   ClaudeProfileSummary,
-  DiscoverClaudeProfilesOptions,
   ResolvedClaudeProfileSelection,
 } from "@/lib/claude/discovery-types";
