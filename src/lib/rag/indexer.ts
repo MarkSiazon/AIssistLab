@@ -8,7 +8,7 @@ export interface SkillIndex {
   builtAt: Date;
 }
 
-export function chunkSkill(skill: Skill): SkillChunk[] {
+function chunkSkill(skill: Skill): SkillChunk[] {
   const lines = skill.body.split("\n");
   const chunks: SkillChunk[] = [];
   let current: string[] = [];

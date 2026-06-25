@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 
-export function getHomePath(
+function getHomePath(
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): string {
   return env.USERPROFILE || env.HOME || os.homedir();

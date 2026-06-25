@@ -25,7 +25,7 @@ export function isDuplicateStrategy(value: string): value is DuplicateStrategy {
   return value === "skip" || value === "overwrite" || value === "rename";
 }
 
-export function normalizeImportedSkillName(value: string): string {
+function normalizeImportedSkillName(value: string): string {
   return value
     .replace(/\.md$/i, "")
     .replace(/[^a-zA-Z0-9-]+/g, "-")

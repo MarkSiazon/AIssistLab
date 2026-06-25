@@ -18,6 +18,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Release audit scripts now share repo file discovery through `scripts/lib/repo-files.mjs`, reducing duplicate git/path handling between asset and docs audits.
 - Setup Doctor text sanitization and severity mapping helpers are now private to `doctor-model.ts`, reducing exported API surface without changing report behavior.
 - Release and QA helper script internals now keep git spawning, markdown line mapping, and manual-check definitions private to their modules.
+- Claude discovery path home resolution, RAG index chunking, and import-name normalization helpers are now private to their owning modules.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -59,6 +60,8 @@ npx --yes tsx src/lib/ui/skill-editor-model.test.ts
 npx --yes tsx src/lib/settings/client-api.test.ts
 npx --yes tsx src/lib/settings/doctor.test.ts
 npx --yes tsx src/lib/skills/validation.test.ts
+npx --yes tsx src/lib/claude/discovery.test.ts
+npx --yes tsx src/lib/skills/importer.test.ts
 npx --yes tsx scripts/lib/repo-files.test.mjs
 npx --yes tsx scripts/audit-docs.test.mjs
 npx --yes tsx scripts/manual-external-qa.test.mjs
