@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/request";
+import { jsonValidationFailure } from "@/lib/api/responses";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import {
   buildGuidedSkillDraft,
@@ -12,10 +13,7 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
   const body = (await readJsonObject(request)) ?? {};
   const validation = validateGuidedSkillDraftInput(body);
   if (!validation.ok) {
-    return NextResponse.json(
-      { ok: false, validationErrors: validation.errors },
-      { status: 400 },
-    );
+    return jsonValidationFailure(validation.errors);
   }
 
   return NextResponse.json({

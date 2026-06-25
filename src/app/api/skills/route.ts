@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/request";
+import { jsonValidationFailure } from "@/lib/api/responses";
 import { readAllSkills, readSkill } from "@/lib/skills/reader";
 import { writeSkill } from "@/lib/skills/writer";
 import { withLocalDeviceGuard } from "@/lib/local-access";
@@ -51,13 +52,7 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
   }
 
   if (validationErrors.length > 0) {
-    return NextResponse.json(
-      {
-        ok: false,
-        validationErrors,
-      },
-      { status: 400 },
-    );
+    return jsonValidationFailure(validationErrors);
   }
 
   await writeSkill(

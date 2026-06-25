@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/request";
+import { jsonFailure } from "@/lib/api/responses";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import {
   createSkillImportPreview,
@@ -47,12 +48,8 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
     );
     return NextResponse.json(preview);
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: sanitizeImportErrorMessage(error, "Import preview failed"),
-      },
-      { status: 400 },
+    return jsonFailure(
+      sanitizeImportErrorMessage(error, "Import preview failed"),
     );
   }
 });

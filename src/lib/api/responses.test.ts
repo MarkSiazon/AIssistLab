@@ -1,6 +1,11 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { jsonError, textDownloadResponse } from "./responses";
+import {
+  jsonError,
+  jsonFailure,
+  jsonValidationFailure,
+  textDownloadResponse,
+} from "./responses";
 
 describe("api responses", () => {
   it("returns a JSON error response with the requested status", async () => {
@@ -9,6 +14,42 @@ describe("api responses", () => {
     assert.equal(response.status, 400);
     assert.match(response.headers.get("content-type") ?? "", /application\/json/);
     assert.deepEqual(await response.json(), { error: "Bad request" });
+  });
+
+  it("returns a JSON failure response with the ok/error contract", async () => {
+    const response = jsonFailure("Restore failed", 400);
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      error: "Restore failed",
+    });
+  });
+
+  it("returns a JSON validation failure response", async () => {
+    const validationErrors = [{ code: "empty_body" }];
+    const response = jsonValidationFailure(validationErrors);
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      validationErrors,
+    });
+  });
+
+  it("includes optional validation failure fields", async () => {
+    const response = jsonValidationFailure(
+      [{ code: "missing_purpose" }],
+      422,
+      { feedback: { score: 20 } },
+    );
+
+    assert.equal(response.status, 422);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      validationErrors: [{ code: "missing_purpose" }],
+      feedback: { score: 20 },
+    });
   });
 
   it("returns a text download response with a safe attachment header", async () => {

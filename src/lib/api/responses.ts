@@ -2,6 +2,18 @@ export function jsonError(message: string, status = 400): Response {
   return Response.json({ error: message }, { status });
 }
 
+export function jsonFailure(message: string, status = 400): Response {
+  return Response.json({ ok: false, error: message }, { status });
+}
+
+export function jsonValidationFailure<T>(
+  validationErrors: T[],
+  status = 400,
+  extra: Record<string, unknown> = {},
+): Response {
+  return Response.json({ ok: false, validationErrors, ...extra }, { status });
+}
+
 function safeDownloadFilename(filename: string): string {
   return filename
     .replace(/[\x00-\x1f\x7f"\\/]/g, "_")

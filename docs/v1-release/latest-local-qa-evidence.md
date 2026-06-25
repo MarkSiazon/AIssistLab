@@ -37,6 +37,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Skill library readiness now consumes the canonical Skill Quality report shape and shared severity counters instead of maintaining duplicate quality report/counting logic.
 - Skill import previews now use the canonical Skill Quality warning filter and shared count-label formatting for preview issue summaries.
 - Skills page and import preview copy now use the public `countLabel` helper directly; the lower-level plural helper is private to the formatter module.
+- Skill lifecycle and guided-builder API routes now share canonical JSON failure helpers for `{ ok: false }` error and validation responses.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

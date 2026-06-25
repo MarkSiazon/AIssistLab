@@ -10,7 +10,11 @@ import {
   toWritableSkillFrontmatter,
   validateSkillInput,
 } from "@/lib/skills/validation";
-import { jsonError } from "@/lib/api/responses";
+import {
+  jsonError,
+  jsonFailure,
+  jsonValidationFailure,
+} from "@/lib/api/responses";
 
 export const runtime = "nodejs";
 
@@ -41,10 +45,7 @@ export const PUT = withLocalDeviceGuard(async (
     body,
   });
   if (!validation.ok) {
-    return NextResponse.json(
-      { ok: false, validationErrors: validation.errors },
-      { status: 400 },
-    );
+    return jsonValidationFailure(validation.errors);
   }
 
   await writeSkill(skillName, toWritableSkillFrontmatter(frontmatter), body);
@@ -64,13 +65,7 @@ export const DELETE = withLocalDeviceGuard(async (
   const confirmName =
     typeof body.confirmName === "string" ? body.confirmName : "";
   if (confirmName !== skillName) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Type the exact skill name to confirm delete.",
-      },
-      { status: 400 },
-    );
+    return jsonFailure("Type the exact skill name to confirm delete.");
   }
 
   const trash = await moveSkillToTrash(skillName);

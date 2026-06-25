@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/request";
+import { jsonFailure } from "@/lib/api/responses";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import {
   applySkillImportPreview,
@@ -25,12 +26,6 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
     const indexState = await markIndexDirty("Skill files changed after import.");
     return NextResponse.json({ ...result, indexState });
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: sanitizeImportErrorMessage(error, "Import apply failed"),
-      },
-      { status: 400 },
-    );
+    return jsonFailure(sanitizeImportErrorMessage(error, "Import apply failed"));
   }
 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { jsonFailure } from "@/lib/api/responses";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import { restoreLatestDeletedSkill } from "@/lib/skills/trash";
 import { markIndexDirty } from "@/lib/store";
@@ -16,12 +17,6 @@ export const POST = withLocalDeviceGuard(async (
     const indexState = await markIndexDirty("Skill files changed after restore.");
     return NextResponse.json({ ok: true, restored, indexState });
   } catch (error) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Restore failed",
-      },
-      { status: 400 },
-    );
+    return jsonFailure(error instanceof Error ? error.message : "Restore failed");
   }
 });
