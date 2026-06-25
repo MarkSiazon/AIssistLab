@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import { expandUserPath } from "@/lib/claude/discovery";
 import { getClaudeProjectInventory } from "@/lib/claude/project-inventory";
@@ -8,23 +7,12 @@ import {
 } from "@/lib/rag/llm-config";
 import { getIndexStatus } from "@/lib/store";
 import { readEnvFile } from "@/lib/settings/env";
+import { getSettingsPathState } from "@/lib/settings/path-state";
 import { getActiveProviderRuntimeEnv } from "@/lib/settings/runtime-config";
 import {
   buildSetupDoctorReport,
-  type DoctorPathState,
   type SetupDoctorReport,
 } from "@/lib/settings/doctor";
-
-async function statDirectory(value: string): Promise<DoctorPathState> {
-  if (!value.trim()) return { exists: false, isDirectory: false };
-
-  try {
-    const stat = await fs.stat(expandUserPath(value));
-    return { exists: true, isDirectory: stat.isDirectory() };
-  } catch {
-    return { exists: false, isDirectory: false };
-  }
-}
 
 function resolveSkillsDir(workspaceRoot: string, skillsDir: string): string {
   if (!skillsDir.trim()) return "";
@@ -48,8 +36,8 @@ export async function getCurrentSetupDoctorReport(): Promise<SetupDoctorReport> 
     env: envFile.parsed,
     runtimeEnv: process.env,
     paths: {
-      workspaceRoot: await statDirectory(workspaceRoot),
-      skillsDir: await statDirectory(resolvedSkillsDir),
+      workspaceRoot: await getSettingsPathState(workspaceRoot),
+      skillsDir: await getSettingsPathState(resolvedSkillsDir),
     },
     index: {
       status: index.status,

@@ -9,6 +9,7 @@ import {
   PROVIDER_RUNTIME_KEYS,
   type ProviderRuntimeKey,
 } from "@/lib/settings/runtime-config";
+import type { SettingsPathState } from "@/lib/settings/path-state";
 
 export type DoctorCheckStatus = "ok" | "warn" | "error";
 type ReadinessSeverity = "blocking" | "warning" | "optional";
@@ -21,17 +22,12 @@ export type DoctorCheckGroup =
   | "login"
   | "claude-project";
 
-export interface DoctorPathState {
-  exists: boolean;
-  isDirectory: boolean;
-}
-
 export interface SetupDoctorInput {
   env: Record<string, string>;
   runtimeEnv?: Record<string, string | undefined>;
   paths: {
-    workspaceRoot: DoctorPathState;
-    skillsDir: DoctorPathState;
+    workspaceRoot: SettingsPathState;
+    skillsDir: SettingsPathState;
   };
   index: {
     status: RagIndexStateStatus;

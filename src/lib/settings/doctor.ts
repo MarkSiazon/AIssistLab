@@ -17,7 +17,6 @@ import {
 export type {
   DoctorCheckGroup,
   DoctorCheckStatus,
-  DoctorPathState,
   SetupDoctorCheck,
   SetupDoctorInput,
   SetupDoctorReport,
