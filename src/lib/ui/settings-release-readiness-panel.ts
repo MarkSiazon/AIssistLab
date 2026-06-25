@@ -2,20 +2,14 @@ import {
   selectReleasePrimaryAction,
   type ReleaseActionSection,
 } from "./release-readiness-actions";
+import type {
+  ReleaseReadinessResponse,
+  ReleaseReadinessSection,
+  ReleaseReadinessStatus,
+} from "@/lib/release/readiness-types";
 
-type SettingsReleaseReadinessStatus =
-  | "ready"
-  | "needs_action"
-  | "blocked";
-
-type SettingsReleaseReadinessSectionId =
-  | "workspace"
-  | "provider"
-  | "index"
-  | "skills"
-  | "claude_project"
-  | "chat"
-  | "diagnostics";
+type SettingsReleaseReadinessStatus = ReleaseReadinessStatus;
+type SettingsReleaseReadinessSectionId = ReleaseReadinessSection["id"];
 
 export interface SettingsReleaseReadinessSection extends ReleaseActionSection {
   id: SettingsReleaseReadinessSectionId;
@@ -26,18 +20,7 @@ export interface SettingsReleaseReadinessSection extends ReleaseActionSection {
   actionHref?: string;
 }
 
-export interface SettingsReleaseReadinessReport {
-  schemaVersion: 1;
-  generatedAt: string;
-  summary: {
-    status: SettingsReleaseReadinessStatus;
-    score: number;
-    topAction: string | null;
-    canChat: boolean;
-    canExportDiagnostics: boolean;
-  };
-  sections: SettingsReleaseReadinessSection[];
-}
+export type SettingsReleaseReadinessReport = ReleaseReadinessResponse;
 
 interface SettingsReleaseReadinessSnapshotItem {
   id: string;

@@ -2,6 +2,7 @@ import {
   releaseStatusColor,
   releaseStatusLabel,
 } from "./settings-status";
+import type { ReleaseReadinessResponse as CanonicalReleaseReadinessResponse } from "@/lib/release/readiness-types";
 
 export interface SkillSummary {
   name: string;
@@ -10,23 +11,7 @@ export interface SkillSummary {
   updatedAt: string;
 }
 
-export interface ReleaseReadinessResponse {
-  summary: {
-    status: "ready" | "needs_action" | "blocked";
-    score: number;
-    topAction: string | null;
-    canChat?: boolean;
-    canExportDiagnostics: boolean;
-  };
-  sections: Array<{
-    id: string;
-    label: string;
-    status: "ready" | "needs_action" | "blocked";
-    message: string;
-    actionLabel?: string;
-    actionHref?: string;
-  }>;
-}
+export type ReleaseReadinessResponse = CanonicalReleaseReadinessResponse;
 
 export const diagnosticsContents = [
   "V1 readiness summary",

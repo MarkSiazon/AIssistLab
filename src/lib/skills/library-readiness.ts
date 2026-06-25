@@ -1,4 +1,5 @@
 import { countLabel } from "@/lib/format/count-label";
+import type { RagIndexStateStatus } from "@/lib/rag/index-state-types";
 import {
   countSkillQualityIssues,
   type SkillQualityIssue,
@@ -15,7 +16,7 @@ export type SkillLibraryReadinessAction =
   | "refresh";
 
 export interface SkillLibraryIndexState {
-  status: "ready" | "stale" | "missing" | "rebuilding" | "failed";
+  status: RagIndexStateStatus;
   skillCount: number;
   chunkCount: number;
   staleReason?: string | null;

@@ -1,6 +1,7 @@
 import { isSafeInternalActionHref } from "./internal-action-href";
+import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
 
-type ReleaseActionSectionStatus = "ready" | "needs_action" | "blocked";
+type ReleaseActionSectionStatus = ReleaseReadinessStatus;
 
 export interface ReleaseActionSection {
   id: string;

@@ -4,11 +4,11 @@ import {
   indexStatusTitle,
   type RagIndexStatus,
 } from "@/lib/ui/index-status-summary";
+import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
 
 type ChatProvider = "anthropic_api" | "claude_code_cli";
 type ChatRuntimeSource = "runtime" | "process";
 export type ChatStatusTone = "ok" | "warn" | "error" | "neutral";
-type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
 
 export interface ChatReadinessStatus {
   provider: ChatProvider;

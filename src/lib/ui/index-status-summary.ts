@@ -1,6 +1,7 @@
 import { countLabel } from "@/lib/format/count-label";
+import type { RagIndexStateStatus } from "@/lib/rag/index-state-types";
 
-export type RagIndexStatus = "ready" | "stale" | "missing" | "rebuilding" | "failed";
+export type RagIndexStatus = RagIndexStateStatus;
 
 export interface RagIndexStatusSnapshot {
   status: RagIndexStatus;

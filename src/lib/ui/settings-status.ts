@@ -1,6 +1,8 @@
+import type { ReleaseReadinessStatus } from "@/lib/release/readiness-types";
+
 export type SettingsDoctorStatus = "ok" | "warn" | "error";
 export type SettingsDoctorSeverity = "blocking" | "warning" | "optional";
-export type SettingsReleaseStatus = "ready" | "needs_action" | "blocked";
+export type SettingsReleaseStatus = ReleaseReadinessStatus;
 export type SettingsFirstRunStatus = "ready" | "needs_action" | "optional";
 export type SettingsPathState = "idle" | "checking" | "ok" | "error";
 export type SettingsTone = "ok" | "warn" | "error" | "neutral";

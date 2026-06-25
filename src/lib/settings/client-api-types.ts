@@ -1,6 +1,7 @@
 import type { ApiFetcher } from "@/lib/api/client";
 import type { FirstRunChatStatus } from "@/lib/settings/first-run-checklist";
 import type { PublicIndexState } from "@/lib/rag/index-state";
+import type { ReleaseReadinessResponse } from "@/lib/release/readiness-types";
 import type { SetupDoctorReport } from "@/lib/settings/doctor";
 import type { SkillQualityReport } from "@/lib/skills/quality";
 
@@ -74,34 +75,7 @@ export interface ClaudeCliStatus {
   };
 }
 
-type ReleaseReadinessStatus = "ready" | "needs_action" | "blocked";
-
-export interface ReleaseReadinessReport {
-  schemaVersion: 1;
-  generatedAt: string;
-  summary: {
-    status: ReleaseReadinessStatus;
-    score: number;
-    topAction: string | null;
-    canChat: boolean;
-    canExportDiagnostics: boolean;
-  };
-  sections: Array<{
-    id:
-      | "workspace"
-      | "provider"
-      | "index"
-      | "skills"
-      | "claude_project"
-      | "chat"
-      | "diagnostics";
-    label: string;
-    status: ReleaseReadinessStatus;
-    message: string;
-    actionLabel?: string;
-    actionHref?: string;
-  }>;
-}
+export type ReleaseReadinessReport = ReleaseReadinessResponse;
 
 export interface SaveSettingsFieldsInput {
   vars: Record<string, string>;

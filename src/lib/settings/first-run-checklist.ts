@@ -1,4 +1,5 @@
 import { countLabel } from "@/lib/format/count-label";
+import type { RagIndexStateStatus } from "@/lib/rag/index-state-types";
 
 export type FirstRunChecklistStatus = "ready" | "needs_action" | "optional";
 export type FirstRunChecklistAction =
@@ -17,7 +18,7 @@ export interface FirstRunDoctorCheck {
 }
 
 interface FirstRunIndexState {
-  status: "ready" | "stale" | "missing" | "rebuilding" | "failed";
+  status: RagIndexStateStatus;
   skillCount: number;
   staleReason?: string | null;
   error?: string | null;
