@@ -20,11 +20,11 @@ function getHostname(hostHeader: string | null): string {
   return host.split(":")[0] ?? "";
 }
 
-export function isLocalRequest(request: Request): boolean {
+function isLocalRequest(request: Request): boolean {
   return LOCAL_HOSTS.has(getHostname(request.headers.get("host")));
 }
 
-export function getLocalCliBlockReason(request: Request): string | null {
+function getLocalCliBlockReason(request: Request): string | null {
   if (process.env.VERCEL) {
     return "Local Claude CLI is disabled on hosted deployments.";
   }
@@ -49,7 +49,7 @@ export function forbidNonLocalCliRequest(request: Request): Response | null {
   return blockReason ? forbiddenJson(blockReason) : null;
 }
 
-export function getLocalDeviceBlockReason(request: Request): string | null {
+function getLocalDeviceBlockReason(request: Request): string | null {
   if (process.env.VERCEL) {
     return "Local device access is disabled on hosted deployments.";
   }

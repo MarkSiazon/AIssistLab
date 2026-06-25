@@ -14,7 +14,7 @@ function ellipsizeAbsolutePath(value: string): string {
     : `...${separator}`;
 }
 
-export function sanitizeReleaseText(value: string): string {
+function sanitizeReleaseText(value: string): string {
   const sanitized = value
     .replace(/[A-Z]:\\Users\\[^\\\s"]+/gi, "~")
     .replace(/[A-Z]:\/Users\/[^/\s"]+/gi, "~")

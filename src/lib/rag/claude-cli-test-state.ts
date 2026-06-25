@@ -70,7 +70,7 @@ export function normalizeClaudeCliTestResult(
   };
 }
 
-export async function readPersistedClaudeCliTest(): Promise<ClaudeCliTestResult | null> {
+async function readPersistedClaudeCliTest(): Promise<ClaudeCliTestResult | null> {
   try {
     const raw = await fs.readFile(getClaudeCliTestStatePath(), "utf-8");
     const parsed = normalizeClaudeCliTestResult(JSON.parse(raw));

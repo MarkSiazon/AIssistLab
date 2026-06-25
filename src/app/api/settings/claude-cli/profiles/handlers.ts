@@ -39,7 +39,7 @@ function publicProfile(
   };
 }
 
-export function toClaudeCliProfilesResponse(
+function toClaudeCliProfilesResponse(
   status: ClaudeCliStatus,
   sanitize: typeof sanitizeCliOutput = sanitizeCliOutput,
 ) {
