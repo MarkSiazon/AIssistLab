@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
 import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import { getFreePort, pushLog } from "./lib/server-utils.mjs";
 import {
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
@@ -307,27 +307,6 @@ async function restoreOptionalText(filePath, content) {
     return;
   }
   await writeFile(filePath, content, "utf8");
-}
-
-async function getFreePort() {
-  return await new Promise((resolve, reject) => {
-    const server = createServer();
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      const port = typeof address === "object" && address ? address.port : 0;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-function pushLog(lines, chunk) {
-  const text = chunk.toString();
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    lines.push(line);
-  }
-  while (lines.length > 80) lines.shift();
 }
 
 async function waitForServer(baseUrl, child, logs) {

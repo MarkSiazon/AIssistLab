@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
-import { createServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import { fetchWithTimeout, getFreePort, pushLog } from "./lib/server-utils.mjs";
 
 const routeNavigationTimeoutMs = 60000;
 const routes = ["/settings", "/skills", "/chat", "/export", "/editor/guided"];
@@ -49,40 +49,6 @@ function assert(condition, message) {
 function isRiskyButtonLabel(label) {
   if (!label) return true;
   return riskyButtonLabelPatterns.some((pattern) => pattern.test(label));
-}
-
-function pushLog(lines, chunk) {
-  const text = chunk.toString();
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    lines.push(line);
-  }
-  while (lines.length > 80) lines.shift();
-}
-
-async function getFreePort() {
-  return await new Promise((resolve, reject) => {
-    const server = createServer();
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      const port = typeof address === "object" && address ? address.port : 0;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-async function fetchWithTimeout(url, init = {}, timeoutMs = 30000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function waitForServer(baseUrl, child, logs) {

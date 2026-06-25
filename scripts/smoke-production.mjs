@@ -1,9 +1,13 @@
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
+import {
+  fetchWithTimeout,
+  getFreePort,
+  pushLog,
+} from "./lib/server-utils.mjs";
 import {
   assertVisibleButtonsAccountedFor,
   assertVisibleLinksAccountedFor,
@@ -128,27 +132,6 @@ async function exists(filePath) {
   return Boolean(await stat(filePath).catch(() => null));
 }
 
-async function getFreePort() {
-  return await new Promise((resolve, reject) => {
-    const server = createServer();
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      const port = typeof address === "object" && address ? address.port : 0;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-function pushLog(lines, chunk) {
-  const text = chunk.toString();
-  for (const line of text.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    lines.push(line);
-  }
-  while (lines.length > 80) lines.shift();
-}
-
 async function waitForServer(baseUrl, child, logs) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < 90000) {
@@ -166,19 +149,6 @@ async function waitForServer(baseUrl, child, logs) {
     await delay(1000);
   }
   throw new Error(`Timed out waiting for Next production server.\n${logs.join("\n")}`);
-}
-
-async function fetchWithTimeout(url, init = {}, timeoutMs = 30000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function expectForbiddenLocalApi(

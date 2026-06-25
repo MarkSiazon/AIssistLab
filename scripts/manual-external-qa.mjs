@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
+import { fetchWithTimeout, getFreePort } from "./lib/server-utils.mjs";
 import { assertNoUnsafe } from "./smoke/privacy-assertions.mjs";
 
 const endpointPaths = [
@@ -113,31 +113,6 @@ export function manualQaUsage() {
     "  --base-url <url>     Read sanitized status from an already-running local app.",
     "  --start-server       Start a temporary localhost dev server, print the report, then stop it.",
   ].join("\n");
-}
-
-async function getFreePort() {
-  return await new Promise((resolve, reject) => {
-    const server = createServer();
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
-      const address = server.address();
-      const port = typeof address === "object" && address ? address.port : 0;
-      server.close(() => resolve(port));
-    });
-  });
-}
-
-async function fetchWithTimeout(url, init = {}, timeoutMs = 2000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function nextDevCommand(port) {
