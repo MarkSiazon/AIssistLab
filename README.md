@@ -190,7 +190,7 @@ Full release gate:
 npm run verify:release
 ```
 
-This runs project cleanup dry-run preflight, the test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, diff whitespace check, untracked text hygiene scan, and privacy scan.
+This runs project cleanup dry-run preflight, the test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 Useful focused commands:
 
@@ -223,6 +223,8 @@ npm run cleanup:project
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by text source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
 `npm run audit:docs` fails when README or `docs/**/*.md` links point at missing repo-local files or missing markdown headings. External research/source links are intentionally ignored by this local integrity check.
+
+`npm run audit:dead-code` uses Knip with repo-specific Next route, script, and test entry points. It fails on unused files, unused dependencies, unlisted dependencies/binaries, or unresolved imports while ignoring the expected Windows system helpers used by local smoke and cleanup scripts.
 
 ## Documentation
 

@@ -94,7 +94,7 @@ Run the repo-native automated release gate:
 npm run verify:release
 ```
 
-It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, documentation link audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
+It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -108,6 +108,7 @@ npm run smoke:buttons
 npm run smoke:production
 npm run audit:assets
 npm run audit:docs
+npm run audit:dead-code
 git diff --check
 ```
 
@@ -120,6 +121,8 @@ git diff --check
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
 `npm run audit:docs` fails when README or docs markdown files link to missing repo-local files or missing markdown headings. It ignores external source/research links.
+
+`npm run audit:dead-code` uses Knip with repo-specific Next route, script, and test entry points. It fails on unused files, unused dependencies, unlisted dependencies/binaries, or unresolved imports while allowing the expected Windows system helpers used by local smoke and cleanup scripts.
 
 If a local smoke/dev run is interrupted and memory or ports look stale, inspect project-owned process trees first:
 
@@ -196,9 +199,10 @@ Capture this evidence for a V1 release-candidate checkpoint:
 7. API smoke for `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
 8. Asset usage audit result.
 9. Documentation link audit result.
-10. Untracked text hygiene scan result.
-11. Privacy scan result.
-12. Local artifact cleanup dry-run result.
+10. Dead-code audit result.
+11. Untracked text hygiene scan result.
+12. Privacy scan result.
+13. Local artifact cleanup dry-run result.
 13. Manual external QA result for native folder picker, Open Login, and account-backed chat.
 14. Final diff review.
 

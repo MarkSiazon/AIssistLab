@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/app/**/{layout,page,route,not-found,error,loading,template}.{ts,tsx}",
+    "src/**/*.test.{ts,tsx}",
+    "scripts/*.mjs",
+    "scripts/**/*.test.mjs"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.mjs",
+    "*.{js,mjs,ts}"
+  ],
+  "ignoreBinaries": ["cmd.exe", "powershell.exe", "rg", "taskkill"],
+  "ignoreDependencies": ["tsx"]
+}

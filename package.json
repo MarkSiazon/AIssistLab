@@ -19,6 +19,7 @@
     "cleanup:artifacts:dry-run": "node scripts/cleanup-local-artifacts.mjs --dry-run",
     "audit:assets": "node scripts/audit-assets.mjs",
     "audit:docs": "node scripts/audit-docs.mjs",
+    "audit:dead-code": "knip --include files,dependencies,unlisted,binaries,unresolved --no-progress",
     "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "@types/react-dom": "^18",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.9",
+    "knip": "^6.20.0",
     "playwright": "^1.61.0",
     "postcss": "8.5.15",
     "tailwindcss": "^3.4.1",

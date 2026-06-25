@@ -12,6 +12,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, and `tsconfig.tsbuildinfo` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
 - Dependency cleanup removed unused class-name helper packages and the redundant external `natural` type package; `natural` now uses its bundled type declarations.
+- Dead-code auditing is now part of the release gate through repo-specific Knip entry points for Next routes, scripts, and tests.
 - The release runbook now points at `npm test` as the authoritative test sweep instead of keeping a partial duplicate manual loop.
 - Skill body size limits are now centralized in `src/lib/skills/limits.ts` so client editor validation and server/import validation use the same value, and unused guided-draft storage-key re-exports were removed.
 - Documentation link auditing is now part of the release gate so README and docs markdown cannot drift to missing local files or headings.
@@ -54,6 +55,7 @@ Covered by that gate:
 - project cleanup dry-run postflight
 - asset usage audit
 - documentation link audit
+- dead-code audit
 - diff whitespace check
 - untracked text hygiene scan
 - privacy scan
@@ -82,6 +84,7 @@ npx --yes tsx src/lib/chat/client-api.test.ts
 npx --yes tsx src/lib/ui/settings-path-display.test.ts
 npx --yes tsx scripts/lib/repo-files.test.mjs
 npx --yes tsx scripts/audit-docs.test.mjs
+npx --yes tsx scripts/audit-dead-code.test.mjs
 npx --yes tsx scripts/manual-external-qa.test.mjs
 npx --yes tsx scripts/audit-assets.test.mjs
 npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
@@ -90,6 +93,7 @@ npx --yes tsx scripts/smoke/smoke-buttons-static.test.mjs
 npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
 npm run audit:assets
 npm run audit:docs
+npm run audit:dead-code
 npm run cleanup:artifacts:dry-run
 npm run cleanup:project:dry-run
 npm audit --audit-level=moderate

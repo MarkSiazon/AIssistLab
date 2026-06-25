@@ -6,6 +6,7 @@ import {
 } from "./smoke/privacy-assertions.mjs";
 
 const privacyScanPaths = [
+  "knip.json",
   "package.json",
   "package-lock.json",
   "scripts",
@@ -19,6 +20,7 @@ const privacyScanPaths = [
 const textFilePattern =
   /\.(?:css|html|js|json|jsx|md|mjs|ts|tsx|txt|yml|yaml)$/i;
 const releaseScanRoots = [
+  "knip.json",
   "package.json",
   "package-lock.json",
   "scripts/",
@@ -106,6 +108,7 @@ runCommand("Project process cleanup dry run postflight", "npm", [
 ]);
 runCommand("Asset usage audit", "npm", ["run", "audit:assets"]);
 runCommand("Documentation link audit", "npm", ["run", "audit:docs"]);
+runCommand("Dead code audit", "npm", ["run", "audit:dead-code"]);
 runCommand("Diff whitespace check", "git", ["diff", "--check"]);
 runUntrackedTextHygieneScan();
 runPrivacyScan();
