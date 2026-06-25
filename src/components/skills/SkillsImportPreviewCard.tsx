@@ -1,5 +1,6 @@
 import { SkillsImportDuplicateControls } from "@/components/skills/SkillsImportDuplicateControls";
 import { SkillsImportPreviewRow } from "@/components/skills/SkillsImportPreviewRow";
+import { countLabel } from "@/lib/format/count-label";
 import type { SkillsImportPreviewSummary } from "@/lib/ui/skills-import-preview-summary";
 import type { SkillsImportActionState } from "@/lib/ui/skills-import-action";
 import {
@@ -58,8 +59,7 @@ export function SkillsImportPreviewCard({
         <div className="skills-import-preview-copy">
           <div className="skills-section-kicker">Preview result</div>
           <div className="skills-import-preview-title">
-            {preview.skills.length} skill
-            {preview.skills.length === 1 ? "" : "s"} found
+            {countLabel(preview.skills.length, "skill")} found
           </div>
         </div>
         <span

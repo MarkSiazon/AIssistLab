@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import {
   createDoctorCheck as check,
   type SetupDoctorCheck,
@@ -15,7 +16,7 @@ export function buildRagIndexChecks(
             "rag",
             "RAG index",
             "ok",
-            `${input.index.skillCount} skill${input.index.skillCount === 1 ? "" : "s"} and ${input.index.chunkCount} chunk${input.index.chunkCount === 1 ? "" : "s"} indexed.`,
+            `${countLabel(input.index.skillCount, "skill")} and ${countLabel(input.index.chunkCount, "chunk")} indexed.`,
             [],
           )
         : check(

@@ -41,6 +41,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Settings path existence checks now share one expanded-path state helper between the API route and Setup Doctor.
 - Local and production smoke runners now share app-route and chat-readiness link coverage definitions through the smoke DOM coverage helper.
 - Smoke and manual QA scripts now share local server helpers for free-port allocation, bounded process logs, and fetch timeouts.
+- Remaining hand-rolled singular/plural status strings now use the shared `countLabel` formatter across Setup Doctor, First Run Checklist, Claude project inventory, index summaries, chat, skill editor, and import preview UI.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification

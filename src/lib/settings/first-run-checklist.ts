@@ -1,3 +1,5 @@
+import { countLabel } from "@/lib/format/count-label";
+
 export type FirstRunChecklistStatus = "ready" | "needs_action" | "optional";
 export type FirstRunChecklistAction =
   | "save-settings"
@@ -141,7 +143,7 @@ export function buildFirstRunChecklist(
       label: "Index rebuilt",
       status: indexReady ? "ready" : "needs_action",
       hint: indexReady
-        ? `${input.indexStatus?.skillCount ?? 0} skill${input.indexStatus?.skillCount === 1 ? "" : "s"} indexed.`
+        ? `${countLabel(input.indexStatus?.skillCount ?? 0, "skill")} indexed.`
         : input.indexStatus?.error ??
           input.indexStatus?.staleReason ??
           "Rebuild the index after workspace and skill paths are valid.",

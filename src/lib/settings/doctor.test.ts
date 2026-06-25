@@ -117,6 +117,12 @@ function build(overrides: Partial<SetupDoctorInput> = {}) {
 }
 
 {
+  const report = build();
+  const check = report.checks.find((item) => item.id === "rag-index");
+  assert.equal(check?.message, "3 skills and 7 chunks indexed.");
+}
+
+{
   const report = build({
     paths: { workspaceRoot: { exists: false, isDirectory: false } },
   });

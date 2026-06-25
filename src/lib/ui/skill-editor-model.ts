@@ -1,3 +1,4 @@
+import { countLabel } from "@/lib/format/count-label";
 import { MAX_SKILL_BODY_BYTES } from "@/lib/skills/limits";
 
 export interface SkillValidationError {
@@ -144,7 +145,7 @@ export function buildSkillEditorSetupChecks({
       ready: !hasError("tags"),
       message:
         parsedTags.length > 0
-          ? `${parsedTags.length} tag${parsedTags.length === 1 ? "" : "s"} added.`
+          ? `${countLabel(parsedTags.length, "tag")} added.`
           : "Optional, but useful for discovery.",
     },
   ];

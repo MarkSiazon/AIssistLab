@@ -1,3 +1,5 @@
+import { countLabel } from "@/lib/format/count-label";
+
 export type SkillsImportSourceType = "folder" | "archive" | "github";
 export type SkillsImportDuplicateStrategy = "skip" | "overwrite" | "rename";
 
@@ -51,7 +53,7 @@ export function hiddenPreviewSkillMessage(input: {
 }): string | null {
   const hiddenCount = Math.max(0, input.totalCount - input.visibleCount);
   if (hiddenCount === 0) return null;
-  return `${hiddenCount} more skill${hiddenCount === 1 ? "" : "s"} included in this import.`;
+  return `${countLabel(hiddenCount, "more skill", "more skills")} included in this import.`;
 }
 
 export function hiddenPreviewWarningMessage(input: {
@@ -60,5 +62,5 @@ export function hiddenPreviewWarningMessage(input: {
 }): string | null {
   const hiddenCount = Math.max(0, input.totalCount - input.visibleCount);
   if (hiddenCount === 0) return null;
-  return `${hiddenCount} more preview warning${hiddenCount === 1 ? "" : "s"} hidden.`;
+  return `${countLabel(hiddenCount, "more preview warning")} hidden.`;
 }

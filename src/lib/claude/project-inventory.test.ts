@@ -100,6 +100,18 @@ async function main() {
       true,
     );
     assert.equal(
+      result.checks.find((item) => item.id === "claude-skills")?.message,
+      "2 Claude project skills detected.",
+    );
+    assert.equal(
+      result.checks.find((item) => item.id === "claude-hooks")?.message,
+      "2 Claude hook categories detected.",
+    );
+    assert.equal(
+      result.checks.find((item) => item.id === "claude-plugins")?.message,
+      "1 Claude plugin-style folder detected.",
+    );
+    assert.equal(
       result.checks.some(
         (item) => item.id === "claude-project-settings" && item.status === "ok",
       ),

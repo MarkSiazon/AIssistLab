@@ -1,6 +1,7 @@
 import path from "node:path";
 import { expandUserPath } from "@/lib/claude/discovery";
 import { directoryExists, readJsonObject } from "@/lib/claude/project-inventory-fs";
+import { countLabel } from "@/lib/format/count-label";
 import {
   collectHookCategories,
   countDirectMarkdownFiles,
@@ -70,7 +71,7 @@ function buildInventoryChecks({
       "claude-skills",
       "ok",
       "Project skills",
-      `${counts.skills} Claude project skill${counts.skills === 1 ? "" : "s"} detected.`,
+      `${countLabel(counts.skills, "Claude project skill")} detected.`,
       counts.skills === 0
         ? "Add reusable project skills under .claude/skills when needed."
         : undefined,
@@ -79,21 +80,21 @@ function buildInventoryChecks({
       "claude-commands",
       "ok",
       "Project commands",
-      `${counts.commands} Claude project command${counts.commands === 1 ? "" : "s"} detected.`,
+      `${countLabel(counts.commands, "Claude project command")} detected.`,
     ),
     agents.invalid > 0
       ? check(
           "claude-agents",
           "warn",
           "Project agents",
-          `${agents.invalid} Claude project agent${agents.invalid === 1 ? "" : "s"} missing required name or description frontmatter.`,
+          `${countLabel(agents.invalid, "Claude project agent")} missing required name or description frontmatter.`,
           "Add name and description frontmatter to every project agent markdown file.",
         )
       : check(
           "claude-agents",
           "ok",
           "Project agents",
-          `${counts.agents} Claude project agent${counts.agents === 1 ? "" : "s"} detected.`,
+          `${countLabel(counts.agents, "Claude project agent")} detected.`,
         ),
     mcpMalformed
       ? check(
@@ -107,7 +108,7 @@ function buildInventoryChecks({
           "claude-mcp",
           "ok",
           "Project MCP",
-          `${counts.mcpServers} project MCP server${counts.mcpServers === 1 ? "" : "s"} configured.`,
+          `${countLabel(counts.mcpServers, "project MCP server")} configured.`,
         ),
     sharedSettingsMalformed
       ? check(
@@ -145,13 +146,13 @@ function buildInventoryChecks({
       "claude-hooks",
       "ok",
       "Project hooks",
-      `${counts.hooks} Claude hook categor${counts.hooks === 1 ? "y" : "ies"} detected.`,
+      `${countLabel(counts.hooks, "Claude hook category", "Claude hook categories")} detected.`,
     ),
     check(
       "claude-plugins",
       "ok",
       "Project plugins",
-      `${counts.pluginFolders} Claude plugin-style folder${counts.pluginFolders === 1 ? "" : "s"} detected.`,
+      `${countLabel(counts.pluginFolders, "Claude plugin-style folder")} detected.`,
     ),
   ];
 }

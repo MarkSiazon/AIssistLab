@@ -78,6 +78,7 @@ async function main() {
   assert.equal(apiReady.workspace.status, "ready");
   assert.equal(apiReady.skills.status, "ready");
   assert.equal(apiReady.index.status, "ready");
+  assert.equal(apiReady.index.hint, "2 skills indexed.");
   assert.equal(apiReady.provider.status, "ready");
   assert.equal(apiReady.auth.status, "ready");
   assert.equal(apiReady.chat.status, "ready");
@@ -112,6 +113,7 @@ async function main() {
     }),
   );
   assert.equal(apiWithCliProblem.provider.status, "ready");
+  assert.equal(apiWithCliProblem.index.hint, "1 skill indexed.");
 
   const missingWorkspace = byId(
     buildFirstRunChecklist({

@@ -7,6 +7,7 @@ import type { Message } from "@/types/chat";
 import { EmptyStateIcon } from "@/components/ui/EmptyStateIcon";
 import { ChatReadinessPanel } from "@/components/chat/ChatReadinessPanel";
 import { CitationBadge } from "@/components/chat/CitationBadge";
+import { countLabel } from "@/lib/format/count-label";
 import type { ChatEmptyAction } from "@/lib/ui/chat-empty-state";
 import type {
   ChatEmptyStateCopy,
@@ -118,7 +119,7 @@ export function ChatMessageList({
           : message.error
             ? "Failed"
             : citationCount > 0
-              ? `${citationCount} source${citationCount === 1 ? "" : "s"}`
+              ? countLabel(citationCount, "source")
               : message.role === "assistant"
                 ? "No sources"
                 : "Sent";

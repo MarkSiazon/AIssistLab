@@ -1,3 +1,5 @@
+import { countLabel } from "@/lib/format/count-label";
+
 export type RagIndexStatus = "ready" | "stale" | "missing" | "rebuilding" | "failed";
 
 export interface RagIndexStatusSnapshot {
@@ -23,12 +25,8 @@ export function indexStatusColor(status: RagIndexStatus): string {
 }
 
 export function indexStatusCountsLabel(indexStatus: RagIndexStatusSnapshot): string {
-  const skillText = `${indexStatus.skillCount} skill${
-    indexStatus.skillCount === 1 ? "" : "s"
-  }`;
-  const chunkText = `${indexStatus.chunkCount} chunk${
-    indexStatus.chunkCount === 1 ? "" : "s"
-  }`;
+  const skillText = countLabel(indexStatus.skillCount, "skill");
+  const chunkText = countLabel(indexStatus.chunkCount, "chunk");
   const prefix =
     indexStatus.status === "stale"
       ? "Last index: "
