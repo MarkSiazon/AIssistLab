@@ -8,7 +8,7 @@ This handoff summarizes the current pushed workspace state for review. The paren
 
 Branch: `dev`
 
-Remote state: `origin/dev` now points at the parent wrapper workspace (`34d75a3`, `chore(workspace): harden claude cli v1 handoff`). `origin/main` points at the V1 app-root history (`1bb997a`, `chore(qa): stabilize v1 release smoke coverage`), which is mirrored locally by the nested `rag-interface/` repository. The two branches intentionally have different root layouts: parent `dev` contains `.claude/`, `CLAUDE.md`, parent docs, and wrapper verification scripts, while `main` contains the app-root files that are also present locally under `rag-interface/`.
+Remote state: `origin/dev` contains the parent wrapper workspace. `origin/main` contains the V1 app-root history, which is mirrored locally by the nested `rag-interface/` repository. The two branches intentionally have different root layouts: parent `dev` contains `.claude/`, `CLAUDE.md`, parent docs, and wrapper verification scripts, while `main` contains the app-root files that are also present locally under `rag-interface/`.
 
 Parent changes:
 
@@ -49,9 +49,10 @@ Nested changes:
 
 - `scripts/smoke-local.mjs` no longer expects `Restore smoke-imported-skill` to remain visible after restore succeeds.
 - `scripts/smoke-local.mjs` uses rendered text instead of network idle for retryable route loads, retries first-run navigation actions with URL assertions, scopes Manual QA evidence clicks to one row, and retries the settings import file chooser handshake.
+- `scripts/smoke-local.mjs` uses bounded retryable download waits for Export browser downloads and explicitly accounts for the Claude panel refresh control after Settings reloads.
 - `scripts/smoke/smoke-local-static.test.mjs` keeps coverage that restore is clicked while preventing the stale visible-button expectation from returning.
 - `src/lib/settings/client-api.test.ts` covers sanitized field/raw settings save failures deterministically after removing the flaky browser-level save-failure mock from the broad local smoke.
-- `scripts/smoke-buttons.mjs` waits for expected route text to become visible before collecting safe buttons.
+- `scripts/smoke-buttons.mjs` retries expected route text readiness before collecting safe buttons and before per-button route reloads.
 - `scripts/smoke/smoke-buttons-static.test.mjs` guards the wait-based safe-button route readiness check.
 - `scripts/cleanup-project-processes.mjs` detects safe-button smoke and manual QA helper process trees, with regression coverage in `scripts/cleanup-project-processes.test.mjs`.
 - `src/hooks/useSkillEditorTabs.ts` focuses the selected editor tab immediately and keeps the request-animation-frame focus fallback.
@@ -92,9 +93,10 @@ Use `rag-interface/docs/v1-release/manual-external-qa.md` and the Settings Manua
 
 ## Commit Notes
 
-Pushed commits:
+Recent pushed implementation commits include:
 
-1. Parent `dev`: `34d75a3 chore(workspace): harden claude cli v1 handoff`.
-2. Nested app `main`: `1bb997a chore(qa): stabilize v1 release smoke coverage`.
+1. Parent `dev`: `6e457ba fix(workspace): refresh pushed handoff state`.
+2. Parent `dev`: `34d75a3 chore(workspace): harden claude cli v1 handoff`.
+3. Nested app `main`: `1bb997a chore(qa): stabilize v1 release smoke coverage`.
 
 Do not pull or merge parent remote branches without first deciding whether this checkout should remain a parent wrapper with nested `rag-interface/` or move to the app-root `origin/main` layout. The local parent skill still writes PR bodies to `docs/pr-description.md`; keep that behavior if the wrapper layout is preserved.
