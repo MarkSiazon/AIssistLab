@@ -20,6 +20,7 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Release and QA helper script internals now keep git spawning, markdown line mapping, and manual-check definitions private to their modules.
 - Claude discovery path home resolution, RAG index chunking, and import-name normalization helpers are now private to their owning modules.
 - Local-access block-reason helpers, Claude profile response shaping, CLI test-state reads, and release text sanitization are now private implementation details.
+- Chat readiness label and tone helpers are now private behind the exported panel model builders.
 - Push state: use `git status --short --branch` as the source of truth for whether this evidence snapshot has been committed and pushed.
 
 ## Automated Verification
@@ -68,6 +69,7 @@ npx --yes tsx src/app/api/settings/local-guards.test.ts
 npx --yes tsx src/app/api/settings/claude-cli/profiles/route.test.ts
 npx --yes tsx src/lib/rag/claude-cli-test-state.test.ts
 npx --yes tsx src/lib/release/readiness-report.test.ts
+npx --yes tsx src/lib/ui/chat-readiness-panel.test.ts
 npx --yes tsx scripts/lib/repo-files.test.mjs
 npx --yes tsx scripts/audit-docs.test.mjs
 npx --yes tsx scripts/manual-external-qa.test.mjs

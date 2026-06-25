@@ -51,15 +51,15 @@ export interface ChatEmptyStateCopy {
   message: string;
 }
 
-export function providerLabel(provider: ChatProvider): string {
+function providerLabel(provider: ChatProvider): string {
   return provider === "claude_code_cli" ? "Claude CLI" : "Anthropic API";
 }
 
-export function runtimeLabel(source: ChatRuntimeSource): string {
+function runtimeLabel(source: ChatRuntimeSource): string {
   return source === "runtime" ? "Applied session" : "Process env";
 }
 
-export function indexLabel(status: ChatIndexStatus): string {
+function indexLabel(status: ChatIndexStatus): string {
   if (status === "ready") return "Index ready";
   if (status === "stale") return "Index stale";
   if (status === "missing") return "Index missing";
@@ -73,19 +73,19 @@ export function indexSuggestedAction(status: ChatReadinessStatus["index"]): stri
   return "Rebuild Index before relying on citations.";
 }
 
-export function smokeTestLabel(status: ChatReadinessStatus): string {
+function smokeTestLabel(status: ChatReadinessStatus): string {
   if (status.provider !== "claude_code_cli") return "CLI test not needed";
   if (!status.lastCliSmokeTest?.checked) return "CLI test not run";
   if (status.lastCliSmokeTest.ok) return "CLI test passed";
   return "CLI test failed";
 }
 
-export function authReadinessLabel(status: ChatReadinessStatus): string {
+function authReadinessLabel(status: ChatReadinessStatus): string {
   if (status.provider === "claude_code_cli") return smokeTestLabel(status);
   return status.canSend ? "API key ready" : "API key needs setup";
 }
 
-export function releaseReadinessLabel(
+function releaseReadinessLabel(
   status: ReleaseReadinessStatus | undefined,
 ): string {
   if (status === "ready") return "Release ready";
@@ -94,7 +94,7 @@ export function releaseReadinessLabel(
   return "Release not checked";
 }
 
-export function chatStatusTone(
+function chatStatusTone(
   status: ChatReadinessStatus,
   label: string,
 ): ChatStatusTone {
