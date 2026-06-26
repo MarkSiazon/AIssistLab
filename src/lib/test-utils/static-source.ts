@@ -1,6 +1,11 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
+export type AppRouterRouteFile = {
+  filePath: string;
+  route: string;
+};
+
 export function collectFilesByExtension(
   directory: string,
   extension: string,
@@ -39,6 +44,46 @@ export function collectSourceFiles(
       ),
     ),
   );
+}
+
+export function collectAppRouterRouteFiles(
+  root: string,
+  extension: string,
+  routeFileName: string,
+): AppRouterRouteFile[] {
+  const routeFileSegment = path.join(routeFileName);
+  return collectSourceFiles([root], [extension])
+    .filter((file) => path.basename(file) === routeFileSegment)
+    .map((filePath) => ({
+      filePath,
+      route: appRouterRouteFromFile(filePath, routeFileName),
+    }));
+}
+
+export function appRouterRouteFromFile(
+  filePath: string,
+  routeFileName: string,
+): string {
+  const relativePath = relativeSourcePath(filePath).split(path.sep).join("/");
+  if (relativePath !== "src/app" && !relativePath.startsWith("src/app/")) {
+    throw new Error(`${relativePath} is not under src/app`);
+  }
+
+  const appRelativePath = relativePath.replace(/^src\/app\/?/, "");
+  const routeFilePath = routeFileName.split(path.sep).join("/");
+
+  if (appRelativePath === routeFilePath) return "/";
+
+  const suffix = `/${routeFilePath}`;
+  if (!appRelativePath.endsWith(suffix)) {
+    throw new Error(
+      `${relativeSourcePath(filePath)} is not a ${routeFileName} route file`,
+    );
+  }
+
+  return `/${appRelativePath
+    .slice(0, -suffix.length)
+    .replace(/\[([^/\]]+)\]/g, ":$1")}`;
 }
 
 export function lineNumber(source: string, index: number): number {

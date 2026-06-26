@@ -7,12 +7,19 @@ import {
   apiSkillRestoreRoute,
   apiSkillRoute,
 } from "@/lib/routes/api-routes";
+import { collectAppRouterRouteFiles } from "@/lib/test-utils/static-source";
 import { isSafeInternalActionHref } from "@/lib/ui/internal-action-href";
 
 assert.equal(API_ROUTES.chat, "/api/chat");
 assert.equal(API_ROUTES.chatStatus, "/api/chat/status");
 assert.equal(API_ROUTES.index, "/api/index");
 assert.equal(API_ROUTES.settings, "/api/settings");
+assert.equal(API_ROUTES.settingsBrowseSearch, "/api/settings/browse/search");
+assert.equal(
+  API_ROUTES.settingsClaudeCliProfiles,
+  "/api/settings/claude-cli/profiles",
+);
+assert.equal(API_ROUTES.settingsClaudeProject, "/api/settings/claude-project");
 assert.equal(API_ROUTES.skills, "/api/skills");
 assert.equal(API_ROUTES.skillsTemplates, "/api/skills/templates");
 assert.equal(API_ROUTES.releaseReadiness, "/api/release/readiness");
@@ -46,6 +53,28 @@ const params = new URLSearchParams({ field: "WORKSPACE_ROOT" });
 assert.equal(
   apiSettingsNativeFolderRoute(params),
   "/api/settings/native-folder?field=WORKSPACE_ROOT",
+);
+
+const handlerRoutes = collectAppRouterRouteFiles(
+  "src/app/api",
+  ".ts",
+  "route.ts",
+).map((file) => file.route);
+
+const staticHandlerRoutes = handlerRoutes
+  .filter((route) => !route.includes(":"))
+  .sort();
+
+assert.deepEqual(
+  Object.values(API_ROUTES).slice().sort(),
+  staticHandlerRoutes,
+  "API_ROUTES should list every static src/app/api route handler",
+);
+
+assert.deepEqual(
+  handlerRoutes.filter((route) => route.includes(":")).sort(),
+  ["/api/skills/:skillName", "/api/skills/:skillName/restore"],
+  "Dynamic API route handlers should stay covered by encoded route builders",
 );
 
 console.log("API route constants tests passed");

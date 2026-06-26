@@ -49,9 +49,11 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Shared app route constants now back repeated model-layer Settings, Chat, Export, Skills, and Guided Builder action links while preserving existing public action helper outputs.
 - Rendered app links, primary navigation, root redirect, route-changing hooks, Settings readiness action context, and route announcements now use the same shared app route constants instead of repeating first-party route literals in components.
 - Client-side API endpoints now resolve through shared API route constants and encoded route builders for chat, settings, skills, export, guided-builder, editor, path picker, and index workflows instead of repeating `/api/...` literals across UI clients.
+- App route constants now have manifest coverage against the static navigable `src/app/**/page.tsx` tree, with dynamic editor pages explicitly covered by encoded route builders.
+- API route constants now have manifest coverage against the static `src/app/api/**/route.ts` tree, with dynamic skill routes explicitly covered by encoded route builders.
 - Static route-literal ownership coverage now prevents first-party app and API route strings from drifting back into non-route source modules.
 - Static route and navigation safety tests now share route-expression recognition through a test utility instead of rebuilding matching logic per test.
-- Static source test helpers now include shared multi-root, multi-extension collection so route ownership and navigation safety scans use the same deterministic file discovery.
+- Static source test helpers now include shared multi-root, multi-extension collection plus Next app-router route-file collection and normalization so route ownership, route manifests, and navigation safety scans use the same deterministic file discovery.
 - Manual external QA instructions were consolidated into the release-candidate runbook so the device/account checklist has one maintained source of truth.
 - Count/plural label formatting is centralized in `src/lib/format/count-label.ts`, replacing duplicate local helpers across release readiness, guided checklist, setup doctor, skill editor save states, skill quality summaries, skills import, and skills readiness models.
 - Settings client API requests now use the shared API client directly; the redundant settings-only request wrapper was removed while preserving injected fetchers for tests.
@@ -68,6 +70,9 @@ This note records the latest local, privacy-safe verification state for the V1 r
 - Settings RAG index panels now use canonical index-status label and color helpers directly instead of maintaining settings pass-through wrappers.
 - Sidebar, Settings, Skills, and Chat index messages now share canonical index-status copy and count formatting helpers.
 - README verification guidance now points to the release-candidate runbook for detailed command, focused debugging, cleanup, and manual QA coverage instead of duplicating the maintained runbook text.
+- README documentation links now avoid repeating the manual external QA anchor already called out in the Verification section.
+- README Local API guidance now points to the maintained API route constants and handler tree instead of duplicating a partial endpoint list.
+- V1 current feature inventory API lists now include the current Claude project, skill restore, template, and import endpoints present in the route handler tree, with route-derived test coverage to catch future drift.
 - Smoke runners now share the server-readiness polling helper while preserving runner-specific probe paths and error labels.
 - Local and production smoke runners now share browser issue tracking while preserving expected-issue and production-guard filtering behavior.
 - Local and production chat smokes now share mock chat stream construction while preserving runner-specific preview, text, and error payloads.
@@ -96,6 +101,8 @@ The latest full release gate passed:
 ```bash
 npm run verify:release
 ```
+
+That run still reported manual external QA as required for native OS picker visibility, visible Open Login, and real account-backed chat.
 
 An earlier nested full release gate also passed through the parent workspace verifier:
 
@@ -132,6 +139,11 @@ npm run smoke:local
 npm run build
 npm run smoke:production
 npm run qa:manual:auto
+npx --yes tsx src/lib/routes/api-inventory-docs.test.ts
+npx --yes tsx src/lib/routes/api-routes.test.ts
+npx --yes tsx src/lib/routes/app-routes.test.ts
+npx --yes tsx src/lib/routes/route-literal-ownership.test.ts
+npx --yes tsx src/lib/test-utils/static-source.test.ts
 npx --yes tsx scripts/cleanup-local-artifacts.test.mjs
 npx --yes tsx scripts/smoke/smoke-local-static.test.mjs
 npx --yes tsx scripts/smoke/browser-init.test.mjs
@@ -195,5 +207,7 @@ These remain manual or account-backed by design:
 1. Native OS folder picker visibility.
 2. Visible Claude login launch.
 3. Real account-backed chat/auth.
+
+Latest `npm run qa:manual:auto` refreshed sanitized local status and confirmed the helper still leaves those three checks as manual-only. It reported release readiness and chat readiness blocked by local configuration, runtime provider `anthropic_api`, and discovered Claude profiles without exposing account identifiers, raw auth paths, or secrets.
 
 Use the [release-candidate runbook manual QA section](release-candidate-runbook.md#manual-external-qa) for the device/account checks.

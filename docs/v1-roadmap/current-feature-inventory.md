@@ -38,6 +38,7 @@ Current Settings APIs:
 - `POST /api/settings/claude-cli`
 - `GET /api/settings/claude-cli/profiles`
 - `POST /api/settings/claude-cli/test`
+- `GET /api/settings/claude-project`
 - `GET /api/release/readiness`
 
 ## Claude Provider Modes
@@ -113,9 +114,13 @@ Current APIs:
 - `GET /api/skills/:skillName`
 - `PUT /api/skills/:skillName`
 - `DELETE /api/skills/:skillName`
+- `POST /api/skills/:skillName/restore`
+- `GET /api/skills/templates`
 - `GET /api/skills/validation`
 - `POST /api/skills/guided/feedback`
 - `POST /api/skills/guided/draft`
+- `POST /api/skills/import/preview`
+- `POST /api/skills/import/apply`
 
 ## Chat
 

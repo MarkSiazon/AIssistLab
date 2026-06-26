@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { APP_ROUTES, appSkillEditorRoute } from "@/lib/routes/app-routes";
+import { collectAppRouterRouteFiles } from "@/lib/test-utils/static-source";
 import { isSafeInternalActionHref } from "@/lib/ui/internal-action-href";
 
 assert.equal(APP_ROUTES.chat, "/chat");
@@ -22,6 +23,31 @@ assert.equal(
 assert.equal(
   appSkillEditorRoute("../escape"),
   "/editor/..%2Fescape",
+);
+const pageRoutes = collectAppRouterRouteFiles(
+  "src/app",
+  ".tsx",
+  "page.tsx",
+).map((file) => file.route);
+
+const staticPageRoutes = pageRoutes
+  .filter((route) => route !== "/" && !route.includes(":"))
+  .sort();
+
+const staticAppRouteBases = Array.from(
+  new Set(Object.values(APP_ROUTES).map((route) => route.split("?")[0])),
+).sort();
+
+assert.deepEqual(
+  staticAppRouteBases,
+  staticPageRoutes,
+  "APP_ROUTES should list every static navigable src/app page route",
+);
+
+assert.deepEqual(
+  pageRoutes.filter((route) => route.includes(":")).sort(),
+  ["/editor/:skillName"],
+  "Dynamic app page routes should stay covered by encoded route builders",
 );
 
 console.log("App route constants tests passed");

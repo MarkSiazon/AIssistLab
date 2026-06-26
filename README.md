@@ -144,23 +144,9 @@ Public UI labels stay generic, such as `Default profile`, `Profile 1`, and `Manu
 
 ## Local APIs
 
-Important local-only endpoints:
+The maintained local API route sources are [`src/lib/routes/api-routes.ts`](src/lib/routes/api-routes.ts) for client-side route constants and `src/app/api/**/route.ts` for handlers. Route tests assert that static API constants stay aligned with the handler tree.
 
-```text
-GET  /api/index
-POST /api/index
-GET  /api/chat/status
-POST /api/chat
-GET  /api/release/readiness
-GET  /api/settings/doctor
-GET  /api/settings/claude-cli/profiles
-POST /api/settings/claude-cli/test
-GET  /api/settings/claude-project
-GET  /api/skills/validation
-GET  /api/export/zip?diagnostics=true
-```
-
-Endpoints that expose local readiness, filesystem, env, or provider state are guarded for localhost usage.
+The local APIs cover index rebuild/status, chat/status, release readiness, settings/runtime/doctor/path browsing, Claude CLI profile/test/project checks, skill lifecycle/import/guided-builder flows, validation, export, and diagnostics ZIP generation. Endpoints that expose local readiness, filesystem, env, or provider state are guarded for localhost usage.
 
 ## Diagnostics Export
 
@@ -205,7 +191,6 @@ Manual QA remains device/account-owned: native folder picker visibility, Claude 
 - [Docs index](docs/README.md)
 - [V1 release notes](docs/v1-release/release-notes.md)
 - [V1 release-candidate runbook](docs/v1-release/release-candidate-runbook.md)
-- [Manual external QA](docs/v1-release/release-candidate-runbook.md#manual-external-qa)
 - [V1 roadmap](docs/v1-roadmap/roadmap.md)
 - [V1 specs](docs/v1-spec/README.md)
 - [V2 provider-agnostic roadmap](docs/v2-roadmap/roadmap.md)

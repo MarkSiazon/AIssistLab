@@ -8,6 +8,8 @@ import {
 import os from "node:os";
 import path from "node:path";
 import {
+  appRouterRouteFromFile,
+  collectAppRouterRouteFiles,
   collectFilesByExtension,
   collectSourceFiles,
   lineNumber,
@@ -24,6 +26,7 @@ try {
   writeFileSync(path.join(tempRoot, "nested", "b.test.tsx"), "b", "utf-8");
   writeFileSync(path.join(tempRoot, "nested", "ignored.ts"), "ignored", "utf-8");
   writeFileSync(path.join(tempRoot, "nested", "c.test.ts"), "c", "utf-8");
+  writeFileSync(path.join(tempRoot, "homepage.tsx"), "home", "utf-8");
 
   assert.deepEqual(
     collectFilesByExtension(tempRoot, ".tsx").map((file) =>
@@ -31,6 +34,7 @@ try {
     ),
     [
       "a.test.tsx",
+      "homepage.tsx",
       path.join("nested", "b.test.tsx"),
       "z.test.tsx",
     ],
@@ -45,10 +49,22 @@ try {
       path.join("nested", "c.test.ts"),
       path.join("nested", "ignored.ts"),
       "a.test.tsx",
+      "homepage.tsx",
       path.join("nested", "b.test.tsx"),
       "z.test.tsx",
     ],
     "multi-extension source collection should preserve root and extension order",
+  );
+
+  assert.deepEqual(
+    collectAppRouterRouteFiles(tempRoot, ".tsx", "page.tsx"),
+    [],
+    "app route collection should ignore files that do not match the route filename",
+  );
+  assert.throws(
+    () => appRouterRouteFromFile(path.join(tempRoot, "nested", "page.tsx"), "page.tsx"),
+    /not under src\/app/,
+    "app route normalization should reject files outside the Next app tree",
   );
 
   const nestedFile = path.join(tempRoot, "nested", "b.test.tsx");
@@ -59,6 +75,43 @@ try {
   );
   assert.equal(lineNumber("one\ntwo\r\nthree", 0), 1);
   assert.equal(lineNumber("one\ntwo\r\nthree", "one\ntwo\r\n".length), 3);
+  assert.equal(
+    appRouterRouteFromFile(
+      path.join(process.cwd(), "src", "app", "page.tsx"),
+      "page.tsx",
+    ),
+    "/",
+  );
+  assert.equal(
+    appRouterRouteFromFile(
+      path.join(
+        process.cwd(),
+        "src",
+        "app",
+        "editor",
+        "[skillName]",
+        "page.tsx",
+      ),
+      "page.tsx",
+    ),
+    "/editor/:skillName",
+  );
+  assert.equal(
+    appRouterRouteFromFile(
+      path.join(
+        process.cwd(),
+        "src",
+        "app",
+        "api",
+        "skills",
+        "[skillName]",
+        "restore",
+        "route.ts",
+      ),
+      "route.ts",
+    ),
+    "/api/skills/:skillName/restore",
+  );
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }
