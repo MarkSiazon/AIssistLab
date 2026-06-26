@@ -1519,6 +1519,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
   await expectText(page, "Stores only status and timestamp in this browser.");
   await setManualQaItemStatus(manualQaItem, "Mark Passed", "Passed");
   await setManualQaItemStatus(manualQaItem, "Needs Fix", "Needs fix");
+  await setManualQaItemStatus(manualQaItem, "Mark Skipped", "Skipped");
   await setManualQaItemStatus(manualQaItem, "Reset", "Pending");
   await expectText(page, "First Run Checklist");
   await expectText(page, "Setup Doctor");
@@ -1689,6 +1690,7 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "Open Chat",
     "Mark Passed",
     "Needs Fix",
+    "Mark Skipped",
     "Reset",
   ]);
   await markVisibleButtonsCoveredByLabel(page, ["Refresh"], { requireAll: false });
@@ -3318,6 +3320,7 @@ async function runSettingsManualQaBlockedStorageSmoke(browser, browserIssues, ba
     await clickButton(page, "Dismiss", { timeout: 1000 }).catch(() => undefined);
     await setManualQaItemStatus(manualQaItem, "Mark Passed", "Passed");
     await setManualQaItemStatus(manualQaItem, "Needs Fix", "Needs fix");
+    await setManualQaItemStatus(manualQaItem, "Mark Skipped", "Skipped");
     await setManualQaItemStatus(manualQaItem, "Reset", "Pending");
     await assertInteractiveControlsAccessible(
       page,

@@ -177,7 +177,7 @@ Both helpers print only sanitized status plus the manual checklist, including wh
 
 The helper may print `blocked` readiness when the local provider is intentionally incomplete, such as API mode without an API key or Claude CLI mode without a usable account. Treat that as a sanitized setup snapshot, not as a failed automated smoke run. Finish the account-backed chat check only after you intentionally configure a provider you are allowed to use.
 
-After running the manual checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted. It does not store prompts, screenshots, account names, profile paths, or auth output.
+After running or intentionally deferring the manual checks, open Settings and mark the results in `Manual QA Evidence`. Use `Passed` only for checks you actually performed, `Needs fix` for observed failures, `Skipped` for checks intentionally not verified, and `Pending` for checks that still need a decision. `Skipped` is not a pass. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted. It does not store prompts, screenshots, account names, profile paths, or auth output.
 
 ### Native Folder Picker
 
@@ -234,7 +234,7 @@ Pass criteria:
 
 Evidence to record:
 
-- Use the Settings `Manual QA Evidence` panel for session-local pass/fail state.
+- Use the Settings `Manual QA Evidence` panel for session-local pass/fail/skipped state.
 - Keep external notes sanitized.
 - Record only the local browser, date, checked buttons, and generic failure category when separate issue notes are needed.
 

@@ -623,6 +623,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],
@@ -655,6 +656,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],
@@ -669,6 +671,8 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     await expectText(page, "Passed");
     await clickButton(manualQaPanel, "Needs Fix");
     await expectText(page, "Needs fix");
+    await clickButton(manualQaPanel, "Mark Skipped");
+    await expectText(page, "Skipped");
     await clickButton(manualQaPanel, "Reset");
     await expectText(page, "Pending");
 
@@ -730,6 +734,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],

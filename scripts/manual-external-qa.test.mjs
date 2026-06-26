@@ -112,6 +112,7 @@ assert.match(report, /Manual because: A real chat sends a user-owned prompt/);
 assert.match(report, /Release readiness: needs_action \(82\/100\)/);
 assert.match(report, /Chat readiness: blocked \(Provider auth needs attention\.\)/);
 assert.match(report, /Settings Manual QA Evidence panel/);
+assert.match(report, /Skipped means intentionally not verified; it is not a pass\./);
 assert.match(report, /does not write evidence files/);
 assert.doesNotMatch(report, /C:\\Users|sk-ant-|oauth\.json|Bearer /i);
 

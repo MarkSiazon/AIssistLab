@@ -51,6 +51,7 @@ assert.deepEqual(summarizeManualExternalQaEvidence(failedEvidence), {
   total: 3,
   passed: 1,
   failed: 1,
+  skipped: 0,
   pending: 1,
   statusLabel: "Needs review",
 });
@@ -63,6 +64,15 @@ const resetEvidence = updateManualExternalQaEvidence(
 );
 assert.equal(resetEvidence[1]?.status, "pending");
 assert.equal(resetEvidence[1]?.checkedAt, null);
+
+const skippedEvidence = updateManualExternalQaEvidence(
+  resetEvidence,
+  "account-backed-chat",
+  "skipped",
+  "2026-06-22T04:07:00.000Z",
+);
+assert.equal(skippedEvidence[2]?.status, "skipped");
+assert.equal(skippedEvidence[2]?.checkedAt, "2026-06-22T04:07:00.000Z");
 
 const serialized = serializeManualExternalQaEvidence(failedEvidence);
 assert.deepEqual(
@@ -79,7 +89,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(parseManualExternalQaEvidence("not json"), initialEvidence);
-assert.equal(
+assert.deepEqual(
   parseManualExternalQaEvidence(
     JSON.stringify([
       {
@@ -92,9 +102,14 @@ assert.equal(
         status: "passed",
         checkedAt: checkedAt,
       },
+      {
+        id: "account-backed-chat",
+        status: "skipped",
+        checkedAt,
+      },
     ]),
-  )[0]?.status,
-  "pending",
+  ).map((item) => item.status),
+  ["pending", "pending", "skipped"],
 );
 
 assert.deepEqual(
@@ -109,14 +124,28 @@ assert.deepEqual(
     total: 3,
     passed: 3,
     failed: 0,
+    skipped: 0,
     pending: 0,
     statusLabel: "Complete",
+  },
+);
+
+assert.deepEqual(
+  summarizeManualExternalQaEvidence(skippedEvidence),
+  {
+    total: 3,
+    passed: 1,
+    failed: 0,
+    skipped: 1,
+    pending: 1,
+    statusLabel: "Not complete",
   },
 );
 
 assert.equal(manualExternalQaStatusLabel("pending"), "Pending");
 assert.equal(manualExternalQaStatusLabel("passed"), "Passed");
 assert.equal(manualExternalQaStatusLabel("failed"), "Needs fix");
+assert.equal(manualExternalQaStatusLabel("skipped"), "Skipped");
 assert.equal(
   manualExternalQaStatusClassName("pending"),
   "settings-manual-qa-status-pending",
@@ -128,6 +157,10 @@ assert.equal(
 assert.equal(
   manualExternalQaStatusClassName("failed"),
   "settings-manual-qa-status-failed",
+);
+assert.equal(
+  manualExternalQaStatusClassName("skipped"),
+  "settings-manual-qa-status-skipped",
 );
 assert.equal(formatManualExternalQaTimestamp(null), "Not recorded");
 assert.equal(formatManualExternalQaTimestamp("not a date"), "Not recorded");

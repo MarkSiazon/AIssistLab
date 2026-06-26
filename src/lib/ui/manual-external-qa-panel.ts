@@ -1,4 +1,4 @@
-export type ManualExternalQaStatus = "pending" | "passed" | "failed";
+export type ManualExternalQaStatus = "pending" | "passed" | "failed" | "skipped";
 
 export interface ManualExternalQaItemDefinition {
   id: string;
@@ -30,6 +30,7 @@ export interface ManualExternalQaSummary {
   total: number;
   passed: number;
   failed: number;
+  skipped: number;
   pending: number;
   statusLabel: "Complete" | "Needs review" | "Not complete";
 }
@@ -71,7 +72,9 @@ export function createManualExternalQaEvidence(
   return manualExternalQaItems.map((definition) => {
     const saved = byId.get(definition.id);
     const status =
-      saved?.status === "passed" || saved?.status === "failed"
+      saved?.status === "passed" ||
+      saved?.status === "failed" ||
+      saved?.status === "skipped"
         ? saved.status
         : "pending";
     const checkedAt =
@@ -109,15 +112,21 @@ export function summarizeManualExternalQaEvidence(
 ): ManualExternalQaSummary {
   const passed = evidence.filter((item) => item.status === "passed").length;
   const failed = evidence.filter((item) => item.status === "failed").length;
+  const skipped = evidence.filter((item) => item.status === "skipped").length;
   const pending = evidence.filter((item) => item.status === "pending").length;
 
   return {
     total: evidence.length,
     passed,
     failed,
+    skipped,
     pending,
     statusLabel:
-      failed > 0 ? "Needs review" : pending > 0 ? "Not complete" : "Complete",
+      failed > 0
+        ? "Needs review"
+        : passed === evidence.length
+          ? "Complete"
+          : "Not complete",
   };
 }
 
@@ -178,9 +187,10 @@ export function writeManualExternalQaEvidenceToStorage(
 
 export function manualExternalQaStatusLabel(
   status: ManualExternalQaStatus,
-): "Pending" | "Passed" | "Needs fix" {
+): "Pending" | "Passed" | "Needs fix" | "Skipped" {
   if (status === "passed") return "Passed";
   if (status === "failed") return "Needs fix";
+  if (status === "skipped") return "Skipped";
   return "Pending";
 }
 
@@ -189,6 +199,7 @@ export function manualExternalQaStatusClassName(
 ): string {
   if (status === "passed") return "settings-manual-qa-status-passed";
   if (status === "failed") return "settings-manual-qa-status-failed";
+  if (status === "skipped") return "settings-manual-qa-status-skipped";
   return "settings-manual-qa-status-pending";
 }
 

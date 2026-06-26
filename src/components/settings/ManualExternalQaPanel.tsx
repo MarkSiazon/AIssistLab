@@ -96,6 +96,7 @@ export function ManualExternalQaPanel() {
         <span>{summary.statusLabel}</span>
         <span>{`${summary.pending} pending`}</span>
         <span>{`${summary.failed} need fix`}</span>
+        <span>{`${summary.skipped} skipped`}</span>
       </div>
 
       <div className="settings-manual-qa-list" role="list">
@@ -137,6 +138,13 @@ export function ManualExternalQaPanel() {
                 onClick={() => updateStatus(item.id, "failed")}
               >
                 Needs Fix
+              </button>
+              <button
+                type="button"
+                className="ui-button ui-button-secondary settings-manual-qa-action text-xs"
+                onClick={() => updateStatus(item.id, "skipped")}
+              >
+                Mark Skipped
               </button>
               <button
                 type="button"
