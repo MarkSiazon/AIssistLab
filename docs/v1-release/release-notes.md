@@ -2,6 +2,18 @@
 
 Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code skills, checking setup readiness, and asking RAG-backed questions over a configured skills workspace.
 
+## 2026-06-26 Post-Push Checkpoint
+
+- Checkpoint commit `f3c4ffb` added route-manifest guard coverage for app pages, API handlers, API route constants, and the V1 API inventory documentation.
+- GitHub Pages build/deploy completed successfully for `f3c4ffb`; the live Pages URL returns HTTP 200 at `https://marksiazon.github.io/AIssistLab/`.
+- GitHub Pages currently publishes the repository documentation through Jekyll, not the Next.js application runtime. A real hosted app deployment still needs a Next-compatible target for server routes.
+- Local deployment readiness passed after the checkpoint: `npm run verify:release` completed successfully, including tests, lint, production build, local and production smoke checks, button smoke, audits, cleanup dry-runs, and privacy scan.
+- Dependency maintenance refreshed in-range lockfile versions for `@types/node` 20.19.43, `@types/react` 18.3.31, `knip` 6.21.0, `playwright` 1.61.1, and `swr` 2.4.2.
+- `npm audit --audit-level=high` reports zero vulnerabilities after the dependency refresh.
+- Bundle inspection found about 1.35 MB under `.next/static` and 3.45 MB under `.next/server`; the larger `.next` files are webpack caches, not deployable app bundles.
+- Major dependency lines remain intentionally deferred for a separate migration pass, including Anthropic SDK 0.106, Archiver 8, React 19, Tailwind 4, TypeScript 6, and ESLint 10.
+- Manual external QA remains device/account-owned: native folder picker visibility, visible Claude Open Login, and real account-backed chat/auth can be skipped for automated-only status, but should be run before claiming a fully manually verified release.
+
 ## What V1 Supports
 
 - Local Settings for workspace paths, skills directory paths, provider selection, Claude CLI profile selection, and runtime-applied provider changes.
