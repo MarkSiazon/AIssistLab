@@ -59,6 +59,11 @@
   min-height: 0;
 }
 
+.skill-editor-edit-panel[hidden],
+.skill-editor-preview-scroll[hidden] {
+  display: none;
+}
+
 .skill-editor-body {
   background: var(--bg);
   border: 0;

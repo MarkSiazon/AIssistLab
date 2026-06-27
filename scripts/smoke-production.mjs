@@ -373,7 +373,33 @@ async function runProductionEditorInteractionSmoke(page, baseUrl) {
     const previewTab = page.getByRole("tab", { name: "Mobile Preview" }).first();
     await previewTab.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
     await previewTab.click();
-    await expectText(page, "Use this skill when the user needs reliable reference material.");
+    const editPanel = page.locator("#skill-editor-edit-panel").first();
+    const previewPanel = page.locator("#skill-editor-preview-panel").first();
+    await previewPanel.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    await previewPanel
+      .getByText("Use this skill when the user needs reliable reference material.", {
+        exact: false,
+      })
+      .first()
+      .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    const editorTabState = await editPanel.evaluate((element) => {
+      const textarea = element.querySelector("textarea");
+      return {
+        editHidden: element.hasAttribute("hidden"),
+        editDisplay: getComputedStyle(element).display,
+        textareaClientRects: textarea?.getClientRects().length ?? 0,
+      };
+    });
+    assert(
+      editorTabState.editHidden && editorTabState.editDisplay === "none",
+      `Editor preview tab did not hide the edit panel: ${JSON.stringify(
+        editorTabState,
+      )}`,
+    );
+    assert(
+      editorTabState.textareaClientRects === 0,
+      "Editor preview tab should remove the edit textarea from layout",
+    );
     await assertCurrentRouteState(page, "production editor preview tab");
     await assertCurrentRouteDomCoverage(page, "production editor preview tab", {
       buttonLabels: [
