@@ -169,6 +169,14 @@
   background: var(--yellow);
 }
 
+.settings-manual-qa-status-skipped {
+  color: var(--text-muted);
+}
+
+.settings-manual-qa-status-skipped span {
+  background: var(--text-muted);
+}
+
 .settings-manual-qa-copy {
   color: var(--text-muted);
   display: flex;

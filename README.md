@@ -10,7 +10,7 @@ V1 is intentionally local-first. It is designed for a developer running a privat
 
 - Manage Claude Code skill Markdown files from a configured local workspace.
 - Build a local TF-IDF RAG index over skills and ask grounded questions in Chat.
-- Use Anthropic API mode by default, or optional localhost-only Claude Code CLI mode.
+- Use localhost-guarded Anthropic API mode by default, or optional localhost-only Claude Code CLI mode.
 - Discover local Claude CLI/profile state without exposing account identifiers.
 - Diagnose setup readiness through Settings, Setup Doctor, First Run Checklist, V1 Release Readiness, and Manual QA Evidence.
 - Validate skill quality, import skill bundles safely, and export sanitized diagnostics.
@@ -94,7 +94,7 @@ Then use Settings:
 
 ### Anthropic API
 
-API mode is the default because it is predictable and deployable:
+API mode is the default local provider because it is predictable for desktop use:
 
 ```env
 LLM_PROVIDER=anthropic_api
@@ -102,6 +102,7 @@ ANTHROPIC_API_KEY=<your key>
 ```
 
 The app never prints API keys in status, readiness, diagnostics, or UI output.
+`POST /api/chat` remains a device-local API in API mode: hosted, production, and non-local requests are rejected before request-body processing.
 
 ### Claude Code CLI
 
@@ -146,7 +147,7 @@ Public UI labels stay generic, such as `Default profile`, `Profile 1`, and `Manu
 
 The maintained local API route sources are [`src/lib/routes/api-routes.ts`](src/lib/routes/api-routes.ts) for client-side route constants and `src/app/api/**/route.ts` for handlers. Route tests assert that static API constants stay aligned with the handler tree.
 
-The local APIs cover index rebuild/status, chat/status, release readiness, settings/runtime/doctor/path browsing, Claude CLI profile/test/project checks, skill lifecycle/import/guided-builder flows, validation, export, and diagnostics ZIP generation. Endpoints that expose local readiness, filesystem, env, or provider state are guarded for localhost usage.
+The local APIs cover index rebuild/status, chat/status, release readiness, settings/runtime/doctor/path browsing, Claude CLI profile/test/project checks, skill lifecycle/import/guided-builder flows, validation, export, and diagnostics ZIP generation. Endpoints that expose local readiness, filesystem, env, provider state, index content, or generated chat context are guarded for localhost usage.
 
 ## Diagnostics Export
 

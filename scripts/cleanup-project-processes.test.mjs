@@ -115,6 +115,32 @@ assert.equal(
 assert.equal(
   isProjectOwnedProcess(
     processInfo(
+      23,
+      1,
+      "node C:/Repos/Skill Workshop/rag-interface-backup/scripts/smoke-buttons.mjs",
+    ),
+    repoRoot,
+  ),
+  false,
+  "Similarly prefixed repo paths must not be detected as repo-owned",
+);
+
+assert.equal(
+  isProjectOwnedProcess(
+    processInfo(
+      24,
+      1,
+      "node C:/Repos/Skill Workshop/archive-C:/Repos/Skill Workshop/rag-interface/scripts/smoke-buttons.mjs",
+    ),
+    repoRoot,
+  ),
+  false,
+  "Repo root text embedded inside a longer token must not be detected as repo-owned",
+);
+
+assert.equal(
+  isProjectOwnedProcess(
+    processInfo(
       17,
       1,
       "node C:/Repos/Skill Workshop/rag-interface/scripts/manual-external-qa.mjs --start-server",
@@ -261,6 +287,33 @@ assert.deepEqual(
   wrapperPlan.descendantPids,
   [51, 52, 53, 54],
   "Wrapper cleanup should report the whole descendant process tree",
+);
+
+const siblingRepoPlan = buildProjectCleanupPlan(
+  [
+    processInfo(
+      80,
+      1,
+      '"C:/Windows/System32/cmd.exe" /c npm run smoke:buttons',
+      "cmd.exe",
+    ),
+    processInfo(
+      81,
+      80,
+      "node C:/Repos/Skill Workshop/rag-interface-backup/scripts/smoke-buttons.mjs",
+    ),
+    processInfo(82, 81, "node sibling-worker.js"),
+  ],
+  {
+    currentPid: 999,
+    repoRoot,
+  },
+);
+
+assert.deepEqual(
+  siblingRepoPlan.stopPids,
+  [],
+  "Cleanup must not stop similarly prefixed sibling repository helpers",
 );
 
 const emptyPlan = buildProjectCleanupPlan(

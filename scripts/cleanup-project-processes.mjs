@@ -37,6 +37,41 @@ function normalizePathLike(value) {
     .toLowerCase();
 }
 
+function normalizeRootPath(value) {
+  const normalized = normalizePathLike(value);
+  return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+function isPathStartBoundary(value, index) {
+  if (index === 0) return true;
+  return /[\s"'=]/.test(value[index - 1] ?? "");
+}
+
+function isPathEndBoundary(value, index) {
+  const character = value[index];
+  return character === undefined || /[\s"'/?#]/.test(character);
+}
+
+function commandContainsRepoRootPath(commandLine, root) {
+  const normalizedCommand = normalizePathLike(commandLine);
+  const normalizedRoot = normalizeRootPath(root);
+
+  let index = normalizedCommand.indexOf(normalizedRoot);
+  while (index !== -1) {
+    const endIndex = index + normalizedRoot.length;
+    if (
+      isPathStartBoundary(normalizedCommand, index) &&
+      isPathEndBoundary(normalizedCommand, endIndex)
+    ) {
+      return true;
+    }
+
+    index = normalizedCommand.indexOf(normalizedRoot, index + 1);
+  }
+
+  return false;
+}
+
 function normalizeProcess(raw) {
   return {
     pid: Number(raw.ProcessId ?? raw.processId ?? raw.pid),
@@ -57,8 +92,7 @@ export function isProjectOwnedProcess(processInfo, root = repoRoot) {
   if (!commandLine || isInfrastructureProcess(commandLine)) return false;
 
   const normalizedCommand = normalizePathLike(commandLine);
-  const normalizedRoot = normalizePathLike(root);
-  if (!normalizedCommand.includes(normalizedRoot)) return false;
+  if (!commandContainsRepoRootPath(commandLine, root)) return false;
 
   return PROJECT_COMMAND_PATTERNS.some((pattern) => pattern.test(normalizedCommand));
 }

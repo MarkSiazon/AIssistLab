@@ -130,6 +130,12 @@ assert.match(
 
 assert.match(
   source,
+  /setManualQaItemStatus\(manualQaItem,\s*"Mark Skipped",\s*"Skipped"\)/,
+  "settings smoke must verify manual QA evidence can be marked skipped",
+);
+
+assert.match(
+  source,
   /setManualQaItemStatus\(manualQaItem,\s*"Reset",\s*"Pending"\)/,
   "settings smoke must verify manual QA evidence can be reset",
 );

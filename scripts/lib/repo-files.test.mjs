@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   filterExistingFiles,
   listedFilesFromGitOutput,
@@ -6,7 +8,11 @@ import {
   repoRoot,
 } from "./repo-files.mjs";
 
-assert.ok(repoRoot.endsWith("rag-interface"), "repo root should resolve to the app root");
+assert.equal(
+  normalizeRepoPath(path.relative(repoRoot, fileURLToPath(import.meta.url))),
+  "scripts/lib/repo-files.test.mjs",
+  "repo root should resolve to the app root",
+);
 
 assert.equal(
   normalizeRepoPath("src\\app\\favicon.ico"),

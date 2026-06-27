@@ -117,7 +117,7 @@ git diff --check
 
 `npm run smoke:buttons` clicks low-risk visible buttons across the main local routes and fails on console errors or real failed requests. It intentionally skips auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
 
-`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
+`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards including `POST /api/chat`, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
@@ -177,7 +177,7 @@ Both helpers print only sanitized status plus the manual checklist, including wh
 
 The helper may print `blocked` readiness when the local provider is intentionally incomplete, such as API mode without an API key or Claude CLI mode without a usable account. Treat that as a sanitized setup snapshot, not as a failed automated smoke run. Finish the account-backed chat check only after you intentionally configure a provider you are allowed to use.
 
-After running the manual checks, open Settings and mark the results in `Manual QA Evidence`. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted. It does not store prompts, screenshots, account names, profile paths, or auth output.
+After running or intentionally deferring the manual checks, open Settings and mark the results in `Manual QA Evidence`. Use `Passed` only for checks you actually performed, `Needs fix` for observed failures, `Skipped` for checks intentionally not verified, and `Pending` for checks that still need a decision. `Skipped` is not a pass. The panel stores only status and timestamp in browser storage when available, or in memory for the current page if storage is restricted. It does not store prompts, screenshots, account names, profile paths, or auth output.
 
 ### Native Folder Picker
 
@@ -234,7 +234,7 @@ Pass criteria:
 
 Evidence to record:
 
-- Use the Settings `Manual QA Evidence` panel for session-local pass/fail state.
+- Use the Settings `Manual QA Evidence` panel for session-local pass/fail/skipped state.
 - Keep external notes sanitized.
 - Record only the local browser, date, checked buttons, and generic failure category when separate issue notes are needed.
 
@@ -266,7 +266,7 @@ Capture this evidence for a V1 release-candidate checkpoint:
 4. Build result.
 5. Dependency audit result.
 6. Browser smoke for `/settings`, `/skills`, `/chat`, `/export`, and `/editor/guided`.
-7. API smoke for `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
+7. API smoke for `/api/chat`, `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
 8. Asset usage audit result.
 9. Documentation link audit result.
 10. Dead-code audit result.

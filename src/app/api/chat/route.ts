@@ -1,7 +1,10 @@
 import { retrieve } from "@/lib/rag/retriever";
 import { generateStream } from "@/lib/rag/generator";
 import { ensureFreshIndex } from "@/lib/store";
-import { forbidNonLocalCliRequest } from "@/lib/local-access";
+import {
+  forbidNonLocalCliRequest,
+  withLocalDeviceGuard,
+} from "@/lib/local-access";
 import { getLlmProvider, isClaudeCliEnabled } from "@/lib/rag/llm-config";
 import { readJsonObject } from "@/lib/api/request";
 import { jsonError } from "@/lib/api/responses";
@@ -39,7 +42,7 @@ async function readChatQuery(request: Request): Promise<string | null> {
   return trimmed ? trimmed : null;
 }
 
-export async function POST(request: Request) {
+export const POST = withLocalDeviceGuard(async (request: Request) => {
   const query = await readChatQuery(request);
 
   if (!query) {
@@ -115,4 +118,4 @@ export async function POST(request: Request) {
       "X-Accel-Buffering": "no",
     },
   });
-}
+});

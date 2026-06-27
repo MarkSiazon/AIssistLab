@@ -200,6 +200,12 @@ npm run cleanup:artifacts:dry-run
 npm run cleanup:artifacts
 ```
 
+## Dev V1 Polish Evidence
+
+Latest `dev` polish added an explicit `Skipped` Manual QA Evidence state for checks intentionally not verified. `Skipped` is tracked separately from `Passed`, does not make the summary complete, and is covered by local helper tests plus local and production smoke interactions.
+
+The post-change `npm run verify:release` passed. The run covered all 159 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+
 ## Manual Gates Still Required
 
 These remain manual or account-backed by design:

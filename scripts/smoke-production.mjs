@@ -63,6 +63,15 @@ const productionCliBlockMessage =
   "Local Claude CLI is disabled in production mode.";
 
 const localDeviceApiChecks = [
+  [
+    "/api/chat",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        query: "Summarize release readiness from the indexed demo skills.",
+      }),
+    },
+  ],
   ["/api/chat/status"],
   ["/api/index"],
   ["/api/index", { method: "POST" }],
@@ -143,36 +152,6 @@ async function expectForbiddenLocalApi(
   assertNoUnsafe(`${pathName} forbidden response`, serializedPayload);
 }
 
-async function expectProductionChatMissingKeyStream(baseUrl) {
-  const response = await fetchWithTimeout(`${baseUrl}/api/chat`, {
-    method: "POST",
-    headers: {
-      host: new URL(baseUrl).host,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      query: "Summarize release readiness from the indexed demo skills.",
-    }),
-  });
-  const body = await response.text();
-
-  assert(response.status === 200, "/api/chat should return a stream response.");
-  assert(
-    /text\/event-stream/.test(response.headers.get("content-type") ?? ""),
-    "/api/chat should return an event-stream content type.",
-  );
-  assert(/"type":"citations"/.test(body), "/api/chat should stream citations first.");
-  assert(
-    /"type":"error"/.test(body),
-    "/api/chat should stream a provider error when API key is missing.",
-  );
-  assert(
-    /ANTHROPIC_API_KEY is not configured/.test(body),
-    "/api/chat missing-key error should be actionable.",
-  );
-  assertNoUnsafe("/api/chat missing-key stream", body);
-}
-
 async function runApiSmoke(baseUrl) {
   for (const [pathName, init] of localDeviceApiChecks) {
     await expectForbiddenLocalApi(
@@ -191,8 +170,6 @@ async function runApiSmoke(baseUrl) {
       init,
     );
   }
-
-  await expectProductionChatMissingKeyStream(baseUrl);
 }
 
 async function expectPageText(page, baseUrl, route, text, viewportLabel = "desktop") {
@@ -396,7 +373,33 @@ async function runProductionEditorInteractionSmoke(page, baseUrl) {
     const previewTab = page.getByRole("tab", { name: "Mobile Preview" }).first();
     await previewTab.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
     await previewTab.click();
-    await expectText(page, "Use this skill when the user needs reliable reference material.");
+    const editPanel = page.locator("#skill-editor-edit-panel").first();
+    const previewPanel = page.locator("#skill-editor-preview-panel").first();
+    await previewPanel.waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    await previewPanel
+      .getByText("Use this skill when the user needs reliable reference material.", {
+        exact: false,
+      })
+      .first()
+      .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+    const editorTabState = await editPanel.evaluate((element) => {
+      const textarea = element.querySelector("textarea");
+      return {
+        editHidden: element.hasAttribute("hidden"),
+        editDisplay: getComputedStyle(element).display,
+        textareaClientRects: textarea?.getClientRects().length ?? 0,
+      };
+    });
+    assert(
+      editorTabState.editHidden && editorTabState.editDisplay === "none",
+      `Editor preview tab did not hide the edit panel: ${JSON.stringify(
+        editorTabState,
+      )}`,
+    );
+    assert(
+      editorTabState.textareaClientRects === 0,
+      "Editor preview tab should remove the edit textarea from layout",
+    );
     await assertCurrentRouteState(page, "production editor preview tab");
     await assertCurrentRouteDomCoverage(page, "production editor preview tab", {
       buttonLabels: [
@@ -623,6 +626,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],
@@ -655,6 +659,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],
@@ -669,6 +674,8 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     await expectText(page, "Passed");
     await clickButton(manualQaPanel, "Needs Fix");
     await expectText(page, "Needs fix");
+    await clickButton(manualQaPanel, "Mark Skipped");
+    await expectText(page, "Skipped");
     await clickButton(manualQaPanel, "Reset");
     await expectText(page, "Pending");
 
@@ -730,6 +737,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
         "Open Chat",
         "Mark Passed",
         "Needs Fix",
+        "Mark Skipped",
         "Reset",
       ],
       linkLabels: ["Open Settings"],
