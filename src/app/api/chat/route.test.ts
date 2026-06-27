@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   jsonRequest,
   localRequest,
+  nonLocalRequest,
   testRequest,
 } from "@/lib/test-utils/request";
 import { withTempWorkspace } from "@/lib/test-utils/workspace";
@@ -32,6 +33,18 @@ async function main() {
       ],
     },
     async () => {
+      const blocked = await route.POST(
+        nonLocalRequest("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: "{",
+        }),
+      );
+      assert.equal(blocked.status, 403);
+      assert.deepEqual(await blocked.json(), {
+        error: "Local device access can only be used from localhost.",
+      });
+
       const invalidJson = await route.POST(
         testRequest("/api/chat", {
           method: "POST",
@@ -96,7 +109,7 @@ async function main() {
       );
       assert.equal(blocked.status, 403);
       assert.deepEqual(await blocked.json(), {
-        error: "Local Claude CLI can only be used from localhost.",
+        error: "Local device access can only be used from localhost.",
       });
     },
   );

@@ -91,6 +91,7 @@ for (const route of [
 }
 
 for (const endpoint of [
+  "/api/chat",
   "/api/chat/status",
   "/api/index",
   "/api/release/readiness",
@@ -123,6 +124,12 @@ for (const endpoint of [
 
 assert.match(
   productionSmokeSource,
+  /\[\s*"\/api\/chat",\s*\{\s*method:\s*"POST"/,
+  "production smoke must verify POST /api/chat is production-guarded",
+);
+
+assert.match(
+  productionSmokeSource,
   /Local device access is disabled in production mode\./,
   "production smoke must verify device-local APIs return the production guard message",
 );
@@ -131,24 +138,6 @@ assert.match(
   productionSmokeSource,
   /Local Claude CLI is disabled in production mode\./,
   "production smoke must verify Claude CLI APIs return the production guard message",
-);
-
-assert.match(
-  productionSmokeSource,
-  /expectProductionChatMissingKeyStream/,
-  "production smoke must verify production /api/chat missing-key stream behavior",
-);
-
-assert.match(
-  productionSmokeSource,
-  /ANTHROPIC_API_KEY is not configured/,
-  "production smoke must verify the missing API key chat error is actionable",
-);
-
-assert.match(
-  productionSmokeSource,
-  /\/api\/chat missing-key stream/,
-  "production smoke must run privacy assertions on the missing-key chat stream",
 );
 
 assert.match(

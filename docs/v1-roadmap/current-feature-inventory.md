@@ -45,13 +45,14 @@ Current Settings APIs:
 
 Current provider modes:
 
-- `anthropic_api`: default, deployable API-key mode.
+- `anthropic_api`: default local API-key mode.
 - `claude_code_cli`: local-only Claude CLI mode.
 
 Current CLI safeguards:
 
 - Local CLI mode requires explicit enablement.
 - CLI mode is rejected for non-local usage.
+- Chat generation is rejected for hosted, production, and non-local requests across provider modes.
 - The child process removes the Anthropic API key when local Claude CLI mode is active.
 - Claude profile discovery keeps raw paths server-side.
 - Public profile output uses generic labels like `Default profile`, `Profile 1`, and `Manual profile`.

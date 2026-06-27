@@ -63,6 +63,15 @@ const productionCliBlockMessage =
   "Local Claude CLI is disabled in production mode.";
 
 const localDeviceApiChecks = [
+  [
+    "/api/chat",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        query: "Summarize release readiness from the indexed demo skills.",
+      }),
+    },
+  ],
   ["/api/chat/status"],
   ["/api/index"],
   ["/api/index", { method: "POST" }],
@@ -143,36 +152,6 @@ async function expectForbiddenLocalApi(
   assertNoUnsafe(`${pathName} forbidden response`, serializedPayload);
 }
 
-async function expectProductionChatMissingKeyStream(baseUrl) {
-  const response = await fetchWithTimeout(`${baseUrl}/api/chat`, {
-    method: "POST",
-    headers: {
-      host: new URL(baseUrl).host,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      query: "Summarize release readiness from the indexed demo skills.",
-    }),
-  });
-  const body = await response.text();
-
-  assert(response.status === 200, "/api/chat should return a stream response.");
-  assert(
-    /text\/event-stream/.test(response.headers.get("content-type") ?? ""),
-    "/api/chat should return an event-stream content type.",
-  );
-  assert(/"type":"citations"/.test(body), "/api/chat should stream citations first.");
-  assert(
-    /"type":"error"/.test(body),
-    "/api/chat should stream a provider error when API key is missing.",
-  );
-  assert(
-    /ANTHROPIC_API_KEY is not configured/.test(body),
-    "/api/chat missing-key error should be actionable.",
-  );
-  assertNoUnsafe("/api/chat missing-key stream", body);
-}
-
 async function runApiSmoke(baseUrl) {
   for (const [pathName, init] of localDeviceApiChecks) {
     await expectForbiddenLocalApi(
@@ -191,8 +170,6 @@ async function runApiSmoke(baseUrl) {
       init,
     );
   }
-
-  await expectProductionChatMissingKeyStream(baseUrl);
 }
 
 async function expectPageText(page, baseUrl, route, text, viewportLabel = "desktop") {

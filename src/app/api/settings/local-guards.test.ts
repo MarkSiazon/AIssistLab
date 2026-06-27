@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { POST as chatPost } from "../chat/route";
 import { GET as chatStatusGet } from "../chat/status/route";
 import { GET as exportGet } from "../export/route";
 import { GET as exportZipGet } from "../export/zip/route";
@@ -43,6 +44,17 @@ async function assertForbidden(
 }
 
 async function main(): Promise<void> {
+  await assertForbidden(
+    "POST /api/chat",
+    chatPost(
+      nonLocalRequest("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{",
+      }),
+    ),
+  );
+
   await assertForbidden(
     "GET /api/chat/status",
     chatStatusGet(nonLocalRequest("/api/chat/status")),

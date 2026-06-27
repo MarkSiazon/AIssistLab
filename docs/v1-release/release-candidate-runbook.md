@@ -117,7 +117,7 @@ git diff --check
 
 `npm run smoke:buttons` clicks low-risk visible buttons across the main local routes and fails on console errors or real failed requests. It intentionally skips auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
 
-`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards, chat missing-key streaming, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
+`npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards including `POST /api/chat`, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
 
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
@@ -266,7 +266,7 @@ Capture this evidence for a V1 release-candidate checkpoint:
 4. Build result.
 5. Dependency audit result.
 6. Browser smoke for `/settings`, `/skills`, `/chat`, `/export`, and `/editor/guided`.
-7. API smoke for `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
+7. API smoke for `/api/chat`, `/api/index`, `/api/chat/status`, `/api/release/readiness`, and diagnostics zip generation.
 8. Asset usage audit result.
 9. Documentation link audit result.
 10. Dead-code audit result.
