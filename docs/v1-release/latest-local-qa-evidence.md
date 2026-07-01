@@ -1,16 +1,16 @@
 # Latest Local QA Evidence
 
-Updated: 2026-06-28, Asia/Manila
+Updated: 2026-07-01, Asia/Manila
 
 This note records the latest local, privacy-safe verification state for the V1 release candidate. It is intentionally generic: no API keys, account identifiers, OAuth paths, full home paths, or raw Claude profile folders are included.
 
 ## Current Checkpoint
 
 - Branch: `dev`
-- Latest merged hardening checkpoint: PR #5 landed the V1 release-hardening fixes through commit `1804c95`.
-- Current automated result: `npm run verify:release` passed after PR #5. A later local release-package hardening run also passed the same gate after expanding V1 docs, smoke coverage, privacy assertions, release evidence output, and readiness recovery actions. The gate covered 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+- Latest pushed automated checkpoint: commit `1341938` on `dev` added the V1 release-package evidence workflow, Settings and Chat privacy hardening, expanded smoke coverage, and refreshed V1 release docs.
+- Current automated result: `npm run release:prepare` passed from clean `dev...origin/dev` at commit `1341938`. The finite package pass ran cleanup dry-runs, `npm run verify:release` once, and sanitized release evidence output. The gate covered 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
 - Manual status: the automated gate is green, but V1 is not fully manually certified until the native folder picker, visible Open Login flow, and real account-backed chat/auth checks are completed by the local user.
-- GitHub status: issue #3 remains open as the manual QA tracker and has been updated with the latest automated status.
+- GitHub status: issue #3 remains open as the manual QA tracker and has been updated with the latest automated status for commit `1341938`.
 - Release QA checkpoint: cleanup and audit stabilization is recorded on the release branch history; use the push-state line below for the current commit/sync state.
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/release-candidate-runbook.md#manual-external-qa`.
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, `out`, `build`, `coverage`, `tsconfig.tsbuildinfo`, and `next-env.d.ts` outputs after dry-run inspection.
@@ -210,7 +210,7 @@ Latest `dev` polish added an explicit `Skipped` Manual QA Evidence state for che
 
 The current release-package pass refreshed release docs, added the V1 ship checklist, expanded production smoke guard coverage for mutating skill/guided endpoints, added built-production path-picker and Manual QA Evidence persistence coverage, added `/editor` to the safe-button smoke, redacted Settings API secret-like env responses with placeholder-preserving saves, sanitized chat stream error output, expanded privacy scans to catch account identifiers and generic API-key-shaped values, added sanitized release evidence output, added a finite `release:prepare` wrapper, and tightened readiness recovery action copy.
 
-The post-change `npm run verify:release` passed. The run covered all 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+The final `npm run release:prepare` pass from commit `1341938` passed. The run covered all 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, privacy scan, and sanitized release evidence output.
 
 ## Manual Gates Still Required
 
