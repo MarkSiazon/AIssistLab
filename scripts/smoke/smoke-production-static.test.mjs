@@ -107,6 +107,9 @@ for (const endpoint of [
   "/api/skills/templates",
   "/api/skills/validation",
   "/api/skills/browser-smoke-skill",
+  "/api/skills/browser-smoke-skill/restore",
+  "/api/skills/guided/draft",
+  "/api/skills/guided/feedback",
   "/api/skills/import/preview",
   "/api/skills/import/apply",
   "/api/export",
@@ -127,6 +130,21 @@ assert.match(
   /\[\s*"\/api\/chat",\s*\{\s*method:\s*"POST"/,
   "production smoke must verify POST /api/chat is production-guarded",
 );
+
+for (const guardedMutation of [
+  '["/api/skills", { method: "POST"',
+  '["/api/skills/browser-smoke-skill", { method: "PUT"',
+  '["/api/skills/browser-smoke-skill", { method: "DELETE"',
+  '["/api/skills/browser-smoke-skill/restore", { method: "POST"',
+  '["/api/skills/guided/draft", { method: "POST"',
+  '["/api/skills/guided/feedback", { method: "POST"',
+]) {
+  assert.equal(
+    productionSmokeSource.includes(guardedMutation),
+    true,
+    `production smoke must verify ${guardedMutation} is production-guarded`,
+  );
+}
 
 assert.match(
   productionSmokeSource,
@@ -208,6 +226,10 @@ for (const settingsInteraction of [
   "production settings refreshed state",
   "production settings saved state",
   "Manual QA Evidence",
+  "Choose a local folder path",
+  "Production path picker did not apply the selected folder to Settings",
+  "Needs fix",
+  "Skipped",
   "Rebuild Index",
   "Saved and applied to this server session.",
 ]) {

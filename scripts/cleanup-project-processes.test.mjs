@@ -154,6 +154,19 @@ assert.equal(
 assert.equal(
   isProjectOwnedProcess(
     processInfo(
+      25,
+      1,
+      "node C:/Repos/Skill Workshop/rag-interface/scripts/release-prepare.mjs",
+    ),
+    repoRoot,
+  ),
+  true,
+  "Repo-owned release prepare helper should be detected",
+);
+
+assert.equal(
+  isProjectOwnedProcess(
+    processInfo(
       13,
       1,
       "node C:/Repos/Skill Workshop/rag-interface/node_modules/@openai/codex/bin/codex.js",
@@ -200,6 +213,18 @@ assert.equal(
   ),
   true,
   "npm run qa:manual:auto wrapper should be stoppable only when linked to a matched child",
+);
+
+assert.equal(
+  isSafeWrapperProcess(
+    processInfo(
+      26,
+      1,
+      '"C:/Program Files/nodejs/node.exe" "D:/Tooling/npm/bin/npm-cli.js" run release:prepare',
+    ),
+  ),
+  true,
+  "npm run release:prepare wrapper should be stoppable only when linked to a matched child",
 );
 
 assert.equal(

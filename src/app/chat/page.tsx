@@ -84,6 +84,7 @@ export default function ChatPage() {
       <ChatBlockedAlert
         status={chatStatus}
         releaseTopAction={releaseReadiness?.summary.topAction}
+        releaseTopActionLabel={releaseReadiness?.summary.topActionLabel}
       />
 
       <ChatIndexAlert

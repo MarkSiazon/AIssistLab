@@ -39,6 +39,8 @@ const payload = buildMockReleaseReadinessPayload({
   status: "needs_action",
   score: 92,
   topAction: "Export diagnostics.",
+  topActionLabel: "Open Export",
+  topActionHref: "/export?diagnostics=true",
   canChat: false,
   sections: [section, blockedSection],
 });
@@ -49,6 +51,8 @@ assert.deepEqual(payload.summary, {
   status: "needs_action",
   score: 92,
   topAction: "Export diagnostics.",
+  topActionLabel: "Open Export",
+  topActionHref: "/export?diagnostics=true",
   canChat: false,
   canExportDiagnostics: true,
 });

@@ -12,6 +12,8 @@ const readySummary: ReleaseReadinessResponse["summary"] = {
   status: "ready",
   score: 96,
   topAction: null,
+  topActionLabel: null,
+  topActionHref: null,
   canChat: true,
   canExportDiagnostics: true,
 };

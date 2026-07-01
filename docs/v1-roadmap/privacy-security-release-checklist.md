@@ -14,6 +14,8 @@ Use this checklist before any V1 checkpoint commit or release.
 
 - API keys are never serialized in API responses.
 - API key fields are masked in UI.
+- Settings API responses return redacted placeholders for secret-like env values and preserve existing private values when unchanged placeholders are saved.
+- Chat stream errors are sanitized before they are sent to the browser.
 - Child-process env values are never returned to the browser.
 - Provider status output is sanitized before display.
 - Diagnostics exports report present/missing/malformed only.
@@ -64,6 +66,7 @@ Run after code changes:
 
 ```powershell
 npm run verify:release
+npm run release:evidence -- --gate-result passed
 ```
 
 The release verifier includes full tests, lint, build, browser/API smoke, safe button smoke, cleanup dry-run checks for processes and local artifacts, asset/docs/dead-code/unused-export audits, tracked diff whitespace checks, untracked release-text hygiene checks, and the privacy scan.

@@ -8,12 +8,20 @@ import {
 } from "./lib/server-utils.mjs";
 
 const routeNavigationTimeoutMs = 60000;
-const routes = ["/settings", "/skills", "/chat", "/export", "/editor/guided"];
+const routes = [
+  "/settings",
+  "/skills",
+  "/chat",
+  "/export",
+  "/editor",
+  "/editor/guided",
+];
 const expectedRouteText = new Map([
   ["/settings", "Manual QA Evidence"],
   ["/skills", "Library Readiness"],
   ["/chat", "Chat Readiness"],
   ["/export", "Export Skills"],
+  ["/editor", "Template Gallery"],
   ["/editor/guided", "Guided Skill Builder"],
 ]);
 const safeClickLimitPerRoute = 20;

@@ -7,13 +7,13 @@ const verifier = readFileSync("scripts/verify-release.mjs", "utf8");
 
 assert.match(
   source,
-  /const routes = \["\/settings", "\/skills", "\/chat", "\/export", "\/editor\/guided"\]/,
+  /const routes = \[[\s\S]*"\/settings",[\s\S]*"\/skills",[\s\S]*"\/chat",[\s\S]*"\/export",[\s\S]*"\/editor",[\s\S]*"\/editor\/guided"[\s\S]*\]/,
   "safe button smoke should cover the main app routes",
 );
 
 assert.match(
   source,
-  /expectedRouteText[\s\S]*Manual QA Evidence[\s\S]*Guided Skill Builder/,
+  /expectedRouteText[\s\S]*Manual QA Evidence[\s\S]*Template Gallery[\s\S]*Guided Skill Builder/,
   "safe button smoke should verify expected app content before clicking buttons",
 );
 assert.match(

@@ -38,6 +38,7 @@ export interface SettingsReleaseReadinessPanelState {
     blocked: number;
     needsAction: number;
   };
+  recoverySummary: string;
   primaryAction: SettingsReleaseReadinessSection | undefined;
 }
 
@@ -59,6 +60,7 @@ export function getSettingsReleaseReadinessPanelState(
         blocked: 0,
         needsAction: 0,
       },
+      recoverySummary: "Release readiness is unavailable.",
       primaryAction: undefined,
     };
   }
@@ -76,9 +78,13 @@ export function getSettingsReleaseReadinessPanelState(
       (a, b) => statusSortScore(a.status) - statusSortScore(b.status),
     );
 
+  const readyCount = report.sections.filter(
+    (section) => section.status === "ready",
+  ).length;
+  const primaryAction = selectReleasePrimaryAction(report.sections);
+
   return {
-    readyCount: report.sections.filter((section) => section.status === "ready")
-      .length,
+    readyCount,
     sectionCount: report.sections.length,
     snapshotItems,
     snapshotCount: {
@@ -86,6 +92,11 @@ export function getSettingsReleaseReadinessPanelState(
       needsAction: snapshotItems.filter((item) => item.status === "needs_action")
         .length,
     },
-    primaryAction: selectReleasePrimaryAction(report.sections),
+    recoverySummary:
+      report.summary.topAction ??
+      (readyCount === report.sections.length
+        ? "All release checks are ready."
+        : "Review the next release readiness action."),
+    primaryAction,
   };
 }

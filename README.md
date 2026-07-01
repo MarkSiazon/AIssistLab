@@ -101,7 +101,7 @@ LLM_PROVIDER=anthropic_api
 ANTHROPIC_API_KEY=<your key>
 ```
 
-The app never prints API keys in status, readiness, diagnostics, or UI output.
+The app never prints API keys in status, readiness, diagnostics, settings API responses, or UI output.
 `POST /api/chat` remains a device-local API in API mode: hosted, production, and non-local requests are rejected before request-body processing.
 
 ### Claude Code CLI
@@ -185,6 +185,15 @@ npm run verify:release
 
 This runs tests, lint, build, smokes, audits, cleanup dry-runs, and privacy checks. See the runbook command gates for the current exact sequence and focused debugging commands.
 
+Release package evidence:
+
+```bash
+npm run release:evidence -- --gate-result passed
+npm run release:prepare
+```
+
+`release:evidence` prints a sanitized summary of the current checkout, release-gate status, test count, coverage, privacy-scan status, and manual gates still pending. `release:prepare` is finite: it runs cleanup dry-runs, runs `npm run verify:release` once, then prints the sanitized evidence summary.
+
 Manual QA remains device/account-owned: native folder picker visibility, Claude Open Login, and real account-backed chat must be confirmed by the local user after the automated gate passes.
 
 ## Documentation
@@ -192,6 +201,7 @@ Manual QA remains device/account-owned: native folder picker visibility, Claude 
 - [Docs index](docs/README.md)
 - [V1 release notes](docs/v1-release/release-notes.md)
 - [V1 release-candidate runbook](docs/v1-release/release-candidate-runbook.md)
+- [V1 ship checklist](docs/v1-release/v1-ship-checklist.md)
 - [V1 roadmap](docs/v1-roadmap/roadmap.md)
 - [V1 specs](docs/v1-spec/README.md)
 - [V2 provider-agnostic roadmap](docs/v2-roadmap/roadmap.md)
@@ -202,7 +212,7 @@ Manual QA remains device/account-owned: native folder picker visibility, Claude 
 - No automatic login.
 - No automatic generation on Settings page load.
 - No account/profile identifiers in public API output.
-- No raw `.env.local` values in diagnostics.
+- No raw `.env.local` secret values in diagnostics or Settings API responses; redacted placeholders preserve existing secrets on save.
 - Claude Project inventory is read-only and reports counts/checks only.
 - Workspace writes are path-safe and limited to configured skill files.
 - Local device checks use sanitized messages and localhost guards.

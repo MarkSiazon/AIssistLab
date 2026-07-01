@@ -96,6 +96,37 @@ npm run verify:release
 
 It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, local artifact cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, unused-export audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
+### Release Package Evidence
+
+Print sanitized release evidence after a verified gate:
+
+```bash
+npm run release:evidence -- --gate-result passed
+```
+
+The evidence output includes branch, commit, dirty/clean status, changed-file count, release-gate result, test-file count, command coverage, privacy-scan status, and manual gates still pending. It does not include local paths, provider keys, account identifiers, OAuth paths, or raw Claude profile folders.
+
+To run a finite final package pass from the current checkout:
+
+```bash
+npm run release:prepare
+```
+
+`release:prepare` runs cleanup dry-runs, runs `npm run verify:release` exactly once, then prints the sanitized release evidence summary. It does not mark native folder picker, visible Open Login, provider auth, or real account-backed chat as passed.
+
+### Docs Sync Pre-Publish
+
+Before publishing V1 evidence or updating the manual QA tracker, confirm the local release docs match the current checkout:
+
+```bash
+git status --short --branch
+npm run audit:docs
+npm run verify:release
+npm run release:evidence -- --gate-result passed
+```
+
+Keep current automated status in [latest-local-qa-evidence.md](latest-local-qa-evidence.md), keep public-facing release changes in [release-notes.md](release-notes.md), and keep this runbook as the source of truth for command gates and manual external QA.
+
 If you need to debug an individual gate, run the underlying commands:
 
 ```bash

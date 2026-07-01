@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   firstRunActionHelpId,
   firstRunNextStepLabel,
+  firstRunNextStepText,
   getFirstRunChecklistSummary,
   shouldShowFirstRunAction,
 } from "./first-run-checklist-panel";
@@ -21,6 +22,7 @@ const items: FirstRunChecklistItem[] = [
     status: "needs_action",
     statusLabel: "Needs action",
     hint: "Set SKILLS_DIR.",
+    actionLabel: "Save",
   },
   {
     id: "diagnostics",
@@ -46,6 +48,8 @@ assert.equal(
 
 assert.equal(firstRunNextStepLabel("needs_action"), "Next step");
 assert.equal(firstRunNextStepLabel("optional"), "Optional final step");
+assert.equal(firstRunNextStepText(items[1]), "Skills directory valid: Save");
+assert.equal(firstRunNextStepText(items[0]), "Workspace path valid");
 assert.equal(
   firstRunActionHelpId({
     itemId: "auth",

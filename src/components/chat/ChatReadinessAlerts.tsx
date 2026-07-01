@@ -6,6 +6,7 @@ import { indexSuggestedAction } from "@/lib/ui/index-status-summary";
 interface ChatBlockedAlertProps {
   status: ChatPageStatus | null;
   releaseTopAction: string | null | undefined;
+  releaseTopActionLabel?: string | null;
 }
 
 interface ChatIndexAlertProps {
@@ -18,6 +19,7 @@ interface ChatIndexAlertProps {
 export function ChatBlockedAlert({
   status,
   releaseTopAction,
+  releaseTopActionLabel,
 }: ChatBlockedAlertProps) {
   if (!status || status.canSend) return null;
 
@@ -46,7 +48,7 @@ export function ChatBlockedAlert({
           href={APP_ROUTES.settings}
           className="ui-button ui-button-secondary chat-danger-action text-xs"
         >
-          Open Settings
+          {releaseTopActionLabel ?? "Open Settings"}
         </Link>
         <Link
           href={APP_ROUTES.exportDiagnostics}

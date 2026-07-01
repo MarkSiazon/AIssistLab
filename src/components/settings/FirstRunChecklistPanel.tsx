@@ -9,6 +9,7 @@ import {
 import {
   firstRunActionHelpId,
   firstRunNextStepLabel,
+  firstRunNextStepText,
   getFirstRunChecklistSummary,
   shouldShowFirstRunAction,
 } from "@/lib/ui/first-run-checklist-panel";
@@ -56,7 +57,7 @@ export function FirstRunChecklistPanel({
       {summary.nextItem && (
         <div className="settings-first-run-next" role="status">
           <span>{firstRunNextStepLabel(summary.nextItem.status)}</span>
-          <strong>{summary.nextItem.label}</strong>
+          <strong>{firstRunNextStepText(summary.nextItem)}</strong>
         </div>
       )}
       <div className="settings-first-run-list" role="list">

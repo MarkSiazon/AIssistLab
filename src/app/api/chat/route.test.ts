@@ -7,6 +7,17 @@ import {
 } from "@/lib/test-utils/request";
 import { withTempWorkspace } from "@/lib/test-utils/workspace";
 
+const unsafeAuthPath = "C:\\Users\\Example\\.claude\\oauth.json";
+const unsafeEmail = "owner@example.invalid";
+const unsafeApiKey = "sk-general-provider-secret-value";
+
+function assertNoUnsafeStreamText(value: string): void {
+  assert.doesNotMatch(value, /C:\\Users\\/i);
+  assert.doesNotMatch(value, /oauth\.json/i);
+  assert.doesNotMatch(value, /owner@example\.invalid/i);
+  assert.doesNotMatch(value, /sk-[A-Za-z0-9._-]{6,}/i);
+}
+
 async function main() {
   const route = await import("./route");
 
@@ -81,6 +92,62 @@ async function main() {
       assert.match(streamedError.headers.get("content-type") ?? "", /text\/event-stream/);
       assert.match(body, /"type":"citations"/);
       assert.match(body, /ANTHROPIC_API_KEY is not configured/);
+      assertNoUnsafeStreamText(body);
+    },
+  );
+
+  await withTempWorkspace(
+    {
+      prefix: "chat-route-index-error-",
+      env: {
+        WORKSPACE_ROOT: unsafeAuthPath,
+        LLM_PROVIDER: "anthropic_api",
+        ANTHROPIC_API_KEY: undefined,
+      },
+    },
+    async () => {
+      const streamedError = await route.POST(
+        localRequest("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ query: "release helper QA" }),
+        }),
+      );
+      const body = await streamedError.text();
+      assert.equal(streamedError.status, 200);
+      assert.match(body, /"type":"error"/);
+      assertNoUnsafeStreamText(body);
+    },
+  );
+
+  await withTempWorkspace(
+    {
+      prefix: "chat-route-cli-error-",
+      env: {
+        LLM_PROVIDER: "claude_code_cli",
+        ENABLE_LOCAL_CLAUDE_CLI: "true",
+        CLAUDE_CLI_PATH: `${unsafeAuthPath}-${unsafeEmail}-${unsafeApiKey}`,
+      },
+      skills: [
+        {
+          name: "cli-error-helper",
+          content:
+            "---\ndescription: CLI error helper\n---\n\n## Instructions\n\nUse CLI error helper.",
+        },
+      ],
+    },
+    async () => {
+      const streamedError = await route.POST(
+        localRequest("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ query: "release helper QA" }),
+        }),
+      );
+      const body = await streamedError.text();
+      assert.equal(streamedError.status, 200);
+      assert.match(body, /"type":"error"/);
+      assertNoUnsafeStreamText(body);
     },
   );
 

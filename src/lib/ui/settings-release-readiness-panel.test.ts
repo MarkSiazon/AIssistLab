@@ -10,6 +10,8 @@ const report = {
     status: "blocked" as const,
     score: 42,
     topAction: "Fix workspace paths.",
+    topActionLabel: "Open Settings",
+    topActionHref: "/settings",
     canChat: false,
     canExportDiagnostics: true,
   },
@@ -53,6 +55,7 @@ assert.equal(state.readyCount, 1);
 assert.equal(state.sectionCount, 4);
 assert.equal(state.snapshotCount.blocked, 1);
 assert.equal(state.snapshotCount.needsAction, 1);
+assert.equal(state.recoverySummary, "Fix workspace paths.");
 assert.deepEqual(
   state.snapshotItems.map((item) => item.id),
   ["workspace", "index", "skills"],
@@ -67,6 +70,7 @@ assert.deepEqual(getSettingsReleaseReadinessPanelState(null), {
     blocked: 0,
     needsAction: 0,
   },
+  recoverySummary: "Release readiness is unavailable.",
   primaryAction: undefined,
 });
 

@@ -6,12 +6,14 @@ import {
   withLocalDeviceGuard,
 } from "@/lib/local-access";
 import { getLlmProvider, isClaudeCliEnabled } from "@/lib/rag/llm-config";
+import { sanitizeCliOutput } from "@/lib/rag/llm-config";
 import { readJsonObject } from "@/lib/api/request";
 import { jsonError } from "@/lib/api/responses";
 
 export const runtime = "nodejs";
 
 function streamError(message: string): Response {
+  const safeMessage = sanitizeCliOutput(message);
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
@@ -19,7 +21,7 @@ function streamError(message: string): Response {
         encoder.encode(JSON.stringify({ type: "citations", sources: [] }) + "\n"),
       );
       controller.enqueue(
-        encoder.encode(JSON.stringify({ type: "error", message }) + "\n"),
+        encoder.encode(JSON.stringify({ type: "error", message: safeMessage }) + "\n"),
       );
       controller.close();
     },
@@ -99,7 +101,9 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
           );
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Unknown error";
+        const msg = sanitizeCliOutput(
+          err instanceof Error ? err.message : "Unknown error",
+        );
         controller.enqueue(
           encoder.encode(
             JSON.stringify({ type: "error", message: msg }) + "\n",

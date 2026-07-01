@@ -2394,6 +2394,8 @@ async function runMockedEmptyStateSmoke(page, baseUrl, smokeRoot) {
         status: "needs_action",
         score: 65,
         topAction: "Create or import a skill.",
+        topActionLabel: "Open Settings",
+        topActionHref: "/settings",
         canChat: false,
         canExportDiagnostics: true,
       },
@@ -2761,6 +2763,8 @@ async function runMockedChatReadinessFailureSmoke(page, baseUrl) {
       summary: {
         status: "blocked",
         topAction: "Open Settings.",
+        topActionLabel: "Open Settings",
+        topActionHref: "/settings",
         canExportDiagnostics: true,
       },
     });
@@ -2814,6 +2818,8 @@ async function runMockedChatRebuildSmoke(page, baseUrl) {
       summary: {
         status: indexRebuilt ? "ready" : "needs_action",
         topAction: indexRebuilt ? null : "Rebuild Index.",
+        topActionLabel: indexRebuilt ? null : "Rebuild Index",
+        topActionHref: indexRebuilt ? null : "/settings",
         canExportDiagnostics: true,
       },
     });

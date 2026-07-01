@@ -69,8 +69,9 @@ async function main(): Promise<void> {
         };
       };
       const expectedConfigDir = `~\\.claude-profiles\\${sensitiveFolder}`;
-      assert.equal(payload.parsed.CLAUDE_CONFIG_DIR, expectedConfigDir);
+      assert.equal(payload.parsed.CLAUDE_CONFIG_DIR, "<redacted>");
       assert.equal(payload.runtimeApplied, true);
+      assert.equal(JSON.stringify(payload).includes(sensitiveFolder), false);
       assert.deepEqual(payload.activeRuntime, {
         provider: "claude_code_cli",
         claudeCliEnabled: true,

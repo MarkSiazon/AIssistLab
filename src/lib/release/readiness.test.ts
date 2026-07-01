@@ -97,6 +97,8 @@ async function main() {
   });
   assert.equal(ready.schemaVersion, 1);
   assert.equal(ready.summary.status, "ready");
+  assert.equal(ready.summary.topActionLabel, null);
+  assert.equal(ready.summary.topActionHref, null);
   assert.equal(ready.summary.canChat, true);
   assert.equal(ready.summary.canExportDiagnostics, true);
   assert.equal(byId(ready).diagnostics.status, "needs_action");
@@ -167,6 +169,8 @@ async function main() {
   });
   const blockedRaw = JSON.stringify(blocked);
   assert.equal(blocked.summary.status, "blocked");
+  assert.equal(blocked.summary.topActionLabel, "Open Settings");
+  assert.equal(blocked.summary.topActionHref, "/settings");
   assert.equal(blocked.summary.canChat, false);
   assert.equal(byId(blocked).workspace.status, "blocked");
   assert.equal(byId(blocked).chat.actionHref, "/settings");

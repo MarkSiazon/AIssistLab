@@ -25,4 +25,6 @@ export interface ChatReadinessStatus {
 export interface ChatReadinessReleaseSummary {
   status?: ReleaseReadinessStatus;
   topAction?: string | null;
+  topActionLabel?: string | null;
+  topActionHref?: string | null;
 }

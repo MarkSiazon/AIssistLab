@@ -1,13 +1,17 @@
 # Latest Local QA Evidence
 
-Updated: 2026-06-26, Asia/Manila
+Updated: 2026-06-28, Asia/Manila
 
 This note records the latest local, privacy-safe verification state for the V1 release candidate. It is intentionally generic: no API keys, account identifiers, OAuth paths, full home paths, or raw Claude profile folders are included.
 
 ## Current Checkpoint
 
-- Branch: `main`
-- Release QA checkpoint: cleanup and audit stabilization is recorded on `main`; use the push-state line below for the current commit/sync state.
+- Branch: `dev`
+- Latest merged hardening checkpoint: PR #5 landed the V1 release-hardening fixes through commit `1804c95`.
+- Current automated result: `npm run verify:release` passed after PR #5. A later local release-package hardening run also passed the same gate after expanding V1 docs, smoke coverage, privacy assertions, release evidence output, and readiness recovery actions. The gate covered 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+- Manual status: the automated gate is green, but V1 is not fully manually certified until the native folder picker, visible Open Login flow, and real account-backed chat/auth checks are completed by the local user.
+- GitHub status: issue #3 remains open as the manual QA tracker and has been updated with the latest automated status.
+- Release QA checkpoint: cleanup and audit stabilization is recorded on the release branch history; use the push-state line below for the current commit/sync state.
 - Included release QA work: smoke-runner coverage fixes in `scripts/smoke-local.mjs`, matching static regression coverage in `scripts/smoke/smoke-local-static.test.mjs`, retryable safe-button route readiness stabilization in `scripts/smoke-buttons.mjs`, matching static regression coverage in `scripts/smoke/smoke-buttons-static.test.mjs`, bounded retryable export download waits, explicit Claude refresh coverage after Settings reloads, deterministic settings save-failure coverage in `src/lib/settings/client-api.test.ts`, release cleanup coverage for safe-button and manual-QA helper runs in `scripts/cleanup-project-processes.mjs`, editor tab focus stabilization in `src/hooks/useSkillEditorTabs.ts`, and manual QA helper clarification in `docs/v1-release/release-candidate-runbook.md#manual-external-qa`.
 - Local artifact cleanup is now documented and covered by `scripts/cleanup-local-artifacts.mjs`; it removes only ignored `.next`, `.local-workspace`, `out`, `build`, `coverage`, `tsconfig.tsbuildinfo`, and `next-env.d.ts` outputs after dry-run inspection.
 - Asset usage auditing is now part of the release gate; the unused starter Geist font files were removed after the audit identified them as unreferenced tracked assets.
@@ -102,7 +106,7 @@ The latest full release gate passed:
 npm run verify:release
 ```
 
-That run still reported manual external QA as required for native OS picker visibility, visible Open Login, and real account-backed chat.
+That run covered 163 test files and still reported manual external QA as required for native OS picker visibility, visible Open Login, and real account-backed chat.
 
 An earlier nested full release gate also passed through the parent workspace verifier:
 
@@ -202,9 +206,11 @@ npm run cleanup:artifacts
 
 ## Dev V1 Polish Evidence
 
-Latest `dev` polish added an explicit `Skipped` Manual QA Evidence state for checks intentionally not verified. `Skipped` is tracked separately from `Passed`, does not make the summary complete, and is covered by local helper tests plus local and production smoke interactions.
+Latest `dev` polish added an explicit `Skipped` Manual QA Evidence state for checks intentionally not verified and fixed inactive editor tab panels so Preview hides the edit textarea instead of leaving both panels visible. `Skipped` is tracked separately from `Passed`, does not make the summary complete, and is covered by local helper tests plus local and production smoke interactions.
 
-The post-change `npm run verify:release` passed. The run covered all 159 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+The current release-package pass refreshed release docs, added the V1 ship checklist, expanded production smoke guard coverage for mutating skill/guided endpoints, added built-production path-picker and Manual QA Evidence persistence coverage, added `/editor` to the safe-button smoke, redacted Settings API secret-like env responses with placeholder-preserving saves, sanitized chat stream error output, expanded privacy scans to catch account identifiers and generic API-key-shaped values, added sanitized release evidence output, added a finite `release:prepare` wrapper, and tightened readiness recovery action copy.
+
+The post-change `npm run verify:release` passed. The run covered all 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, project cleanup dry-runs, artifact cleanup dry-run, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
 
 ## Manual Gates Still Required
 

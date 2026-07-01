@@ -86,9 +86,15 @@ const localDeviceApiChecks = [
   ["/api/settings/browse/search?q=demo"],
   ["/api/settings/native-folder"],
   ["/api/skills"],
+  ["/api/skills", { method: "POST", body: "{}" }],
   ["/api/skills/templates"],
   ["/api/skills/validation"],
   ["/api/skills/browser-smoke-skill"],
+  ["/api/skills/browser-smoke-skill", { method: "PUT", body: "{}" }],
+  ["/api/skills/browser-smoke-skill", { method: "DELETE" }],
+  ["/api/skills/browser-smoke-skill/restore", { method: "POST", body: "{}" }],
+  ["/api/skills/guided/draft", { method: "POST", body: "{}" }],
+  ["/api/skills/guided/feedback", { method: "POST", body: "{}" }],
   ["/api/skills/import/preview", { method: "POST", body: "{}" }],
   ["/api/skills/import/apply", { method: "POST", body: "{}" }],
   ["/api/export"],
@@ -209,6 +215,18 @@ async function clickButton(page, name) {
   await button.click();
 }
 
+async function expectManualQaItemStatus(item, expectedStatus) {
+  await item
+    .locator(".settings-manual-qa-item-status")
+    .getByText(expectedStatus, { exact: true })
+    .waitFor({ state: "visible", timeout: routeNavigationTimeoutMs });
+}
+
+async function setManualQaItemStatus(item, actionLabel, expectedStatus) {
+  await clickButton(item, actionLabel);
+  await expectManualQaItemStatus(item, expectedStatus);
+}
+
 async function waitForRecordedUrl(page, readLatestUrl, label) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < routeNavigationTimeoutMs) {
@@ -218,6 +236,20 @@ async function waitForRecordedUrl(page, readLatestUrl, label) {
   }
 
   throw new Error(`${label} was not requested. Current URL: ${page.url()}`);
+}
+
+async function waitForInputValue(locator, expectedValue, label) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < routeNavigationTimeoutMs) {
+    const value = await locator.inputValue({ timeout: 1000 }).catch(() => "");
+    if (value === expectedValue) return;
+    await locator.page().waitForTimeout(100);
+  }
+
+  const actualValue = await locator.inputValue({ timeout: 1000 }).catch(
+    () => "<unavailable>",
+  );
+  throw new Error(`${label}. Expected "${expectedValue}", received "${actualValue}".`);
 }
 
 async function assertCurrentRouteState(page, scope) {
@@ -533,6 +565,8 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
   let settingsSaveCount = 0;
   let indexRebuildCount = 0;
   let cliTestResult = null;
+  const pickerWorkspacePath = "C:\\ProductionSmoke";
+  const pickerChildPath = `${pickerWorkspacePath}\\skills`;
 
   await page.route("**/api/settings/runtime", async (route) => {
     await fulfillJson(route, mockRuntimeStatusPayload());
@@ -549,6 +583,42 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
   });
   await page.route("**/api/settings/path-exists**", async (route) => {
     await fulfillJson(route, { exists: true, isDirectory: true });
+  });
+  await page.route("**/api/settings/browse**", async (route) => {
+    const requestedPath =
+      new URL(route.request().url()).searchParams.get("path") ?? "";
+
+    if (!requestedPath) {
+      await fulfillJson(route, {
+        path: "",
+        parent: null,
+        label: "This PC",
+        entries: [
+          { name: "ProductionSmoke", fullPath: pickerWorkspacePath, type: "dir" },
+        ],
+        isRoot: true,
+      });
+      return;
+    }
+
+    if (requestedPath.toLowerCase() === pickerWorkspacePath.toLowerCase()) {
+      await fulfillJson(route, {
+        path: pickerWorkspacePath,
+        parent: "C:\\",
+        label: "ProductionSmoke",
+        entries: [{ name: "skills", fullPath: pickerChildPath, type: "dir" }],
+        isRoot: false,
+      });
+      return;
+    }
+
+    await fulfillJson(route, {
+      path: requestedPath,
+      parent: pickerWorkspacePath,
+      label: "skills",
+      entries: [],
+      isRoot: false,
+    });
   });
   await page.route("**/api/skills/validation", async (route) => {
     await fulfillJson(route, mockSkillQualityPayload());
@@ -665,19 +735,79 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
       linkLabels: ["Open Settings"],
     });
 
+    const workspaceInput = page.locator("#settings-workspace-root");
+    await workspaceInput.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await workspaceInput.fill(pickerWorkspacePath);
+    await clickButton(page, "Browse app");
+    await expectText(page, "Choose a local folder path", "production path picker");
+    const pathPickerDialog = page.getByRole("dialog").first();
+    await pathPickerDialog.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    const pathPickerAddressInput = pathPickerDialog.getByRole("textbox", {
+      name: "Folder path",
+    });
+    await waitForInputValue(
+      pathPickerAddressInput,
+      pickerWorkspacePath,
+      "Production path picker did not open at the typed workspace path",
+    );
+    await clickButton(pathPickerDialog, "skills");
+    await waitForInputValue(
+      pathPickerAddressInput,
+      pickerChildPath,
+      "Production path picker did not navigate to the selected child folder",
+    );
+    await clickButton(pathPickerDialog, "Select folder");
+    await waitForInputValue(
+      workspaceInput,
+      pickerChildPath,
+      "Production path picker did not apply the selected folder to Settings",
+    );
+    await expectText(
+      page,
+      "Path selected. Save Settings to persist this value.",
+      "production path picker selected notice",
+    );
+
     const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
     await manualQaPanel.waitFor({
       state: "visible",
       timeout: routeNavigationTimeoutMs,
     });
-    await clickButton(manualQaPanel, "Mark Passed");
-    await expectText(page, "Passed");
-    await clickButton(manualQaPanel, "Needs Fix");
-    await expectText(page, "Needs fix");
-    await clickButton(manualQaPanel, "Mark Skipped");
-    await expectText(page, "Skipped");
-    await clickButton(manualQaPanel, "Reset");
-    await expectText(page, "Pending");
+    const manualQaItems = manualQaPanel.locator(".settings-manual-qa-item");
+    const nativePickerQaItem = manualQaItems.nth(0);
+    const openLoginQaItem = manualQaItems.nth(1);
+    const accountChatQaItem = manualQaItems.nth(2);
+    await nativePickerQaItem.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    await setManualQaItemStatus(nativePickerQaItem, "Mark Passed", "Passed");
+    await setManualQaItemStatus(openLoginQaItem, "Needs Fix", "Needs fix");
+    await setManualQaItemStatus(accountChatQaItem, "Mark Skipped", "Skipped");
+
+    await page.reload({ waitUntil: "networkidle", timeout: routeNavigationTimeoutMs });
+    const reloadedManualQaPanel = page
+      .locator(".settings-manual-qa-panel")
+      .first();
+    await reloadedManualQaPanel.waitFor({
+      state: "visible",
+      timeout: routeNavigationTimeoutMs,
+    });
+    const reloadedManualQaItems = reloadedManualQaPanel.locator(
+      ".settings-manual-qa-item",
+    );
+    await expectManualQaItemStatus(reloadedManualQaItems.nth(0), "Passed");
+    await expectManualQaItemStatus(reloadedManualQaItems.nth(1), "Needs fix");
+    await expectManualQaItemStatus(reloadedManualQaItems.nth(2), "Skipped");
+    await setManualQaItemStatus(reloadedManualQaItems.nth(0), "Reset", "Pending");
+    await setManualQaItemStatus(reloadedManualQaItems.nth(1), "Reset", "Pending");
+    await setManualQaItemStatus(reloadedManualQaItems.nth(2), "Reset", "Pending");
 
     const ragIndexLabel = page.getByText("RAG Index", { exact: true }).first();
     await ragIndexLabel.waitFor({
@@ -748,6 +878,7 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     await page.unroute("**/api/index");
     await page.unroute("**/api/settings/doctor");
     await page.unroute("**/api/settings/path-exists**");
+    await page.unroute("**/api/settings/browse**");
     await page.unroute("**/api/skills/validation");
     await page.unroute("**/api/release/readiness");
     await page.unroute("**/api/settings/claude-cli**");

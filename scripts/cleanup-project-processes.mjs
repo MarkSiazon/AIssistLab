@@ -20,13 +20,15 @@ const PROJECT_COMMAND_PATTERNS = [
   /[\\/]scripts[\\/]smoke-buttons\.mjs\b/i,
   /[\\/]scripts[\\/]smoke-production\.mjs\b/i,
   /[\\/]scripts[\\/]verify-release\.mjs\b/i,
+  /[\\/]scripts[\\/]release-prepare\.mjs\b/i,
+  /[\\/]scripts[\\/]export-release-evidence\.mjs\b/i,
   /[\\/]scripts[\\/]run-tests\.mjs\b/i,
   /[\\/]scripts[\\/]manual-external-qa\.mjs\b/i,
 ];
 
 const SAFE_WRAPPER_PATTERNS = [
-  /\bcmd\.exe"?\s+\/c\s+npm\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release)\b/i,
-  /\bnpm-cli\.js"?\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release)\b/i,
+  /\bcmd\.exe"?\s+\/c\s+npm\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release|release:(?:prepare|evidence))\b/i,
+  /\bnpm-cli\.js"?\s+run\s+(?:dev|start|test|smoke:local|smoke:buttons|smoke:production|qa:manual(?::auto)?|verify:release|release:(?:prepare|evidence))\b/i,
   /\bcmd\.exe\b.*\bnext\s+(?:dev|start)\b/i,
 ];
 
