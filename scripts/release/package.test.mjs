@@ -29,10 +29,14 @@ const markdown = formatReleaseEvidenceMarkdown(evidence);
 
 assert.equal(evidence.automatedGate.result, "passed");
 assert.equal(evidence.automatedGate.testFileCount, 164);
-assert.equal(evidence.workingTree, "changes present");
+assert.equal(evidence.workingTree, "uncommitted changes present");
 assert.equal(evidence.changedFileCount, 2);
 assert.ok(releaseGateCoverage.includes("privacy scan"));
 assert.ok(pendingManualGates.some((gate) => gate.includes("Open Login")));
+assert.match(
+  markdown,
+  /Working tree: uncommitted changes present \(2 changed files; commit before publishing this as a checkpoint\)/,
+);
 assert.match(markdown, /Manual Gates Still Pending/);
 assert.doesNotMatch(markdown, /C:\\Users\\/i);
 assert.doesNotMatch(markdown, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);

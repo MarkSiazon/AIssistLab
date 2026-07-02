@@ -118,7 +118,8 @@ export function buildReleaseEvidence({
     generatedAt,
     branch: branchLine.replace(/^##\s*/, ""),
     commit,
-    workingTree: changedFileCount === 0 ? "clean" : "changes present",
+    workingTree:
+      changedFileCount === 0 ? "clean" : "uncommitted changes present",
     changedFileCount,
     automatedGate: {
       command: "npm run verify:release",
@@ -140,13 +141,18 @@ export function buildReleaseEvidence({
 }
 
 export function formatReleaseEvidenceMarkdown(evidence) {
+  const workingTreeLine =
+    evidence.changedFileCount === 0
+      ? "Working tree: clean"
+      : `Working tree: ${evidence.workingTree} (${evidence.changedFileCount} changed file${evidence.changedFileCount === 1 ? "" : "s"}; commit before publishing this as a checkpoint)`;
+
   return [
     "# V1 Release Evidence",
     "",
     `Generated: ${evidence.generatedAt}`,
     `Branch: \`${evidence.branch}\``,
     `Commit: \`${evidence.commit || "unknown"}\``,
-    `Working tree: ${evidence.workingTree} (${evidence.changedFileCount} changed file${evidence.changedFileCount === 1 ? "" : "s"})`,
+    workingTreeLine,
     "",
     "## Automated Gate",
     "",

@@ -141,7 +141,7 @@ Public UI labels stay generic, such as `Default profile`, `Profile 1`, and `Manu
 - `New Skill`: create from templates or open the guided skill builder.
 - `RAG Chat`: ask questions against indexed skills with citation links back to editor pages.
 - `Export`: download selected skills or a zip bundle with sanitized diagnostics.
-- `Settings`: configure paths/provider, run Setup Doctor, view First Run Checklist, inspect Claude Project inventory, check V1 Release Readiness, and track local-only Manual QA Evidence.
+- `Settings`: configure paths/provider, review the Data Boundary summary, run Setup Doctor, view First Run Checklist, inspect Claude Project inventory, check V1 Release Readiness, and track local-only Manual QA Evidence.
 
 ## Local APIs
 
@@ -218,6 +218,7 @@ Manual QA remains device/account-owned: native folder picker visibility, Claude 
 - Claude Project inventory is read-only and reports counts/checks only.
 - Workspace writes are path-safe and limited to configured skill files.
 - Local device checks use sanitized messages and localhost guards.
+- Settings includes a Data Boundary panel that summarizes local reads, explicit chat sends, scrubbed diagnostics, and manual account/device checks before the user changes provider or path settings.
 
 ## Tech Stack
 

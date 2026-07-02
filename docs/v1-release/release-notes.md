@@ -34,6 +34,9 @@ The details in this section describe the local release snapshot from that checkp
 - Local Settings for workspace paths, skills directory paths, provider selection, Claude CLI profile selection, and runtime-applied provider changes.
 - Deterministic Setup Doctor, First Run Checklist, and V1 Release Readiness panel for workspace, provider, index, skill quality, Claude project, chat, and diagnostics state.
 - Settings Manual QA Evidence panel for local-only status/timestamp tracking of native folder picker, visible Claude login launch, and real account-backed chat checks.
+- Settings Data Boundary panel that explains configured-workspace reads, explicit chat-send provider context, scrubbed diagnostics export, and manual account/device checks in one in-product summary.
+- Chat readiness now names the send boundary before the first message: provider calls happen only after Send, with the prompt plus retrieved skill excerpts and citation metadata.
+- Export diagnostics now shows both included diagnostics files and excluded data classes before download, including keys/tokens, account identifiers, OAuth/profile paths, home paths, hook commands, and raw provider output.
 - A tracked demo workspace for portable first-run smoke checks without private local paths or provider credentials.
 - Anthropic API mode as the default local API-key provider, plus optional localhost-only Claude Code CLI mode with profile discovery, visible login launch, explicit smoke tests, and sanitized status output.
 - Persistent RAG index metadata with ready, stale, missing, rebuilding, and failed states; skill writes mark the index stale, and stale counts are labeled as the last index in Sidebar and Settings.

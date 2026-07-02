@@ -7,25 +7,26 @@ This note records only the current privacy-safe V1 release-candidate verificatio
 ## Current Checkpoint
 
 - Branch: `dev`
-- Latest pushed automated checkpoint: commit `08e8fde` on `dev` refreshed the V1 release evidence checkpoint after the release-package evidence workflow landed.
-- Current automated result: `npm run verify:release` passed on 2026-07-02 from `dev...origin/dev` at base commit `8a0148d` with the scripts-folder reorganization and docs-organization guards in the working tree. The gate covered 167 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, cleanup dry-runs, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
-- Current GitHub status: issue #3 remains open as the manual QA tracker. It has not been updated for this uncommitted scripts-folder refactor.
+- Latest pushed automated checkpoint: commit `86bc38e` on `dev` organized the release tooling and documentation ownership guards.
+- Current automated result: `npm run verify:release` passed on 2026-07-02 from `dev...origin/dev` at base commit `86bc38e` with 24 changed files in the working tree. The pass covered the Settings Data Boundary panel, Chat send-boundary copy, Export diagnostics omissions UI, release evidence wording, smoke coverage, and docs updates. The gate covered 168 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, cleanup dry-runs, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+- Current GitHub status: issue #3 remains the manual QA tracker. This local automated pass did not update GitHub.
 - Current manual status: V1 is not fully manually certified until the native folder picker, visible Open Login flow, and real account-backed chat/auth checks are completed by the local user.
 
 ## Latest Commands
 
 ```bash
 npm run verify:release
+npm run cleanup:artifacts
 npm run release:evidence -- --gate-result passed
 npm run cleanup:project:dry-run
 npm run cleanup:artifacts:dry-run
 ```
 
-Latest local cleanup dry-runs found no repo-owned stale processes and no local build or smoke artifacts.
+Latest local cleanup dry-runs found no repo-owned stale processes and no local build or smoke artifacts after final cleanup.
 
 ## Automated Gate Coverage
 
-- 167 test files
+- 168 test files
 - lint
 - production build
 - production server smoke
