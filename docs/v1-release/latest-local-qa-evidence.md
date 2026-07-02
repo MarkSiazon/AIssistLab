@@ -1,14 +1,14 @@
 # Latest Local QA Evidence
 
-Updated: 2026-07-02, Asia/Manila
+Updated: 2026-07-03, Asia/Manila
 
 This note records only the current privacy-safe V1 release-candidate verification state. Historical details live in [qa-history.md](qa-history.md), repeatable commands live in [release-candidate-runbook.md](release-candidate-runbook.md), and public-facing release changes live in [release-notes.md](release-notes.md).
 
 ## Current Checkpoint
 
 - Branch: `dev`
-- Latest pushed automated checkpoint: commit `86bc38e` on `dev` organized the release tooling and documentation ownership guards.
-- Current automated result: `npm run verify:release` passed on 2026-07-02 from `dev...origin/dev` at base commit `86bc38e` with 24 changed files in the working tree. The pass covered the Settings Data Boundary panel, Chat send-boundary copy, Export diagnostics omissions UI, release evidence wording, smoke coverage, and docs updates. The gate covered 168 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, cleanup dry-runs, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+- Latest pushed automated checkpoint: commit `6855671` on `dev` refreshed V1 privacy-boundary UI, smoke coverage, and release evidence notes.
+- Current automated result: `npm run verify:release` passed on 2026-07-03 from `dev...origin/dev` at commit `6855671` with a clean working tree before the evidence-note refresh. The pass covered the Settings Data Boundary panel, Chat send-boundary copy, Export diagnostics omissions UI, release evidence wording, smoke coverage, and docs updates. The gate covered 168 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, cleanup dry-runs, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
 - Current GitHub status: issue #3 remains the manual QA tracker. This local automated pass did not update GitHub.
 - Current manual status: V1 is not fully manually certified until the native folder picker, visible Open Login flow, and real account-backed chat/auth checks are completed by the local user.
 
