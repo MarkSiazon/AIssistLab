@@ -6,10 +6,13 @@ import {
 } from "@/lib/claude/discovery";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import {
-  ENV_PATH,
+  mergeRedactedEnvVars,
+  mergeRedactedRawEnv,
   parseEnv,
   readEnvFile,
+  readPublicEnvFile,
   serializeEnv,
+  publicEnvFileFromRaw,
   writeEnvFile,
 } from "@/lib/settings/env";
 import { applyRuntimeProviderSettings } from "@/lib/settings/runtime-config";
@@ -18,24 +21,28 @@ import { clearClaudeCliStatusCache } from "@/lib/rag/claude-cli-status";
 export const runtime = "nodejs";
 
 export const GET = withLocalDeviceGuard(async () =>
-  NextResponse.json(await readEnvFile()),
+  NextResponse.json(await readPublicEnvFile()),
 );
 
 export const POST = withLocalDeviceGuard(async (request: Request) => {
   const body = await readJsonObject(request);
+  const existingEnv = await readEnvFile();
 
   let content: string;
 
   if (typeof body?.raw === "string") {
     // Raw .env content posted directly
-    content = body.raw;
+    content = mergeRedactedRawEnv(body.raw, existingEnv.parsed);
   } else if (
     body?.vars &&
     typeof body.vars === "object" &&
     !Array.isArray(body.vars)
   ) {
     // Structured key-value pairs
-    const vars = { ...(body.vars as Record<string, string>) };
+    const vars = mergeRedactedEnvVars(
+      { ...(body.vars as Record<string, string>) },
+      existingEnv.parsed,
+    );
     const claudeProfileSelection = body.claudeProfileSelection as
       | ClaudeProfileSelectionInput
       | undefined;
@@ -63,9 +70,7 @@ export const POST = withLocalDeviceGuard(async (request: Request) => {
 
   return NextResponse.json({
     ok: true,
-    path: ENV_PATH,
-    raw: content,
-    parsed,
+    ...publicEnvFileFromRaw(content),
     runtimeApplied: true,
     activeRuntime,
   });

@@ -1,5 +1,6 @@
 @import "./settings-layout.css";
 @import "./settings-release-readiness.css";
+@import "./settings-data-boundary.css";
 @import "./settings-manual-qa.css";
 @import "./settings-first-run.css";
 @import "./settings-claude-status.css";

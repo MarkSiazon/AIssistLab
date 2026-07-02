@@ -52,3 +52,9 @@ export function firstRunNextStepLabel(
 ): "Next step" | "Optional final step" {
   return status === "optional" ? "Optional final step" : "Next step";
 }
+
+export function firstRunNextStepText(
+  item: Pick<FirstRunChecklistItem, "actionLabel" | "label">,
+): string {
+  return item.actionLabel ? `${item.label}: ${item.actionLabel}` : item.label;
+}

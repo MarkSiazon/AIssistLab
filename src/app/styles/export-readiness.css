@@ -176,6 +176,11 @@
   padding: 0.625rem;
 }
 
+.export-diagnostics-omissions {
+  background: rgba(210, 153, 34, 0.06);
+  border-color: rgba(210, 153, 34, 0.22);
+}
+
 .export-diagnostics-contents-header {
   align-items: center;
   color: var(--text);

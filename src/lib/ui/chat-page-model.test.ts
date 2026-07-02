@@ -78,6 +78,10 @@ assert.equal(stale.sendDisabled, false);
 assert.equal(stale.composerAction.buttonLabel, "Send anyway");
 assert.equal(stale.actionVisibility.showIndexAlert, true);
 assert.equal(stale.composerStatusDetail, "Skills changed after the last rebuild.");
+assert.equal(
+  stale.composerHelp,
+  "You can send anyway. It will use the last available index context, so rebuild before relying on citations.",
+);
 assert.deepEqual(stale.emptySuggestions, ["Which skill should I use?"]);
 
 const ready = buildChatPageModel({
@@ -90,6 +94,14 @@ const ready = buildChatPageModel({
 assert.equal(ready.sendDisabled, false);
 assert.equal(ready.inputLocked, false);
 assert.equal(ready.composerAction.buttonLabel, "Send");
+assert.equal(
+  ready.composerStatusDetail,
+  "Nothing is sent until you press Send. The provider receives your prompt plus retrieved skill excerpts.",
+);
+assert.equal(
+  ready.composerHelp,
+  "Ready. Press Enter to send. The provider receives your prompt plus retrieved skill excerpts and citation metadata.",
+);
 assert.deepEqual(ready.emptySuggestions, ["Which skill should I use?"]);
 
 console.log("Chat page model tests passed");

@@ -31,6 +31,9 @@ yarn-error.log*
 # local-only E2E workspace fixtures
 /.local-workspace/
 
+# nested local repo checkouts
+/rag-interface/
+
 # vercel
 .vercel
 

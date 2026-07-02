@@ -96,6 +96,37 @@ npm run verify:release
 
 It runs project cleanup dry-run preflight, the full test sweep, lint, production build, production server smoke with desktop/mobile visual route checks, dependency audit, local browser/API smoke with keyboard action coverage, safe button smoke, manual QA helper auto smoke, project cleanup dry-run postflight, local artifact cleanup dry-run postflight, asset usage audit, documentation link audit, dead-code audit, unused-export audit, diff whitespace check, untracked text hygiene scan, and privacy scan.
 
+### Release Package Evidence
+
+Print sanitized release evidence after a verified gate:
+
+```bash
+npm run release:evidence -- --gate-result passed
+```
+
+The evidence output includes branch, commit, dirty/clean status, changed-file count, release-gate result, test-file count, command coverage, privacy-scan status, and manual gates still pending. It does not include local paths, provider keys, account identifiers, OAuth paths, or raw Claude profile folders.
+
+To run a finite final package pass from the current checkout:
+
+```bash
+npm run release:prepare
+```
+
+`release:prepare` runs cleanup dry-runs, runs `npm run verify:release` exactly once, then prints the sanitized release evidence summary. It does not mark native folder picker, visible Open Login, provider auth, or real account-backed chat as passed.
+
+### Docs Sync Pre-Publish
+
+Before publishing V1 evidence or updating the manual QA tracker, confirm the local release docs match the current checkout:
+
+```bash
+git status --short --branch
+npm run audit:docs
+npm run verify:release
+npm run release:evidence -- --gate-result passed
+```
+
+Keep current automated status in [latest-local-qa-evidence.md](latest-local-qa-evidence.md), keep detailed historical QA notes in [qa-history.md](qa-history.md), keep public-facing release changes in [release-notes.md](release-notes.md), and keep this runbook as the source of truth for command gates and manual external QA.
+
 If you need to debug an individual gate, run the underlying commands:
 
 ```bash
@@ -250,7 +281,7 @@ Before a checkpoint commit or release tag, run a static scan over tracked docs a
 - provider auth file paths
 - raw Claude profile paths
 
-Expected result: no private local paths, account identifiers, real API keys, provider auth paths, or bearer tokens. The authoritative privacy pattern lives in `scripts/smoke/privacy-assertions.mjs` and is run by the full release verifier.
+Expected result: no private local paths, account identifiers, real API keys, provider auth paths, or bearer tokens. The authoritative privacy pattern lives in `scripts/smoke/assertions/privacy.mjs` and is run by the full release verifier.
 
 ```powershell
 npm run verify:release
@@ -278,4 +309,4 @@ Capture this evidence for a V1 release-candidate checkpoint:
 
 Commit and push only after explicit approval.
 
-The latest privacy-safe local evidence snapshot is tracked in [latest-local-qa-evidence.md](latest-local-qa-evidence.md).
+The latest privacy-safe local evidence snapshot is tracked in [latest-local-qa-evidence.md](latest-local-qa-evidence.md). Older detailed evidence is kept in [qa-history.md](qa-history.md).

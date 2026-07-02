@@ -99,7 +99,8 @@ export function sanitizeClaudeDisplayText(
   }
 
   return sanitized
-    .replace(/sk-ant-[A-Za-z0-9_-]+/g, "[redacted-api-key]")
+    .replace(/\bsk-[A-Za-z0-9._-]+\b/gi, "[redacted-api-key]")
+    .replace(/\bBearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
     .replace(
       /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
       "[redacted-email]",

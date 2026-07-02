@@ -42,6 +42,8 @@ interface ReleaseReadinessResponse {
     status: ReleaseReadinessStatus;
     score: number;
     topAction: string | null;
+    topActionLabel: string | null;
+    topActionHref: string | null;
     canChat: boolean;
     canExportDiagnostics: boolean;
   };

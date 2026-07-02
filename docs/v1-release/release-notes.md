@@ -2,7 +2,22 @@
 
 Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code skills, checking setup readiness, and asking RAG-backed questions over a configured skills workspace.
 
-## 2026-06-26 Post-Push Checkpoint
+## 2026-06-28 V1 Hardening Checkpoint
+
+- PR #5 merged the latest V1 release-hardening fixes through commit `1804c95`.
+- The automated release gate passed with `npm run verify:release`, including 163 test files, lint, production build, production smoke, dependency audit, local browser/API smoke, safe button smoke, manual QA helper auto smoke, cleanup dry-runs, asset/docs/dead-code/unused-export audits, diff whitespace, untracked release-text hygiene, and privacy scan.
+- `release:evidence` now prints a sanitized V1 release evidence summary, and `release:prepare` runs a finite final package pass without looping the release gate.
+- V1 Release Readiness summaries now expose the top action label and href in addition to the blocker message, so Settings, Chat, and release evidence share one recovery target.
+- First Run Checklist highlights the concrete next action label in the next-step strip.
+- Editor preview tabs now hide inactive panels so the edit textarea is not visible while Preview is selected.
+- Settings API responses now redact secret-like env values and preserve existing private values when redacted placeholders are posted back unchanged.
+- Chat stream error events now pass through the shared display sanitizer before reaching the browser.
+- GitHub issue #3 remains open for manual external QA: native folder picker visibility, visible Open Login, provider auth testing, first real account-backed chat, and manual sanitization review.
+- The release remains V1-only. V2 provider registry and additional provider adapters are still out of scope for this ship pass.
+
+## 2026-06-26 Historical Post-Push Checkpoint
+
+The details in this section describe the local release snapshot from that checkpoint. Use the 2026-06-28 hardening checkpoint and the latest local QA evidence for current automated status.
 
 - Checkpoint commit `f3c4ffb` added route-manifest guard coverage for app pages, API handlers, API route constants, and the V1 API inventory documentation.
 - GitHub Pages build/deploy completed successfully for `f3c4ffb`; the live Pages URL returns HTTP 200 at `https://marksiazon.github.io/AIssistLab/`.
@@ -19,6 +34,9 @@ Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code
 - Local Settings for workspace paths, skills directory paths, provider selection, Claude CLI profile selection, and runtime-applied provider changes.
 - Deterministic Setup Doctor, First Run Checklist, and V1 Release Readiness panel for workspace, provider, index, skill quality, Claude project, chat, and diagnostics state.
 - Settings Manual QA Evidence panel for local-only status/timestamp tracking of native folder picker, visible Claude login launch, and real account-backed chat checks.
+- Settings Data Boundary panel that explains configured-workspace reads, explicit chat-send provider context, scrubbed diagnostics export, and manual account/device checks in one in-product summary.
+- Chat readiness now names the send boundary before the first message: provider calls happen only after Send, with the prompt plus retrieved skill excerpts and citation metadata.
+- Export diagnostics now shows both included diagnostics files and excluded data classes before download, including keys/tokens, account identifiers, OAuth/profile paths, home paths, hook commands, and raw provider output.
 - A tracked demo workspace for portable first-run smoke checks without private local paths or provider credentials.
 - Anthropic API mode as the default local API-key provider, plus optional localhost-only Claude Code CLI mode with profile discovery, visible login launch, explicit smoke tests, and sanitized status output.
 - Persistent RAG index metadata with ready, stale, missing, rebuilding, and failed states; skill writes mark the index stale, and stale counts are labeled as the last index in Sidebar and Settings.

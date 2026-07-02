@@ -40,6 +40,8 @@ export function buildReleaseReadinessReport({
       status: summaryStatus,
       score: scoreSections(sections, doctor.summary.readinessScore),
       topAction: topSection?.message ?? null,
+      topActionLabel: topSection?.actionLabel ?? null,
+      topActionHref: topSection?.actionHref ?? null,
       canChat: chat.canSend,
       canExportDiagnostics: true,
     },

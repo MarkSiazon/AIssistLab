@@ -126,7 +126,7 @@ export function ReleaseReadinessPanel({
               <div className="settings-readiness-action-strip">
                 <div className="settings-readiness-action-copy">
                   <span>Top action</span>
-                  <strong>{report.summary.topAction}</strong>
+                  <strong>{state.recoverySummary}</strong>
                 </div>
                 {state.primaryAction &&
                   (() => {
