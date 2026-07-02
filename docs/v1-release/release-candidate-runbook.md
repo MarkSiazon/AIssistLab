@@ -125,7 +125,7 @@ npm run verify:release
 npm run release:evidence -- --gate-result passed
 ```
 
-Keep current automated status in [latest-local-qa-evidence.md](latest-local-qa-evidence.md), keep public-facing release changes in [release-notes.md](release-notes.md), and keep this runbook as the source of truth for command gates and manual external QA.
+Keep current automated status in [latest-local-qa-evidence.md](latest-local-qa-evidence.md), keep detailed historical QA notes in [qa-history.md](qa-history.md), keep public-facing release changes in [release-notes.md](release-notes.md), and keep this runbook as the source of truth for command gates and manual external QA.
 
 If you need to debug an individual gate, run the underlying commands:
 
@@ -281,7 +281,7 @@ Before a checkpoint commit or release tag, run a static scan over tracked docs a
 - provider auth file paths
 - raw Claude profile paths
 
-Expected result: no private local paths, account identifiers, real API keys, provider auth paths, or bearer tokens. The authoritative privacy pattern lives in `scripts/smoke/privacy-assertions.mjs` and is run by the full release verifier.
+Expected result: no private local paths, account identifiers, real API keys, provider auth paths, or bearer tokens. The authoritative privacy pattern lives in `scripts/smoke/assertions/privacy.mjs` and is run by the full release verifier.
 
 ```powershell
 npm run verify:release
@@ -309,4 +309,4 @@ Capture this evidence for a V1 release-candidate checkpoint:
 
 Commit and push only after explicit approval.
 
-The latest privacy-safe local evidence snapshot is tracked in [latest-local-qa-evidence.md](latest-local-qa-evidence.md).
+The latest privacy-safe local evidence snapshot is tracked in [latest-local-qa-evidence.md](latest-local-qa-evidence.md). Older detailed evidence is kept in [qa-history.md](qa-history.md).

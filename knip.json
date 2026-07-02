@@ -3,7 +3,12 @@
   "entry": [
     "src/app/**/{layout,page,route,not-found,error,loading,template}.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
-    "scripts/*.mjs",
+    "scripts/audit/*.mjs",
+    "scripts/cleanup/*.mjs",
+    "scripts/qa/*.mjs",
+    "scripts/release/*.mjs",
+    "scripts/smoke/runners/*.mjs",
+    "scripts/test/*.mjs",
     "scripts/**/*.test.mjs"
   ],
   "project": [

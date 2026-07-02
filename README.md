@@ -199,8 +199,10 @@ Manual QA remains device/account-owned: native folder picker visibility, Claude 
 ## Documentation
 
 - [Docs index](docs/README.md)
+- [Architecture map](docs/architecture.md)
 - [V1 release notes](docs/v1-release/release-notes.md)
 - [V1 release-candidate runbook](docs/v1-release/release-candidate-runbook.md)
+- [Latest local QA evidence](docs/v1-release/latest-local-qa-evidence.md)
 - [V1 ship checklist](docs/v1-release/v1-ship-checklist.md)
 - [V1 roadmap](docs/v1-roadmap/roadmap.md)
 - [V1 specs](docs/v1-spec/README.md)

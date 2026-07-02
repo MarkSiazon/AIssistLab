@@ -1,0 +1,141 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import {
+  assertManualQaSnapshotSafe,
+  formatManualQaReport,
+  manualQaUsage,
+  normalizeBaseUrl,
+  parseManualQaArgs,
+  runManualQaHelper,
+} from "./manual-external.mjs";
+
+const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+const verifyReleaseSource = readFileSync("scripts/release/verify.mjs", "utf8");
+
+assert.equal(
+  packageJson.scripts["qa:manual:auto"],
+  "node scripts/qa/manual-external.mjs --start-server",
+  "package.json must expose the manual QA auto-server helper",
+);
+assert.match(
+  verifyReleaseSource,
+  /runCommand\("Manual QA helper auto smoke",\s*"npm",\s*\["run",\s*"qa:manual:auto"\]\)/,
+  "verify:release must smoke the manual QA auto-server helper",
+);
+
+assert.equal(normalizeBaseUrl("http://localhost:3000/"), "http://localhost:3000");
+assert.throws(() => normalizeBaseUrl("file:///tmp/app"), /Invalid manual QA base URL/);
+assert.deepEqual(parseManualQaArgs([], {}), {
+  baseUrl: undefined,
+  startServer: false,
+});
+assert.deepEqual(parseManualQaArgs(["--start-server"], {}), {
+  baseUrl: undefined,
+  startServer: true,
+});
+assert.deepEqual(
+  parseManualQaArgs(["--base-url", "http://127.0.0.1:3000/"], {}),
+  {
+    baseUrl: "http://127.0.0.1:3000/",
+    startServer: false,
+  },
+);
+assert.deepEqual(parseManualQaArgs([], { MANUAL_QA_START_SERVER: "1" }), {
+  baseUrl: undefined,
+  startServer: true,
+});
+assert.throws(
+  () => parseManualQaArgs(["--unknown"], {}),
+  /Unknown manual QA option/,
+);
+assert.throws(
+  () => parseManualQaArgs(["--base-url"], {}),
+  /requires a URL value/,
+);
+assert.match(manualQaUsage(), /npm run qa:manual:auto/);
+
+const safeEntries = [
+  {
+    ok: true,
+    status: 200,
+    path: "/api/release/readiness",
+    payload: {
+      summary: {
+        status: "needs_action",
+        score: 82,
+      },
+    },
+  },
+  {
+    ok: true,
+    status: 200,
+    path: "/api/chat/status",
+    payload: {
+      canSend: false,
+      blockingReason: "Provider auth needs attention.",
+    },
+  },
+  {
+    ok: true,
+    status: 200,
+    path: "/api/settings/runtime",
+    payload: {
+      provider: "anthropic_api",
+      source: "runtime",
+    },
+  },
+  {
+    ok: true,
+    status: 200,
+    path: "/api/settings/claude-cli/profiles",
+    payload: {
+      profiles: [
+        {
+          id: "default",
+          label: "Default profile",
+          selected: true,
+        },
+      ],
+    },
+  },
+];
+
+assert.doesNotThrow(() => assertManualQaSnapshotSafe(safeEntries));
+
+const report = formatManualQaReport("http://localhost:3000", safeEntries);
+assert.match(report, /Native folder picker/);
+assert.match(report, /Claude Open Login/);
+assert.match(report, /Account-backed chat/);
+assert.match(report, /Manual because: The OS folder picker is a native device dialog/);
+assert.match(report, /Manual because: The login action can open a private account-owned Claude auth flow/);
+assert.match(report, /Manual because: A real chat sends a user-owned prompt/);
+assert.match(report, /Release readiness: needs_action \(82\/100\)/);
+assert.match(report, /Chat readiness: blocked \(Provider auth needs attention\.\)/);
+assert.match(report, /Settings Manual QA Evidence panel/);
+assert.match(report, /Skipped means intentionally not verified; it is not a pass\./);
+assert.match(report, /does not write evidence files/);
+assert.doesNotMatch(report, /C:\\Users|sk-ant-|oauth\.json|Bearer /i);
+
+await assert.rejects(
+  () =>
+    runManualQaHelper({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: async (url) => ({
+        ok: true,
+        status: 200,
+        async text() {
+          if (String(url).includes("runtime")) {
+            return JSON.stringify({
+              provider: "anthropic_api",
+              source: "runtime",
+              leaked: String.raw`C:\Users\Example\.claude\oauth.json`,
+            });
+          }
+          return "{}";
+        },
+      }),
+    }),
+  /leaked .*path/,
+);
+
+console.log("Manual external QA helper tests passed");

@@ -4,9 +4,10 @@ import { readFileSync } from "node:fs";
 const editorBodyCss = readFileSync("src/app/styles/editor-body.css", "utf8");
 
 const editPanelDisplayIndex = editorBodyCss.indexOf(".skill-editor-edit-panel {");
-const hiddenPanelOverrideIndex = editorBodyCss.indexOf(
-  ".skill-editor-edit-panel[hidden],\n.skill-editor-preview-scroll[hidden]",
+const hiddenPanelOverrideMatch = /\n\.skill-editor-edit-panel\[hidden\],\r?\n\.skill-editor-preview-scroll\[hidden\]/.exec(
+  editorBodyCss,
 );
+const hiddenPanelOverrideIndex = hiddenPanelOverrideMatch?.index ?? -1;
 
 assert.notEqual(
   editPanelDisplayIndex,
@@ -24,7 +25,7 @@ assert.ok(
 );
 assert.match(
   editorBodyCss.slice(hiddenPanelOverrideIndex),
-  /\.skill-editor-edit-panel\[hidden\],\n\.skill-editor-preview-scroll\[hidden\]\s*\{\s*display:\s*none;\s*\}/,
+  /\.skill-editor-edit-panel\[hidden\],\r?\n\.skill-editor-preview-scroll\[hidden\]\s*\{\s*display:\s*none;\s*\}/,
   "hidden tab panel override should force display:none for edit and preview panels",
 );
 
