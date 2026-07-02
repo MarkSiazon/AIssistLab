@@ -1,0 +1,103 @@
+.settings-data-boundary-panel {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.settings-data-boundary-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settings-data-boundary-title {
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.settings-data-boundary-subtitle {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-data-boundary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-data-boundary-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: 0.25rem minmax(0, 1fr);
+  padding: 0.625rem;
+}
+
+.settings-data-boundary-rail {
+  border-radius: 999px;
+  min-height: 100%;
+  width: 0.25rem;
+}
+
+.settings-data-boundary-tone-local {
+  background: var(--green);
+}
+
+.settings-data-boundary-tone-explicit {
+  background: var(--accent);
+}
+
+.settings-data-boundary-tone-sanitized {
+  background: var(--yellow);
+}
+
+.settings-data-boundary-tone-manual {
+  background: var(--text-muted);
+}
+
+.settings-data-boundary-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.settings-data-boundary-label {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.settings-data-boundary-summary {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.settings-data-boundary-detail {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.settings-data-boundary-footer {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}

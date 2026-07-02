@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { ActiveValuesPanel } from "@/components/settings/ActiveValuesPanel";
 import { ClaudeCliPanel } from "@/components/settings/ClaudeCliPanel";
 import { ClaudeProjectInventoryPanel } from "@/components/settings/ClaudeProjectInventoryPanel";
+import { DataBoundaryPanel } from "@/components/settings/DataBoundaryPanel";
 import { FirstRunChecklistPanel } from "@/components/settings/FirstRunChecklistPanel";
 import { ManualExternalQaPanel } from "@/components/settings/ManualExternalQaPanel";
 import { RagIndexPanel } from "@/components/settings/RagIndexPanel";
@@ -133,6 +134,8 @@ export function SettingsSidePane({
         isActionDisabled={releaseActionDisabled}
         onAction={onReleaseAction}
       />
+
+      <DataBoundaryPanel />
 
       <ManualExternalQaPanel />
 
