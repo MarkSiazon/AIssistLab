@@ -94,6 +94,18 @@ assert.match(
 
 assert.match(
   source,
+  /expectText\(page,\s*"Send boundary"\)/,
+  "chat smoke must verify the provider send boundary row is visible",
+);
+
+assert.match(
+  source,
+  /expectText\(page,\s*"Diagnostics bundle excludes"\)/,
+  "export smoke must verify diagnostics omitted-data copy is visible",
+);
+
+assert.match(
+  source,
   /Editor ArrowRight did not select the Mobile Preview tab/,
   "editor smoke must verify keyboard tablist navigation",
 );
@@ -102,6 +114,18 @@ assert.match(
   source,
   /Guided End key step navigation/,
   "guided builder smoke must verify keyboard step navigation",
+);
+
+assert.match(
+  source,
+  /expectText\(page,\s*"Data Boundary"\)/,
+  "settings smoke must verify the Data Boundary panel is visible",
+);
+
+assert.match(
+  source,
+  /expectText\(page,\s*"Provider context is sent only when you send a chat message\."\)/,
+  "settings smoke must verify explicit chat-send data boundary copy",
 );
 
 assert.match(

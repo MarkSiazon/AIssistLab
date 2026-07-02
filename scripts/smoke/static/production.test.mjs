@@ -181,6 +181,8 @@ for (const interaction of [
   "production guided clear confirmation",
   "production chat expanded citation",
   "production chat collapsed citation",
+  "Send boundary",
+  "Provider calls happen only when you send a message.",
 ]) {
   assert.match(
     productionSmokeSource,
@@ -203,6 +205,8 @@ assert.match(
 
 for (const exportInteraction of [
   "production export selected skill",
+  "Diagnostics bundle excludes",
+  "API keys and bearer tokens",
   "Download 1 selected skills with diagnostics",
   "Download release-readiness-smoke as Markdown",
   "skill=release-readiness-smoke",
@@ -225,6 +229,9 @@ for (const settingsInteraction of [
   "production settings ready state",
   "production settings refreshed state",
   "production settings saved state",
+  "Data Boundary",
+  "Provider context is sent only when you send a chat message.",
+  "Diagnostics omit API keys",
   "Manual QA Evidence",
   "Choose a local folder path",
   "Production path picker did not apply the selected folder to Settings",

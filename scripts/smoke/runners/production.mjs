@@ -511,6 +511,8 @@ async function runProductionChatInteractionSmoke(page, baseUrl) {
       timeout: routeNavigationTimeoutMs,
     });
     await expectText(page, "Ready");
+    await expectText(page, "Send boundary");
+    await expectText(page, "Provider calls happen only when you send a message.");
     await page.locator("textarea").fill("Mock production chat request");
     await clickButton(page, "Send");
     await expectText(page, "Production mock assistant response.");
@@ -671,6 +673,9 @@ async function runProductionSettingsInteractionSmoke(page, baseUrl) {
     await expectText(page, "First Run Checklist");
     await expectText(page, "Workspace path valid");
     await expectText(page, "Claude/API auth tested");
+    await expectText(page, "Data Boundary");
+    await expectText(page, "Provider context is sent only when you send a chat message.");
+    await expectText(page, "Diagnostics omit API keys");
     await expectText(page, "Manual QA Evidence");
     await assertCurrentRouteState(page, "production settings ready state");
     await assertCurrentRouteDomCoverage(page, "production settings ready state", {
@@ -919,6 +924,9 @@ async function runProductionExportInteractionSmoke(page, baseUrl) {
       timeout: routeNavigationTimeoutMs,
     });
     await expectText(page, "Diagnostics export is available.");
+    await expectText(page, "Diagnostics bundle excludes");
+    await expectText(page, "API keys and bearer tokens");
+    await expectText(page, "Raw provider output");
     await expectText(page, "release-readiness-smoke.md");
     await expectText(page, "0 of 1 selected");
     await clickButton(page, "Select all");

@@ -1513,6 +1513,9 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "settings readiness panel",
   );
   await expectText(page, "V1 Release Readiness");
+  await expectText(page, "Data Boundary");
+  await expectText(page, "Provider context is sent only when you send a chat message.");
+  await expectText(page, "Diagnostics omit API keys");
   await expectText(page, "Manual QA Evidence");
   await expectText(page, "npm run qa:manual");
   const manualQaPanel = page.locator(".settings-manual-qa-panel").first();
@@ -2523,6 +2526,8 @@ async function runChatSmoke(page, baseUrl) {
   const status = await jsonFetch(baseUrl, "/api/chat/status");
   await page.goto(`${baseUrl}/chat`, { waitUntil: "networkidle" });
   await expectText(page, "Chat Readiness");
+  await expectText(page, "Send boundary");
+  await expectText(page, "Provider calls happen only when you send a message.");
   await page
     .locator(".chat-suggestion-button")
     .first()
@@ -2927,6 +2932,9 @@ async function markExportReadinessLinksCovered(page) {
 
 async function runExportSmoke(page, baseUrl, smokeRoot) {
   await gotoAndExpectText(page, `${baseUrl}/export`, "Export", "export smoke");
+  await expectText(page, "Diagnostics bundle excludes");
+  await expectText(page, "API keys and bearer tokens");
+  await expectText(page, "Raw provider output");
   await verifyExportReadinessSectionLinks(page, baseUrl);
   await clickButton(page, "Select all");
   await clickButton(page, "Clear");
