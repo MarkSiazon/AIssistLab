@@ -21,8 +21,16 @@ export const diagnosticsContents = [
   "Sanitized settings summary",
 ];
 
+export const diagnosticsOmittedData = [
+  "API keys and bearer tokens",
+  "Account identifiers",
+  "OAuth and raw profile paths",
+  "Home paths and hook commands",
+  "Raw provider output",
+];
+
 export const diagnosticsPrivacyCopy =
-  "Generated locally with sanitized readiness, index, quality, Claude project, and settings data. API keys, account identifiers, OAuth paths, and raw profile paths are not included.";
+  "Generated locally with sanitized readiness, index, quality, Claude project, and settings data. Review the excluded data classes before downloading or sharing.";
 
 export function readinessCopy(
   summary: ReleaseReadinessResponse["summary"] | undefined,

@@ -121,7 +121,7 @@ function composerStatusDetail(input: {
       indexSuggestedAction(input.status.index)
     );
   }
-  return "Press Enter to send. Press Shift and Enter for a new line.";
+  return "Nothing is sent until you press Send. The provider receives your prompt plus retrieved skill excerpts.";
 }
 
 function composerPlaceholder(input: {
@@ -146,9 +146,9 @@ function composerHelp({
 }): string {
   if (composerAction.disabledReason) return composerAction.disabledReason;
   if (indexNeedsAction) {
-    return "You can send anyway, but rebuild the index before relying on citations.";
+    return "You can send anyway. It will use the last available index context, so rebuild before relying on citations.";
   }
-  return "Ready. Press Enter to send. Press Shift and Enter for a new line.";
+  return "Ready. Press Enter to send. The provider receives your prompt plus retrieved skill excerpts and citation metadata.";
 }
 
 export function buildChatPageModel({

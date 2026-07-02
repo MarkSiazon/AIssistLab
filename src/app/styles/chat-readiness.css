@@ -84,7 +84,7 @@
 .chat-readiness-grid {
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr));
 }
 
 .chat-readiness-item {

@@ -4,6 +4,8 @@ import {
   buildExportReadinessMetrics,
   buildExportReadinessStatus,
   buildPrimaryDownloadLabel,
+  diagnosticsOmittedData,
+  diagnosticsPrivacyCopy,
   readinessCopy,
   type ReleaseReadinessResponse,
 } from "./export-page-model";
@@ -22,6 +24,17 @@ assert.equal(
   readinessCopy(readySummary, false),
   "Diagnostics export is available.",
 );
+assert.equal(
+  diagnosticsPrivacyCopy,
+  "Generated locally with sanitized readiness, index, quality, Claude project, and settings data. Review the excluded data classes before downloading or sharing.",
+);
+assert.deepEqual(diagnosticsOmittedData, [
+  "API keys and bearer tokens",
+  "Account identifiers",
+  "OAuth and raw profile paths",
+  "Home paths and hook commands",
+  "Raw provider output",
+]);
 assert.equal(
   readinessCopy(undefined, true),
   "Diagnostics readiness is unavailable in this server mode.",

@@ -5,6 +5,7 @@ import {
   buildExportReadinessMetrics,
   buildExportReadinessStatus,
   diagnosticsContents,
+  diagnosticsOmittedData,
   diagnosticsPrivacyCopy,
   readinessCopy,
   type ReleaseReadinessResponse,
@@ -129,6 +130,22 @@ export function ExportReadinessPanel({
           </div>
           <div className="export-diagnostics-contents-list">
             {diagnosticsContents.map((item) => (
+              <span key={item} className="export-diagnostics-content-pill">
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          className="export-diagnostics-contents export-diagnostics-omissions"
+          aria-label="Diagnostics excluded data"
+        >
+          <div className="export-diagnostics-contents-header">
+            <span>Diagnostics bundle excludes</span>
+            <span>Scrubbed</span>
+          </div>
+          <div className="export-diagnostics-contents-list">
+            {diagnosticsOmittedData.map((item) => (
               <span key={item} className="export-diagnostics-content-pill">
                 {item}
               </span>

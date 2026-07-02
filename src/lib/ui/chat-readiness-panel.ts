@@ -133,6 +133,13 @@ export function buildChatReadinessRows({
             : "warn",
     },
     {
+      label: "Send boundary",
+      value: "Prompt + retrieved skill excerpts",
+      detail:
+        "Nothing is sent on page load. Provider calls happen only when you send a message.",
+      tone: "neutral",
+    },
+    {
       label: status.provider === "claude_code_cli" ? "CLI test" : "API auth",
       value: authLabel,
       detail:

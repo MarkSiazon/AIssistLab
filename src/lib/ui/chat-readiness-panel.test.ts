@@ -43,8 +43,17 @@ assert.deepEqual(
     ["Chat", "Ready to send", "ok"],
     ["Provider", "Anthropic API", "neutral"],
     ["Index", "Index ready", "ok"],
+    ["Send boundary", "Prompt + retrieved skill excerpts", "neutral"],
     ["API auth", "API key ready", "ok"],
   ],
+);
+
+assert.equal(
+  buildChatReadinessRows({
+    status: readyStatus,
+    release: { status: "ready", topAction: null },
+  }).find((row) => row.label === "Send boundary")?.detail,
+  "Nothing is sent on page load. Provider calls happen only when you send a message.",
 );
 
 const blockedCliStatus: ChatReadinessStatus = {
