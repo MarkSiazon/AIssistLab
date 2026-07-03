@@ -35,6 +35,42 @@ assert.match(
   /Manual QA issue #3 must be closed/,
 );
 
+const blockedSkippedFinalTag = buildReleaseDraftReadiness({
+  ...readyInput,
+  issueState: "OPEN",
+  manualQaSkipped: true,
+});
+assert.equal(blockedSkippedFinalTag.ok, false);
+assert.match(
+  blockedSkippedFinalTag.errors.join("\n"),
+  /must use a prerelease tag/,
+);
+
+const skippedPrerelease = buildReleaseDraftReadiness({
+  ...readyInput,
+  issueState: "OPEN",
+  manualQaSkipped: true,
+  tag: "v1.0.0-rc.1",
+  title: "Skill Workshop RAG v1.0.0 automated QA candidate",
+});
+assert.equal(skippedPrerelease.ok, true);
+assert.equal(skippedPrerelease.draftPrerelease, true);
+assert.deepEqual(skippedPrerelease.commands, [
+  'git tag -a v1.0.0-rc.1 -m "Skill Workshop RAG v1.0.0 automated QA candidate"',
+  "git push origin v1.0.0-rc.1",
+  'gh release create v1.0.0-rc.1 --draft --prerelease --title "Skill Workshop RAG v1.0.0 automated QA candidate" --notes-file docs/v1-release/release-notes.md',
+]);
+
+const skippedAfterManualPass = buildReleaseDraftReadiness({
+  ...readyInput,
+  manualQaSkipped: true,
+});
+assert.equal(
+  skippedAfterManualPass.draftPrerelease,
+  false,
+  "closed manual QA should keep the normal draft release path",
+);
+
 const blockedByDirtyTree = buildReleaseDraftReadiness({
   ...readyInput,
   changedFileCount: 1,

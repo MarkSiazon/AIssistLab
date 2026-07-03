@@ -79,6 +79,14 @@ git status --short --branch
 
 Before manual QA is complete, `npm run release:draft -- --tag v1.0.0 --dry-run` should fail and report that issue #3 is still open. Treat that as the expected guard behavior, not a release failure.
 
+If manual QA is intentionally skipped, use only an automated-only draft prerelease tag:
+
+```bash
+npm run release:draft -- --tag v1.0.0-rc.1 --manual-qa-skipped
+```
+
+Do not describe that artifact as fully manually verified V1.
+
 ## Batch 6: Final Automated Release Candidate
 
 - Full release gate passes from the current checkout.

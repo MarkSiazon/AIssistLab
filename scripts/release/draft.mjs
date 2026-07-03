@@ -32,6 +32,7 @@ function requireSuccess(label, result) {
 function parseArgs(argv) {
   const options = {
     dryRun: false,
+    manualQaSkipped: false,
     manualQaIssue: defaultManualQaIssue,
     notesFile: defaultNotesFile,
     tag: null,
@@ -42,6 +43,8 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === "--dry-run") {
       options.dryRun = true;
+    } else if (arg === "--manual-qa-skipped") {
+      options.manualQaSkipped = true;
     } else if (arg === "--manual-qa-issue") {
       options.manualQaIssue = argv[index + 1] ?? "";
       index += 1;
@@ -81,6 +84,7 @@ export function buildReleaseDraftReadiness({
   issueNumber = defaultManualQaIssue,
   issueState,
   localTagExists,
+  manualQaSkipped = false,
   notesFile = defaultNotesFile,
   notesFileExists,
   originMainCommit,
@@ -98,6 +102,11 @@ export function buildReleaseDraftReadiness({
     }
   })();
   const releaseTitle = title?.trim() || `Skill Workshop RAG ${normalizedTag}`;
+  const prereleaseTag = /^v\d+\.\d+\.\d+-[0-9A-Za-z.-]+(?:\+[0-9A-Za-z.-]+)?$/.test(
+    normalizedTag,
+  );
+  const manualQaPassed = issueState === "CLOSED";
+  const draftPrerelease = manualQaSkipped && !manualQaPassed;
 
   if (!/^main(?:\.\.\.origin\/main)?$/.test(branchLine ?? "")) {
     errors.push("Release draft must be created from main tracking origin/main.");
@@ -111,10 +120,16 @@ export function buildReleaseDraftReadiness({
     errors.push("Local main must match origin/main before release drafting.");
   }
 
-  if (issueState !== "CLOSED") {
-    errors.push(
-      `Manual QA issue #${issueNumber} must be closed before creating a release tag or draft.`,
-    );
+  if (!manualQaPassed) {
+    if (!manualQaSkipped) {
+      errors.push(
+        `Manual QA issue #${issueNumber} must be closed before creating a release tag or draft, or pass --manual-qa-skipped for an automated-only draft prerelease.`,
+      );
+    } else if (!prereleaseTag) {
+      errors.push(
+        "Manual-QA-skipped releases must use a prerelease tag such as v1.0.0-rc.1.",
+      );
+    }
   }
 
   if (!notesFileExists) {
@@ -133,8 +148,9 @@ export function buildReleaseDraftReadiness({
     commands: [
       `git tag -a ${normalizedTag} -m "${releaseTitle}"`,
       `git push origin ${normalizedTag}`,
-      `gh release create ${normalizedTag} --draft --title "${releaseTitle}" --notes-file ${notesFile}`,
+      `gh release create ${normalizedTag} --draft${draftPrerelease ? " --prerelease" : ""} --title "${releaseTitle}" --notes-file ${notesFile}`,
     ],
+    draftPrerelease,
   };
 }
 
@@ -149,8 +165,9 @@ function usage() {
   return [
     "Usage:",
     "  npm run release:draft -- --tag v1.0.0 [--title \"Skill Workshop RAG v1.0.0\"] [--manual-qa-issue 3] [--notes-file docs/v1-release/release-notes.md] [--dry-run]",
+    "  npm run release:draft -- --tag v1.0.0-rc.1 --manual-qa-skipped [--dry-run]",
     "",
-    "The command refuses to create a tag or GitHub draft release until the manual QA tracker issue is closed.",
+    "The command refuses to create a final tag or GitHub draft release until the manual QA tracker issue is closed. Use --manual-qa-skipped only for automated-only draft prereleases with prerelease tags.",
   ].join("\n");
 }
 
@@ -204,6 +221,7 @@ function main() {
     issueNumber: options.manualQaIssue,
     issueState,
     localTagExists,
+    manualQaSkipped: options.manualQaSkipped,
     notesFileExists: existsSync(path.resolve(repoRoot, notesFile)),
     notesFile,
     originMainCommit,
@@ -239,6 +257,7 @@ function main() {
       "create",
       tag,
       "--draft",
+      ...(readiness.draftPrerelease ? ["--prerelease"] : []),
       "--title",
       releaseTitle,
       "--notes-file",

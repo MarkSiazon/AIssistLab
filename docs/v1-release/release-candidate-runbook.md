@@ -128,6 +128,14 @@ npm run release:draft -- --tag v1.0.0 --dry-run
 
 If issue #3 is still open, the command fails intentionally. Do not use it to bypass native folder picker, visible Open Login, provider auth, real account-backed chat, or manual sanitization review.
 
+If the manual QA session is intentionally skipped, do not create a final V1 tag. You may create an automated-only draft prerelease with an explicit prerelease tag and skip flag:
+
+```bash
+npm run release:draft -- --tag v1.0.0-rc.1 --manual-qa-skipped
+```
+
+That path keeps issue #3 open, creates a GitHub draft prerelease, and must be described as automated-only. It is not a fully manually verified V1 release.
+
 ### Docs Sync Pre-Publish
 
 Before publishing V1 evidence or updating the manual QA tracker, confirm the local release docs match the current checkout:
