@@ -7,6 +7,7 @@ import {
   formatManualExternalQaTimestamp,
   manualExternalQaCommand,
   manualExternalQaItems,
+  manualExternalQaSkippedCopy,
   manualExternalQaStatusClassName,
   manualExternalQaStatusLabel,
   readManualExternalQaEvidenceFromStorage,
@@ -98,6 +99,8 @@ export function ManualExternalQaPanel() {
         <span>{`${summary.failed} need fix`}</span>
         <span>{`${summary.skipped} skipped`}</span>
       </div>
+
+      <p className="settings-manual-qa-warning">{manualExternalQaSkippedCopy}</p>
 
       <div className="settings-manual-qa-list" role="list">
         {evidence.map((item) => (

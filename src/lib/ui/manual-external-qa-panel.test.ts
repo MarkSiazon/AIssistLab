@@ -4,6 +4,7 @@ import {
   formatManualExternalQaTimestamp,
   manualExternalQaCommand,
   manualExternalQaItems,
+  manualExternalQaSkippedCopy,
   manualExternalQaStatusClassName,
   manualExternalQaStatusLabel,
   parseManualExternalQaEvidence,
@@ -146,6 +147,7 @@ assert.equal(manualExternalQaStatusLabel("pending"), "Pending");
 assert.equal(manualExternalQaStatusLabel("passed"), "Passed");
 assert.equal(manualExternalQaStatusLabel("failed"), "Needs fix");
 assert.equal(manualExternalQaStatusLabel("skipped"), "Skipped");
+assert.match(manualExternalQaSkippedCopy, /not a pass/);
 assert.equal(
   manualExternalQaStatusClassName("pending"),
   "settings-manual-qa-status-pending",

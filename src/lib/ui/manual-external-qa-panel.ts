@@ -39,6 +39,8 @@ const manualExternalQaStorageKey =
   "skill-workshop-manual-external-qa-evidence";
 
 export const manualExternalQaCommand = "npm run qa:manual";
+export const manualExternalQaSkippedCopy =
+  "Skipped means intentionally not verified; it is not a pass.";
 
 export const manualExternalQaItems: ManualExternalQaItemDefinition[] = [
   {
