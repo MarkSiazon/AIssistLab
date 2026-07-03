@@ -21,6 +21,7 @@
     "audit:docs": "node scripts/audit/docs.mjs",
     "audit:dead-code": "knip --include files,dependencies,unlisted,binaries,unresolved --no-progress",
     "audit:exports": "knip --exports --include-entry-exports --no-progress --max-show-issues 120",
+    "release:draft": "node scripts/release/draft.mjs",
     "release:evidence": "node scripts/release/evidence.mjs",
     "release:prepare": "node scripts/release/prepare.mjs",
     "verify:release": "node scripts/release/verify.mjs"

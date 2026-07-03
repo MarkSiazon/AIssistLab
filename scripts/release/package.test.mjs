@@ -10,6 +10,10 @@ import {
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
 assert.equal(
+  packageJson.scripts["release:draft"],
+  "node scripts/release/draft.mjs",
+);
+assert.equal(
   packageJson.scripts["release:evidence"],
   "node scripts/release/evidence.mjs",
 );

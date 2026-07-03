@@ -65,6 +65,7 @@ Run this batch only for issues found during Batch 2 or Batch 3. Keep changes V1-
 - `npm run release:prepare` runs cleanup dry-runs, runs the release gate once, and prints the sanitized evidence summary.
 - Cleanup dry-runs report repo-owned process and artifact state before final release evidence is updated.
 - Release docs avoid duplicated stale command lists and point back to the maintained runbook.
+- `npm run release:draft -- --tag v1.0.0` refuses to create a tag or GitHub draft release until the manual QA tracker issue is closed.
 
 Evidence:
 
@@ -75,6 +76,8 @@ npm run verify:release
 npm run release:evidence -- --gate-result passed
 git status --short --branch
 ```
+
+Before manual QA is complete, `npm run release:draft -- --tag v1.0.0 --dry-run` should fail and report that issue #3 is still open. Treat that as the expected guard behavior, not a release failure.
 
 ## Batch 6: Final Automated Release Candidate
 
@@ -96,3 +99,9 @@ These checks require the local user and must not be simulated as passed:
 - Sanitization review of Settings, Chat, and Diagnostics during the manual session.
 
 Record results in Settings Manual QA Evidence and keep any public notes sanitized.
+
+After every manual gate is actually passed and issue #3 is closed, run the guarded release draft command from clean, synced `main`:
+
+```bash
+npm run release:draft -- --tag v1.0.0
+```

@@ -114,6 +114,20 @@ npm run release:prepare
 
 `release:prepare` runs cleanup dry-runs, runs `npm run verify:release` exactly once, then prints the sanitized release evidence summary. It does not mark native folder picker, visible Open Login, provider auth, or real account-backed chat as passed.
 
+After manual QA passes and the manual QA tracker issue is closed, create the GitHub draft release and tag with:
+
+```bash
+npm run release:draft -- --tag v1.0.0
+```
+
+Before creating anything, the draft command verifies that the checkout is clean, local `main` matches `origin/main`, the release notes file exists, the tag does not already exist locally or remotely, and GitHub issue #3 is closed. Use `--dry-run` to validate those guards without creating a tag or draft:
+
+```bash
+npm run release:draft -- --tag v1.0.0 --dry-run
+```
+
+If issue #3 is still open, the command fails intentionally. Do not use it to bypass native folder picker, visible Open Login, provider auth, real account-backed chat, or manual sanitization review.
+
 ### Docs Sync Pre-Publish
 
 Before publishing V1 evidence or updating the manual QA tracker, confirm the local release docs match the current checkout:
@@ -306,6 +320,7 @@ Capture this evidence for a V1 release-candidate checkpoint:
 13. Local artifact cleanup dry-run result.
 14. Manual external QA result for native folder picker, Open Login, and account-backed chat.
 15. Final diff review.
+16. Closed manual QA tracker before `npm run release:draft -- --tag v1.0.0`.
 
 Commit and push only after explicit approval.
 
