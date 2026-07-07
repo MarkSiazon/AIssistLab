@@ -44,6 +44,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vscode/ripgrep": "^1.18.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.9",
     "knip": "^6.20.0",

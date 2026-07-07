@@ -1,6 +1,7 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { getSkillFilePath } from "@/lib/skills/reader";
+import { getSkillFilePath, getSkillsPath } from "@/lib/skills/reader";
 import { isSafeSkillName } from "@/lib/skills/validation";
 
 export interface DeletedSkillSummary {
@@ -8,6 +9,17 @@ export interface DeletedSkillSummary {
   skillName: string;
   deletedAt: string;
   displayPath: string;
+  workspaceKey: string;
+}
+
+// Opaque, privacy-safe fingerprint of the active skills directory. Scopes trash
+// entries to their originating workspace without serializing any real path.
+function currentWorkspaceKey(): string {
+  const normalized = (() => {
+    const resolved = path.resolve(getSkillsPath());
+    return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  })();
+  return createHash("sha256").update(normalized).digest("hex").slice(0, 16);
 }
 
 interface TrashManifest {
@@ -70,19 +82,31 @@ export async function moveSkillToTrash(
     skillName,
     deletedAt,
     displayPath: displayTrashPath(trashId),
+    workspaceKey: currentWorkspaceKey(),
   };
   const manifest = await readManifest();
   await writeManifest({ deleted: [summary, ...manifest.deleted] });
   return summary;
 }
 
+function belongsToCurrentWorkspace(
+  item: DeletedSkillSummary,
+  workspaceKey: string,
+): boolean {
+  return item.workspaceKey === workspaceKey;
+}
+
 export async function getLatestDeletedSkill(
   skillName?: string,
 ): Promise<DeletedSkillSummary | null> {
   const manifest = await readManifest();
+  const workspaceKey = currentWorkspaceKey();
   return (
-    manifest.deleted.find((item) => !skillName || item.skillName === skillName) ??
-    null
+    manifest.deleted.find(
+      (item) =>
+        belongsToCurrentWorkspace(item, workspaceKey) &&
+        (!skillName || item.skillName === skillName),
+    ) ?? null
   );
 }
 
@@ -93,8 +117,11 @@ export async function restoreLatestDeletedSkill(
     throw new Error("Invalid skill name");
   }
   const manifest = await readManifest();
+  const workspaceKey = currentWorkspaceKey();
   const index = manifest.deleted.findIndex(
-    (item) => !skillName || item.skillName === skillName,
+    (item) =>
+      belongsToCurrentWorkspace(item, workspaceKey) &&
+      (!skillName || item.skillName === skillName),
   );
   if (index === -1) throw new Error("No deleted skill available to restore");
 
