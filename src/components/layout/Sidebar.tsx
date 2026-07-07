@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { requestJson } from "@/lib/api/client";
 import { APP_ROUTES } from "@/lib/routes/app-routes";
 import { API_ROUTES } from "@/lib/routes/api-routes";
@@ -89,53 +90,23 @@ export function Sidebar() {
   const pathname = usePathname();
   const [rebuilding, setRebuilding] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [indexStatus, setIndexStatus] = useState<RagIndexState | null>(null);
-  const [indexLoading, setIndexLoading] = useState(false);
-  const [indexError, setIndexError] = useState<string | null>(null);
-
-  const loadIndexStatus = useCallback(async (): Promise<boolean> => {
-    setIndexLoading(true);
-    setIndexError(null);
-    try {
-      const data = await requestJson<RagIndexState>(
-        API_ROUTES.index,
-        undefined,
-        "Unable to load index",
-      );
-      setIndexStatus(data);
-      return true;
-    } catch (err) {
-      setIndexStatus(null);
-      setIndexError(
-        err instanceof Error ? err.message : "Unable to load index status.",
-      );
-      return false;
-    } finally {
-      setIndexLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    let cancelled = false;
-
-    async function loadWithRetry() {
-      const ok = await loadIndexStatus();
-      if (!ok && !cancelled) {
-        retryTimer = setTimeout(() => {
-          if (!cancelled) {
-            loadIndexStatus();
-          }
-        }, 1200);
-      }
-    }
-
-    loadWithRetry();
-    return () => {
-      cancelled = true;
-      if (retryTimer) clearTimeout(retryTimer);
-    };
-  }, [loadIndexStatus]);
+  const {
+    data: indexData,
+    error,
+    isLoading,
+    mutate: mutateIndexStatus,
+  } = useSWR<RagIndexState>(API_ROUTES.index, (url: string) =>
+    requestJson<RagIndexState>(url, undefined, "Unable to load index"),
+  );
+  const indexStatus = indexData ?? null;
+  const indexLoading = isLoading;
+  const indexError = indexStatus
+    ? null
+    : error instanceof Error
+      ? error.message
+      : error
+        ? "Unable to load index status."
+        : null;
 
   async function rebuildIndex() {
     setRebuilding(true);
@@ -146,13 +117,11 @@ export function Sidebar() {
         { method: "POST" },
         "Error rebuilding index",
       );
-      setIndexStatus(data);
-      setIndexError(null);
+      await mutateIndexStatus(data, { revalidate: false });
       setStatus(indexStatusUpdateMessage(data));
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error rebuilding index";
-      setIndexError(message);
       setStatus(message);
     } finally {
       setRebuilding(false);
@@ -239,7 +208,7 @@ export function Sidebar() {
               {!indexLoading && (
                 <button
                   type="button"
-                  onClick={() => loadIndexStatus()}
+                  onClick={() => mutateIndexStatus()}
                   className="app-sidebar-index-retry"
                 >
                   Retry status

@@ -738,6 +738,17 @@ async function expectText(page, text, label = text, timeout = 90000) {
     });
 }
 
+async function waitForSidebarIndexStatus(page, statusText, label, timeout = 15000) {
+  await page
+    .locator(".app-sidebar-index-label")
+    .filter({ hasText: statusText })
+    .first()
+    .waitFor({ state: "visible", timeout })
+    .catch(() => {
+      throw new Error(`Sidebar index status did not update: ${label}`);
+    });
+}
+
 async function waitForManualQaStatus(manualQaPanel, status) {
   await manualQaPanel
     .locator(".settings-manual-qa-item-status")
@@ -3067,6 +3078,12 @@ async function runMockedEditorSaveFailureSmoke(page, baseUrl) {
 async function runEditorSmoke(page, baseUrl) {
   await page.goto(`${baseUrl}/editor`, { waitUntil: "networkidle" });
   await expectText(page, "Template Gallery");
+  await clickButton(page, "Rebuild Index");
+  await waitForSidebarIndexStatus(
+    page,
+    "Ready",
+    "sidebar should show Index Ready after rebuild before the editor save",
+  );
   await clickButton(page, "Workflow Skill", { exact: false });
   await page.locator("input[placeholder='my-skill-name']").fill("browser-smoke-skill");
   await page
@@ -3118,6 +3135,11 @@ async function runEditorSmoke(page, baseUrl) {
     "editor save route",
   );
   await expectText(page, "Edit: browser-smoke-skill.md");
+  await waitForSidebarIndexStatus(
+    page,
+    "Stale",
+    "sidebar should show Index Stale after editor save without a reload",
+  );
   await markVisibleButtonsCoveredByLabel(page, [
     "Rebuild Index",
     "Cancel",
