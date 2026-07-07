@@ -104,6 +104,25 @@ async function main() {
       assert.deepEqual(Object.keys(exactNameEntries).sort(), [
         "alpha,beta.md",
       ]);
+
+      const unknownNameResponse = await route.GET(
+        localRequest("/api/export/zip?skill=does-not-exist"),
+      );
+      assert.equal(unknownNameResponse.status, 404);
+      const unknownNameBody = await unknownNameResponse.json();
+      assert.equal(
+        unknownNameBody.error,
+        "No skills matched the requested names.",
+      );
+
+      const partialMatchResponse = await route.GET(
+        localRequest("/api/export/zip?skill=alpha&skill=does-not-exist"),
+      );
+      assert.equal(partialMatchResponse.status, 200);
+      const partialMatchEntries = extractZipEntries(
+        Buffer.from(await partialMatchResponse.arrayBuffer()),
+      );
+      assert.deepEqual(Object.keys(partialMatchEntries).sort(), ["alpha.md"]);
     },
   );
 

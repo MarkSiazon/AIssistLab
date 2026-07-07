@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { mutate } from "swr";
 import { saveSkillEditor } from "@/lib/editor/skill-editor-api";
+import { API_ROUTES } from "@/lib/routes/api-routes";
 import type { SkillValidationError } from "@/lib/ui/skill-editor-model";
 import { buildSkillEditorSaveAction } from "@/lib/ui/skill-editor-save-action";
 import { skillEditorSnapshot } from "@/hooks/skill-editor-snapshot";
@@ -107,6 +109,7 @@ export function useSkillEditorSaveWorkflow({
       );
       setSaved(true);
       savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
+      void mutate(API_ROUTES.index);
       if (mode === "create") {
         onCreatedSkill(name);
       }

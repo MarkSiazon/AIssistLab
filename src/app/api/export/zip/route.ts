@@ -1,6 +1,7 @@
 import archiver from "archiver";
 import { readAllSkills } from "@/lib/skills/reader";
 import { Readable } from "stream";
+import { jsonError } from "@/lib/api/responses";
 import { withLocalDeviceGuard } from "@/lib/local-access";
 import { readEnvFile } from "@/lib/settings/env";
 import { getActiveRuntimeProviderStatus } from "@/lib/settings/runtime-config";
@@ -40,6 +41,10 @@ export const GET = withLocalDeviceGuard(async (request: Request) => {
     selectedNames.size > 0
       ? allSkills.filter((skill) => selectedNames.has(skill.name))
       : allSkills;
+
+  if (selectedNames.size > 0 && skills.length === 0) {
+    return jsonError("No skills matched the requested names.", 404);
+  }
 
   const archive = archiver("zip", { zlib: { level: 9 } });
 
