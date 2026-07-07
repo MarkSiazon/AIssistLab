@@ -17,5 +17,5 @@
     "*.{js,mjs,ts}"
   ],
   "ignoreBinaries": ["cmd.exe", "powershell.exe", "rg", "taskkill"],
-  "ignoreDependencies": ["tsx"]
+  "ignoreDependencies": ["tsx", "@vscode/ripgrep"]
 }

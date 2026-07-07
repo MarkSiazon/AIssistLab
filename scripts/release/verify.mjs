@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { runCommand } from "../lib/command.mjs";
+import { resolveRipgrepPath } from "../lib/ripgrep.mjs";
 import {
   privacyScanPattern,
   privacyScanSuccessMessage,
@@ -35,8 +36,9 @@ const releaseScanRoots = [
 
 function runPrivacyScan() {
   console.log("\n==> Privacy scan");
+  const ripgrepPath = resolveRipgrepPath();
   const result = spawnSync(
-    "rg",
+    ripgrepPath,
     [
       "--pcre2",
       "-n",
@@ -53,7 +55,14 @@ function runPrivacyScan() {
   );
 
   if (result.error) {
-    console.error(result.error.message);
+    if (result.error.code === "ENOENT" && ripgrepPath === "rg") {
+      console.error(
+        "Privacy scan requires ripgrep. Install the bundled dependency with " +
+          "`npm install` (adds @vscode/ripgrep) or install ripgrep on PATH.",
+      );
+    } else {
+      console.error(result.error.message);
+    }
     process.exit(1);
   }
 
