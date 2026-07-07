@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { withTempWorkspace, type TempWorkspace } from "@/lib/test-utils/workspace";
 
@@ -87,6 +88,63 @@ async function main() {
     const recreatedContent = await fs.readFile(skillPath, "utf-8");
     assert.equal(recreatedContent.includes("Do not overwrite"), true);
   });
+
+  // A deletion in one workspace must not surface as restorable in a different
+  // workspace, even when both share the same trash directory.
+  const sharedTrash = await fs.mkdtemp(
+    path.join(os.tmpdir(), "skill-trash-shared-"),
+  );
+  try {
+    await withTempWorkspace(
+      {
+        prefix: "skill-trash-ws-a-",
+        env: { SKILL_TRASH_DIR: sharedTrash },
+        clearIndexState: false,
+        clearRuntimeProviderSettings: false,
+      },
+      async ({ writeSkill }) => {
+        await writeSkill(
+          "cross-workspace",
+          "---\ndescription: Deleted in workspace A\n---\n\n## Instructions\n\nA.\n",
+        );
+        await trash.moveSkillToTrash("cross-workspace");
+        const latest = await trash.getLatestDeletedSkill();
+        assert.equal(
+          latest?.skillName,
+          "cross-workspace",
+          "deletion should be restorable within its own workspace",
+        );
+      },
+    );
+
+    await withTempWorkspace(
+      {
+        prefix: "skill-trash-ws-b-",
+        env: { SKILL_TRASH_DIR: sharedTrash },
+        clearIndexState: false,
+        clearRuntimeProviderSettings: false,
+      },
+      async ({ skillsPath }) => {
+        const latest = await trash.getLatestDeletedSkill();
+        assert.equal(
+          latest,
+          null,
+          "another workspace must not see the deletion as restorable",
+        );
+        await assert.rejects(
+          () => trash.restoreLatestDeletedSkill("cross-workspace"),
+          /No deleted skill/i,
+          "restore must not resurrect a skill from a different workspace",
+        );
+        await assert.rejects(
+          () => fs.access(path.join(skillsPath, "cross-workspace.md")),
+          "the foreign skill must not be written into this workspace",
+        );
+      },
+    );
+  } finally {
+    await fs.rm(sharedTrash, { recursive: true, force: true });
+  }
 
   console.log("Skill trash tests passed");
 }
