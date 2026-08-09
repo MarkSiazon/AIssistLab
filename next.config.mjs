@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     serverExternalPackages: ['natural', 'archiver'],
+    typescript: {
+        tsconfigPath: 'tsconfig.build.json',
+    },
     webpack: (config, { isServer }) => {
         if (isServer) {
             // natural's parallel classifier uses optional native deps we don't need

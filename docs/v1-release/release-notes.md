@@ -2,6 +2,14 @@
 
 Skill Workshop RAG V1 is a Claude-first local workbench for managing Claude Code skills, checking setup readiness, and asking RAG-backed questions over a configured skills workspace.
 
+## 2026-08-10 Dependency Security Checkpoint
+
+- Updated Next.js and `eslint-config-next` to 16.3.0, `js-yaml` to 4.3.1, and PostCSS to 8.5.26, with fixed transitive versions recorded in the lockfile.
+- `npm audit` now reports zero vulnerabilities.
+- Added a production-build TypeScript configuration for Next.js 16.3 that keeps application and route source type-checked while excluding test-only fixtures; the complete test sweep still runs before the build.
+- `npm run verify:release` passed locally across 170 test files, lint, production build and smoke checks, dependency and repository audits, browser/API smoke, cleanup checks, and privacy scanning.
+- Device/account-backed manual gates were not rerun for this dependency-only checkpoint; the existing 2026-07-07 evidence remains the latest manual record.
+
 ## 2026-06-28 V1 Hardening Checkpoint
 
 - PR #5 merged the latest V1 release-hardening fixes through commit `1804c95`.

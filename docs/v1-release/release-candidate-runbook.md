@@ -293,6 +293,12 @@ Evidence to record:
 
 `npm test` executes every `src/**/*.test.ts` file and release script helper test under `scripts/**/*.test.mjs`. Prefer the npm script for the full sweep so source and release-helper coverage stay in sync.
 
+The production build uses `tsconfig.build.json` through Next.js
+`typescript.tsconfigPath`. It excludes test-only TypeScript fixtures from the
+production type-check because the full test sweep runs first as a separate
+release gate; application and route source remain strictly type-checked by
+`next build`.
+
 ## Privacy Gate
 
 Before a checkpoint commit or release tag, run a static scan over tracked docs and source for:
