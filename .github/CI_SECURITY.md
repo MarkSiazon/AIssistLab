@@ -12,11 +12,17 @@
 
 ## Required merge gate
 
-Active `dev` and `main` rulesets require pull requests and resolved review threads; block force pushes and branch deletion; and have no administrator bypass. Development PRs use squash merges, while `dev` promotions use merge commits so long-lived branch ancestry stays intact. Require both `verify-release` and `route-policy` after the workflows are published to both branches. Auto-merge may complete only after both checks pass.
+Active `dev` and `main` rulesets require pull requests and resolved review threads; block force pushes and branch deletion; and have no administrator bypass. Development PRs use squash merges, while `dev` promotions use merge commits so long-lived branch ancestry stays intact. The required gates are `verify-release`, `route-policy`, and CodeQL `analyze`. Auto-merge may complete only after every required check passes.
 
 ## Workflow supply chain
 
-All `uses:` references are pinned to verified full commit SHAs. Dependabot checks the `github-actions` ecosystem weekly, targets `dev`, and proposes grouped pin updates through the same required gate.
+All `uses:` references are pinned to verified full commit SHAs. Dependabot checks the `github-actions` ecosystem weekly, targets `dev`, and proposes grouped pin updates through the same required gate. CodeQL scans JavaScript and TypeScript on protected-branch pushes, pull requests, a weekly schedule, and manual dispatch.
+
+## Repository security
+
+- Secret scanning and push protection are enabled for the public repository.
+- Dependabot security updates are enabled in addition to grouped workflow-version updates.
+- CodeQL uploads use only `contents: read` and `security-events: write`; analysis does not receive repository secrets.
 
 ## Fork and deployment policy
 
