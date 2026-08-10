@@ -5,17 +5,18 @@
 - Pull-request CI runs with `contents: read` and no repository secrets.
 - The trusted lifecycle controller runs only after `CI` succeeds and never checks out pull-request code or downloads pull-request artifacts.
 - The controller refuses a stale result unless the successful run SHA still matches the pull request head SHA.
+- The route-policy gate allows feature and bot work into `dev`, and permits only `dev` to promote into `main`.
 - A scheduled controller may approve a pending public-fork run only for the same trusted actors and current head SHA; it never checks out pull-request content.
 - Automatic ready/merge handling is limited to repository owners, members, collaborators, heads owned by `Iron-Mark`, `MarkSiazon`, or `MarkS-Trampettimg`, `dependabot[bot]`, and `imgbot[bot]`.
 - Every other fork or bot remains manual, even when its tests pass.
 
 ## Required merge gate
 
-Active `dev` and `main` rulesets require pull requests, squash-only merges, and resolved review threads; block force pushes and branch deletion; and have no administrator bypass. Add `verify-release` as a required check after this workflow is published to both branches. Auto-merge may complete only after that check passes.
+Active `dev` and `main` rulesets require pull requests and resolved review threads; block force pushes and branch deletion; and have no administrator bypass. Development PRs use squash merges, while `dev` promotions use merge commits so long-lived branch ancestry stays intact. Require both `verify-release` and `route-policy` after the workflows are published to both branches. Auto-merge may complete only after both checks pass.
 
 ## Workflow supply chain
 
-All `uses:` references are pinned to verified full commit SHAs. Dependabot checks the `github-actions` ecosystem weekly and proposes grouped pin updates through the same required gate.
+All `uses:` references are pinned to verified full commit SHAs. Dependabot checks the `github-actions` ecosystem weekly, targets `dev`, and proposes grouped pin updates through the same required gate.
 
 ## Fork and deployment policy
 
