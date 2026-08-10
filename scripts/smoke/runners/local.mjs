@@ -257,6 +257,39 @@ async function waitForDevRenderingSettled(page, timeout = 30000) {
     .catch(() => undefined);
 }
 
+async function waitForSettingsRuntimeStable(page, baseUrl, timeout = 30000) {
+  const startedAt = Date.now();
+  let consecutiveSuccesses = 0;
+  let lastError = null;
+
+  while (Date.now() - startedAt < timeout) {
+    try {
+      await page.evaluate(async (runtimeUrl) => {
+        const response = await fetch(runtimeUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Settings runtime returned HTTP ${response.status}`);
+        }
+        await response.json();
+      }, `${baseUrl}/api/settings/runtime`);
+      consecutiveSuccesses += 1;
+      if (consecutiveSuccesses >= 2) {
+        await page
+          .waitForLoadState("networkidle", { timeout: 10000 })
+          .catch(() => undefined);
+        return;
+      }
+    } catch (error) {
+      lastError = error;
+      consecutiveSuccesses = 0;
+    }
+
+    await page.waitForTimeout(500);
+  }
+
+  const detail = lastError instanceof Error ? `: ${lastError.message}` : "";
+  throw new Error(`Settings runtime did not stabilize${detail}`);
+}
+
 async function waitForApiResponse(page, predicate) {
   const callsite = new Error().stack
     ?.split("\n")
@@ -2182,6 +2215,53 @@ async function runMockedSkillsImportDuplicateSmoke(page, baseUrl) {
   }
 }
 
+async function previewFolderImport(page, baseUrl, importSource) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
+    await expectText(page, "Library Readiness");
+    await setInputValue(page, "#skills-import-folder", importSource);
+    await expectText(page, "Ready to preview. No files will be written.");
+
+    try {
+      const [response] = await Promise.all([
+        page.waitForResponse(
+          (candidate) =>
+            candidate.url().includes("/api/skills/import/preview") &&
+            candidate.request().method() === "POST",
+          { timeout: 20000 },
+        ),
+        clickButton(page, "Preview Folder", { timeout: 20000 }),
+      ]);
+      if (!response.ok()) {
+        const responseText = await response.text().catch(() => "");
+        const error = new Error(
+          `Import preview failed: HTTP ${response.status()} ${responseText}`.trim(),
+        );
+        if (response.status() < 500) throw error;
+        lastError = error;
+      } else {
+        await expectText(page, "smoke-imported-skill", undefined, 20000);
+        return;
+      }
+    } catch (error) {
+      lastError = error;
+      if (
+        error instanceof Error &&
+        /Import preview failed: HTTP [1-4]\d\d/.test(error.message)
+      ) {
+        throw error;
+      }
+    }
+
+    await page.waitForTimeout(1000 * attempt);
+  }
+
+  const detail = lastError instanceof Error ? `: ${lastError.message}` : "";
+  throw new Error(`Import preview interaction did not stabilize${detail}`);
+}
+
 async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
@@ -2201,9 +2281,7 @@ async function runSkillsSmoke(page, baseUrl, importSource, archivePath) {
   await expectText(page, "Guided Skill Builder");
   await page.goto(`${baseUrl}/skills`, { waitUntil: "networkidle" });
   await expectText(page, "Library Readiness");
-  await setInputValue(page, "#skills-import-folder", importSource);
-  await clickButton(page, "Preview Folder", { timeout: 60000 });
-  await expectText(page, "smoke-imported-skill");
+  await previewFolderImport(page, baseUrl, importSource);
   await Promise.all([
     waitForApiResponse(
       page,
@@ -3512,12 +3590,18 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
     await runKeyboardNavigationSmoke(page, baseUrl);
     await runMockedSettingsReleaseActionsSmoke(page, baseUrl);
     await runMockedSettingsClaudeActionsSmoke(page, baseUrl);
-    await runSettingsSmoke(
-      page,
-      baseUrl,
-      path.join(smokeRoot, "workspace"),
-      path.join(smokeRoot, "smoke-settings.env"),
-    );
+    const stopIgnoringSettingsReloadIssues = ignoreKnownNextDevReloadIssues();
+    try {
+      await runSettingsSmoke(
+        page,
+        baseUrl,
+        path.join(smokeRoot, "workspace"),
+        path.join(smokeRoot, "smoke-settings.env"),
+      );
+      await waitForSettingsRuntimeStable(page, baseUrl);
+    } finally {
+      stopIgnoringSettingsReloadIssues();
+    }
     await runMockedSkillsImportFailureSmoke(page, baseUrl);
     await runMockedSkillsImportDuplicateSmoke(page, baseUrl);
     await runSkillsSmoke(page, baseUrl, importSource, archivePath);
