@@ -13,30 +13,6 @@ export function buildNextServerInvocation({ root, mode, port }) {
   return { command: process.execPath, args };
 }
 
-export function buildNpmDevServerInvocation({
-  port,
-  platform = process.platform,
-}) {
-  if (platform === "win32") {
-    return {
-      command: "cmd.exe",
-      args: [
-        "/d",
-        "/s",
-        "/c",
-        `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
-      ],
-      windowsHide: true,
-    };
-  }
-
-  return {
-    command: "npm",
-    args: ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(port)],
-    windowsHide: false,
-  };
-}
-
 export function startNextServer({
   root = process.cwd(),
   mode,
@@ -49,25 +25,6 @@ export function startNextServer({
     cwd: root,
     env,
     stdio: ["ignore", "pipe", "pipe"],
-  });
-
-  child.stdout.on("data", (chunk) => pushLog(logs, chunk));
-  child.stderr.on("data", (chunk) => pushLog(logs, chunk));
-  return { child, logs };
-}
-
-export function startNpmDevServer({
-  cwd = process.cwd(),
-  port,
-  env = process.env,
-}) {
-  const logs = [];
-  const invocation = buildNpmDevServerInvocation({ port });
-  const child = spawn(invocation.command, invocation.args, {
-    cwd,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    windowsHide: invocation.windowsHide,
   });
 
   child.stdout.on("data", (chunk) => pushLog(logs, chunk));
