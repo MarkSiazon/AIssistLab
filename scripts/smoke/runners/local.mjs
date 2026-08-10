@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
@@ -63,6 +64,7 @@ const liveChatMode = process.env.SMOKE_LIVE_CHAT === "1";
 const expectedBrowserIssuePatterns = [];
 const ignoredBrowserIssuePatterns = [];
 const routeNavigationTimeoutMs = 60000;
+const pathBrowserRootValue = process.platform === "win32" ? "" : os.homedir();
 
 function stamp() {
   return new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
@@ -850,6 +852,9 @@ async function gotoSettingsAndExpectText(page, baseUrl, text, label = text) {
   const stopIgnoringReloadIssues = ignoreKnownNextDevReloadIssues();
   try {
     await gotoAndExpectText(page, `${baseUrl}/settings`, text, label);
+    await page
+      .waitForLoadState("networkidle", { timeout: 30000 })
+      .catch(() => undefined);
   } finally {
     stopIgnoringReloadIssues();
   }
@@ -1087,7 +1092,7 @@ async function runPathPickerSmoke(page, workspacePath) {
   ]);
   await waitForLocatorInputValue(
     addressInput,
-    "",
+    pathBrowserRootValue,
     "Path picker sidebar This PC did not navigate to the root view",
   );
 
@@ -1119,7 +1124,7 @@ async function runPathPickerSmoke(page, workspacePath) {
   ]);
   await waitForLocatorInputValue(
     addressInput,
-    "",
+    pathBrowserRootValue,
     "Path picker address This PC did not navigate to the root view",
   );
 
@@ -1346,7 +1351,7 @@ async function runRelativePathPickerSmoke(page, workspacePath) {
   ]);
   await waitForLocatorInputValue(
     addressInput,
-    "",
+    pathBrowserRootValue,
     "Relative path picker This PC did not navigate to the root view",
   );
 

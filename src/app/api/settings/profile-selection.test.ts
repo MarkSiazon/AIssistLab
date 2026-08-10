@@ -68,7 +68,11 @@ async function main(): Promise<void> {
           source: string;
         };
       };
-      const expectedConfigDir = `~\\.claude-profiles\\${sensitiveFolder}`;
+      const expectedConfigDir = path.join(
+        "~",
+        ".claude-profiles",
+        sensitiveFolder,
+      );
       assert.equal(payload.parsed.CLAUDE_CONFIG_DIR, "<redacted>");
       assert.equal(payload.runtimeApplied, true);
       assert.equal(JSON.stringify(payload).includes(sensitiveFolder), false);
