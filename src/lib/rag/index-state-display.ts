@@ -9,7 +9,9 @@ function ellipsizeAbsolutePath(value: string): string {
 
   const parts = value.split(/[\\/]+/).filter(Boolean);
   const pathParts = isWindowsPath ? parts.slice(1) : parts;
-  const tail = pathParts.slice(-3);
+  // Keep POSIX paths to a basename. Shallow roots such as /tmp/<workspace>
+  // would otherwise be reproduced verbatim by a three-segment display tail.
+  const tail = pathParts.slice(isPosixPath ? -1 : -3);
 
   return tail.length > 0
     ? `...${separator}${tail.join(separator)}`

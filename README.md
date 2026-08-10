@@ -177,6 +177,12 @@ Use the release-candidate runbook as the maintained source of truth for command 
 - [Manual external QA](docs/v1-release/release-candidate-runbook.md#manual-external-qa)
 - [Cleanup commands](docs/v1-release/release-candidate-runbook.md#cleanup-and-stale-processes)
 
+Pull-request CI is intentionally secretless and read-only. Repository owners,
+collaborators, Dependabot, and Imgbot can be readied and queued for squash
+auto-merge only after the required release check succeeds; every other fork stays
+manual. Action dependencies are full-SHA pinned and maintained through grouped
+weekly Dependabot updates. See [the CI security policy](.github/CI_SECURITY.md).
+
 Full release gate:
 
 ```bash

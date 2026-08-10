@@ -9,6 +9,9 @@ async function withIndexWorkspace(fn: (workspace: TempWorkspace) => Promise<void
 
 async function main() {
   const mod = await import("./index-state");
+  const { sanitizeDisplayPath } = await import("./index-state-display");
+  const shallowPosixRoot = "/tmp/private-workspace";
+  assert.equal(sanitizeDisplayPath(shallowPosixRoot).includes(shallowPosixRoot), false);
 
   await withIndexWorkspace(async ({ root }) => {
     await mod.clearPersistedIndexState();

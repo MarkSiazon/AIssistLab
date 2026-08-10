@@ -5,7 +5,7 @@ import {
   waitForServerReady,
 } from "../../lib/server-utils.mjs";
 import {
-  startNpmDevServer,
+  startNextServer,
   stopChildProcess,
 } from "../helpers/server-process.mjs";
 
@@ -238,7 +238,9 @@ async function main() {
   const providedBaseUrl = process.env.SMOKE_BUTTONS_BASE_URL;
   const port = providedBaseUrl ? null : await getFreePort();
   const baseUrl = providedBaseUrl ?? `http://127.0.0.1:${port}`;
-  const server = providedBaseUrl ? null : startNpmDevServer({ port });
+  const server = providedBaseUrl
+    ? null
+    : startNextServer({ mode: "dev", port });
   let browser = null;
 
   try {

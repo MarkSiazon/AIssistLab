@@ -350,6 +350,12 @@ assert.match(
   "route smoke helper must wait for rendered text instead of network idle",
 );
 
+assert.match(
+  source,
+  /async function gotoSettingsAndExpectText[\s\S]*ignoreKnownNextDevReloadIssues\(\)[\s\S]*waitForLoadState\("networkidle"/,
+  "settings navigation must keep the dev-reload issue guard through background requests",
+);
+
 assert.doesNotMatch(
   source,
   /page\.goto\(`\$\{baseUrl\}\/export`,\s*\{\s*waitUntil:\s*"networkidle"\s*\}\)/,

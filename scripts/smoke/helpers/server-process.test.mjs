@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import {
   buildNextServerInvocation,
-  buildNpmDevServerInvocation,
+  stopChildProcess,
 } from "./server-process.mjs";
 
 const root = path.join("C:", "Repo", "app");
@@ -20,29 +21,16 @@ assert.deepEqual(
   "production smoke should start the built app on localhost",
 );
 
-assert.deepEqual(
-  buildNpmDevServerInvocation({ port: 3003, platform: "win32" }),
-  {
-    command: "cmd.exe",
-    args: [
-      "/d",
-      "/s",
-      "/c",
-      "npm run dev -- --hostname 127.0.0.1 --port 3003",
-    ],
-    windowsHide: true,
-  },
-  "safe-button smoke should start npm dev through cmd.exe on Windows",
+const longRunningChild = spawn(
+  process.execPath,
+  ["-e", "setInterval(() => {}, 1000)"],
+  { stdio: "ignore" },
 );
-
-assert.deepEqual(
-  buildNpmDevServerInvocation({ port: 3004, platform: "linux" }),
-  {
-    command: "npm",
-    args: ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3004"],
-    windowsHide: false,
-  },
-  "safe-button smoke should start npm dev directly off Windows",
+await stopChildProcess(longRunningChild);
+assert.notEqual(
+  longRunningChild.signalCode,
+  null,
+  "smoke cleanup should wait for a long-running child to terminate",
 );
 
 console.log("Smoke server process helper tests passed");

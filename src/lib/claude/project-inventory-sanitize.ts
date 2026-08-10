@@ -8,8 +8,11 @@ function ellipsizeAbsoluteProjectPath(value: string): string {
   if (!/^(?:[A-Z]:\/|\/)/i.test(value)) return value;
 
   const parts = value.split("/").filter(Boolean);
-  const pathParts = /^[A-Z]:$/i.test(parts[0] ?? "") ? parts.slice(1) : parts;
-  const tail = pathParts.slice(-3);
+  const isWindowsPath = /^[A-Z]:$/i.test(parts[0] ?? "");
+  const pathParts = isWindowsPath ? parts.slice(1) : parts;
+  // A shallow POSIX path such as /tmp/<workspace> must not be reconstructed
+  // exactly in public inventory output.
+  const tail = pathParts.slice(isWindowsPath ? -3 : -1);
 
   return tail.length > 0 ? `.../${tail.join("/")}` : ".../";
 }

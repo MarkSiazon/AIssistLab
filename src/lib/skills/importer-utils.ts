@@ -7,10 +7,18 @@ export function sanitizeDisplayPath(value: string): string {
   const home = process.env.USERPROFILE ?? process.env.HOME;
   let output = value.replace(/\\/g, "/");
   if (home) output = output.replace(home.replace(/\\/g, "/"), "~");
-  return output
+  const sanitized = output
     .replace(/[A-Z]:\/Users\/[^/]+/gi, "~")
     .replace(/\/Users\/[^/]+/gi, "~")
     .replace(/\/home\/[^/]+/gi, "~");
+
+  return sanitized.replace(
+    /(^|[\s'"])(\/[^\s'"]+)/g,
+    (_match, prefix: string, absolutePath: string) => {
+      const basename = absolutePath.split("/").filter(Boolean).at(-1);
+      return `${prefix}${basename ? `.../${basename}` : ".../"}`;
+    },
+  );
 }
 
 export function sanitizeImportErrorMessage(

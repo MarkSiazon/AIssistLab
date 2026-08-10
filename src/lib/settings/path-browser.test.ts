@@ -96,6 +96,15 @@ async function main(): Promise<void> {
     ],
     isRoot: true,
   });
+
+  await withTempDir("path-browser-home-", async (homeDir) => {
+    const posixRootResult = await browsePath("", {
+      platform: "linux",
+      homeDir,
+    });
+    assert.equal(posixRootResult.path, homeDir);
+    assert.equal(posixRootResult.isRoot, false);
+  });
 }
 
 main()
