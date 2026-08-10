@@ -257,6 +257,39 @@ async function waitForDevRenderingSettled(page, timeout = 30000) {
     .catch(() => undefined);
 }
 
+async function waitForSettingsRuntimeStable(page, baseUrl, timeout = 30000) {
+  const startedAt = Date.now();
+  let consecutiveSuccesses = 0;
+  let lastError = null;
+
+  while (Date.now() - startedAt < timeout) {
+    try {
+      await page.evaluate(async (runtimeUrl) => {
+        const response = await fetch(runtimeUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Settings runtime returned HTTP ${response.status}`);
+        }
+        await response.json();
+      }, `${baseUrl}/api/settings/runtime`);
+      consecutiveSuccesses += 1;
+      if (consecutiveSuccesses >= 2) {
+        await page
+          .waitForLoadState("networkidle", { timeout: 10000 })
+          .catch(() => undefined);
+        return;
+      }
+    } catch (error) {
+      lastError = error;
+      consecutiveSuccesses = 0;
+    }
+
+    await page.waitForTimeout(500);
+  }
+
+  const detail = lastError instanceof Error ? `: ${lastError.message}` : "";
+  throw new Error(`Settings runtime did not stabilize${detail}`);
+}
+
 async function waitForApiResponse(page, predicate) {
   const callsite = new Error().stack
     ?.split("\n")
@@ -3512,12 +3545,18 @@ async function runBrowserSmoke(baseUrl, smokeRoot, importSource, archivePath) {
     await runKeyboardNavigationSmoke(page, baseUrl);
     await runMockedSettingsReleaseActionsSmoke(page, baseUrl);
     await runMockedSettingsClaudeActionsSmoke(page, baseUrl);
-    await runSettingsSmoke(
-      page,
-      baseUrl,
-      path.join(smokeRoot, "workspace"),
-      path.join(smokeRoot, "smoke-settings.env"),
-    );
+    const stopIgnoringSettingsReloadIssues = ignoreKnownNextDevReloadIssues();
+    try {
+      await runSettingsSmoke(
+        page,
+        baseUrl,
+        path.join(smokeRoot, "workspace"),
+        path.join(smokeRoot, "smoke-settings.env"),
+      );
+      await waitForSettingsRuntimeStable(page, baseUrl);
+    } finally {
+      stopIgnoringSettingsReloadIssues();
+    }
     await runMockedSkillsImportFailureSmoke(page, baseUrl);
     await runMockedSkillsImportDuplicateSmoke(page, baseUrl);
     await runSkillsSmoke(page, baseUrl, importSource, archivePath);
