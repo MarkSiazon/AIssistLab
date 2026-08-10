@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { pushLog } from "../../lib/server-utils.mjs";
@@ -77,14 +78,26 @@ export function startNpmDevServer({
 export async function stopChildProcess(child, { killTreeOnWindows = false } = {}) {
   if (!child || child.exitCode !== null) return;
 
+  const waitForExit = async (timeoutMs) => {
+    if (child.exitCode !== null || child.signalCode !== null) return true;
+    await Promise.race([
+      once(child, "exit"),
+      delay(timeoutMs).then(() => null),
+    ]);
+    return child.exitCode !== null || child.signalCode !== null;
+  };
+
   if (killTreeOnWindows && process.platform === "win32") {
     spawnSync("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
       stdio: "ignore",
     });
+    await waitForExit(2000);
     return;
   }
 
   child.kill("SIGTERM");
-  await delay(500);
-  if (!child.killed && child.exitCode === null) child.kill("SIGKILL");
+  if (await waitForExit(500)) return;
+
+  child.kill("SIGKILL");
+  await waitForExit(2000);
 }

@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import {
   buildNextServerInvocation,
   buildNpmDevServerInvocation,
+  stopChildProcess,
 } from "./server-process.mjs";
 
 const root = path.join("C:", "Repo", "app");
@@ -43,6 +45,18 @@ assert.deepEqual(
     windowsHide: false,
   },
   "safe-button smoke should start npm dev directly off Windows",
+);
+
+const longRunningChild = spawn(
+  process.execPath,
+  ["-e", "setInterval(() => {}, 1000)"],
+  { stdio: "ignore" },
+);
+await stopChildProcess(longRunningChild);
+assert.notEqual(
+  longRunningChild.signalCode,
+  null,
+  "smoke cleanup should wait for a long-running child to terminate",
 );
 
 console.log("Smoke server process helper tests passed");
