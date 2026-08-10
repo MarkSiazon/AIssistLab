@@ -14,6 +14,9 @@ async function withWorkspace(fn: (root: string) => Promise<void>) {
 
 async function main() {
   const inventory = await import("./project-inventory");
+  const { sanitizeProjectText } = await import("./project-inventory-sanitize");
+  const shallowPosixRoot = "/tmp/private-claude-project";
+  assert.equal(sanitizeProjectText(shallowPosixRoot).includes(shallowPosixRoot), false);
   const sampleEmail = ["owner", "example.invalid"].join("@");
   const sampleToken = ["sk", "ant", "secret"].join("-");
   const sampleCommand = ["secret", "command"].join("-");
