@@ -12,10 +12,13 @@ export function sanitizeDisplayPath(value: string): string {
     .replace(/\/Users\/[^/]+/gi, "~")
     .replace(/\/home\/[^/]+/gi, "~");
 
-  if (!sanitized.startsWith("/")) return sanitized;
-
-  const basename = sanitized.split("/").filter(Boolean).at(-1);
-  return basename ? `.../${basename}` : ".../";
+  return sanitized.replace(
+    /(^|[\s'"])(\/[^\s'"]+)/g,
+    (_match, prefix: string, absolutePath: string) => {
+      const basename = absolutePath.split("/").filter(Boolean).at(-1);
+      return `${prefix}${basename ? `.../${basename}` : ".../"}`;
+    },
+  );
 }
 
 export function sanitizeImportErrorMessage(

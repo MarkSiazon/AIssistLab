@@ -27,6 +27,12 @@ async function main() {
   const { sanitizeDisplayPath } = await import("./importer-utils");
   const shallowPosixRoot = "/tmp/private-skill-import";
   assert.equal(sanitizeDisplayPath(shallowPosixRoot).includes(shallowPosixRoot), false);
+  assert.equal(
+    sanitizeDisplayPath(`ENOENT: scandir '${shallowPosixRoot}/missing'`).includes(
+      shallowPosixRoot,
+    ),
+    false,
+  );
   const originalFetch = globalThis.fetch;
 
   await withWorkspace(async () => {
