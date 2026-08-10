@@ -356,6 +356,24 @@ assert.match(
   "settings navigation must keep the dev-reload issue guard through background requests",
 );
 
+assert.match(
+  source,
+  /async function waitForSettingsRuntimeStable[\s\S]*consecutiveSuccesses >= 2[\s\S]*waitForLoadState\("networkidle"/,
+  "settings runtime stabilization must require consecutive healthy responses and network idle",
+);
+
+assert.match(
+  source,
+  /const stopIgnoringSettingsReloadIssues = ignoreKnownNextDevReloadIssues\(\);[\s\S]*await runSettingsSmoke\([\s\S]*await waitForSettingsRuntimeStable\(page, baseUrl\);[\s\S]*stopIgnoringSettingsReloadIssues\(\);/,
+  "settings smoke must keep the dev-reload issue guard active until runtime stabilization",
+);
+
+assert.match(
+  source,
+  /async function previewFolderImport[\s\S]*attempt <= 3[\s\S]*waitForResponse\([\s\S]*\/api\/skills\/import\/preview[\s\S]*response\.ok\(\)[\s\S]*smoke-imported-skill/,
+  "folder import preview must observe a successful request and retry dropped dev interactions",
+);
+
 assert.doesNotMatch(
   source,
   /page\.goto\(`\$\{baseUrl\}\/export`,\s*\{\s*waitUntil:\s*"networkidle"\s*\}\)/,
