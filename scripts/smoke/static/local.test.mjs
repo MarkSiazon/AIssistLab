@@ -368,6 +368,12 @@ assert.match(
   "settings smoke must keep the dev-reload issue guard active until runtime stabilization",
 );
 
+assert.match(
+  source,
+  /async function previewFolderImport[\s\S]*attempt <= 3[\s\S]*waitForResponse\([\s\S]*\/api\/skills\/import\/preview[\s\S]*response\.ok\(\)[\s\S]*smoke-imported-skill/,
+  "folder import preview must observe a successful request and retry dropped dev interactions",
+);
+
 assert.doesNotMatch(
   source,
   /page\.goto\(`\$\{baseUrl\}\/export`,\s*\{\s*waitUntil:\s*"networkidle"\s*\}\)/,
