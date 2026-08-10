@@ -852,6 +852,9 @@ async function gotoSettingsAndExpectText(page, baseUrl, text, label = text) {
   const stopIgnoringReloadIssues = ignoreKnownNextDevReloadIssues();
   try {
     await gotoAndExpectText(page, `${baseUrl}/settings`, text, label);
+    await page
+      .waitForLoadState("networkidle", { timeout: 30000 })
+      .catch(() => undefined);
   } finally {
     stopIgnoringReloadIssues();
   }
