@@ -11,17 +11,17 @@ assert.match(
 assert.match(
   workflow,
   /BASE_REF.*dev.*HEAD_REF.*main/,
-  "the protected main-to-dev synchronization route should be explicit",
+  "the direct main-to-dev route should be explicit",
 );
 assert.match(
   workflow,
-  /Allowing protected main-to-dev history synchronization/,
-  "main-to-dev synchronization should be documented in the gate output",
+  /sync\/main-to-dev-\*/,
+  "the route gate should direct maintainers to a checked ancestry sync branch",
 );
-assert.doesNotMatch(
+assert.match(
   workflow,
-  /main must not be used as a development branch into dev/,
-  "the route gate must not block the protected history synchronization required by branch rules",
+  /HEAD_REF.*main[\s\S]*exit 1/,
+  "direct main-to-dev PRs should fail before their checks consume runner time",
 );
 
 console.log("PR route policy static tests passed");

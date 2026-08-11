@@ -102,7 +102,7 @@ jobs:
             if [[ "${draft}" == "true" ]]; then
               gh pr ready "${pr_url}"
             fi
-            if [[ "${base_ref}" == "main" ]]; then
+            if [[ "${base_ref}" == "main" || ( "${base_ref}" == "dev" && "${head_ref}" == sync/main-to-dev-* ) ]]; then
               gh pr merge "${pr_url}" --auto --merge
             else
               gh pr merge "${pr_url}" --auto --squash
