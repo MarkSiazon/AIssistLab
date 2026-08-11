@@ -13,8 +13,8 @@ export interface SettingsEnvFile {
 }
 
 function quoteEnvValue(value: string): string {
-  const needsQuotes = /\s/.test(value);
-  return needsQuotes ? `"${value.replace(/"/g, '\\"')}"` : value;
+  const needsQuotes = value.length === 0 || /[\s#]/.test(value);
+  return needsQuotes ? `'${value}'` : value;
 }
 
 function isSensitiveEnvKey(key: string): boolean {

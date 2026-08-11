@@ -3,8 +3,9 @@
 ## Trust boundary
 
 - Pull-request CI runs with `contents: read` and no repository secrets.
-- The trusted lifecycle controller runs only after `CI` succeeds and never checks out pull-request code or downloads pull-request artifacts.
+- The trusted lifecycle controller runs after `CI` succeeds and also performs a scheduled/manual catch-up for approved attempt-2 runs; it never checks out pull-request code or downloads pull-request artifacts.
 - The controller refuses a stale result unless the successful run SHA still matches the pull request head SHA.
+- Catch-up processing requires successful `verify-release`, `route-policy`, and `analyze` check runs on the current head SHA, then re-reads the SHA immediately before changing PR state.
 - The route-policy gate allows feature and bot work into `dev`, and permits only `dev` to promote into `main`.
 - A scheduled controller may approve a pending public-fork run only for the same trusted actors and current head SHA; it never checks out pull-request content.
 - Automatic ready/merge handling is limited to repository owners, members, collaborators, heads owned by `Iron-Mark`, `MarkSiazon`, or `MarkS-Trampettimg`, `dependabot[bot]`, and `imgbot[bot]`.

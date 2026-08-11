@@ -1,24 +1,45 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 export function buildCommandInvocation(
   command,
   args = [],
   platform = process.platform,
+  nodeExecutable = process.execPath,
 ) {
-  const commandLine = [command, ...args].join(" ");
   if (platform === "win32" && command === "npm") {
+    const windowsPath = path.win32;
     return {
-      command: "cmd.exe",
-      args: ["/d", "/s", "/c", commandLine],
+      command: nodeExecutable,
+      args: [
+        windowsPath.join(
+          windowsPath.dirname(nodeExecutable),
+          "node_modules",
+          "npm",
+          "bin",
+          "npm-cli.js",
+        ),
+        ...args,
+      ],
     };
   }
 
-  return { command, args };
+  if (command === "npm" || command === "git" || command === nodeExecutable) {
+    return { command, args };
+  }
+
+  throw new Error(`Unsupported release command: ${command}`);
 }
 
 export function runCommand(label, command, args = [], options = {}) {
   console.log(`\n==> ${label}`);
-  const invocation = buildCommandInvocation(command, args);
+  let invocation;
+  try {
+    invocation = buildCommandInvocation(command, args);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
   const result = spawnSync(invocation.command, invocation.args, {
     stdio: "inherit",
     ...options,
