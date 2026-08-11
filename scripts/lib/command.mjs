@@ -8,11 +8,12 @@ export function buildCommandInvocation(
   nodeExecutable = process.execPath,
 ) {
   if (platform === "win32" && command === "npm") {
+    const windowsPath = path.win32;
     return {
       command: nodeExecutable,
       args: [
-        path.join(
-          path.dirname(nodeExecutable),
+        windowsPath.join(
+          windowsPath.dirname(nodeExecutable),
           "node_modules",
           "npm",
           "bin",
