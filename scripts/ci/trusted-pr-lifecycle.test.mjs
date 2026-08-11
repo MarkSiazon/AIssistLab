@@ -35,6 +35,16 @@ assert.match(
 );
 assert.match(
   source,
+  /base_ref.*dev.*head_ref.*sync\/main-to-dev-\*/,
+  "trusted ancestry synchronization PRs must preserve history with merge commits",
+);
+assert.match(
+  source,
+  /sync\/main-to-dev-\*[\s\S]*--auto --merge/,
+  "trusted ancestry synchronization PRs must queue the merge method",
+);
+assert.match(
+  source,
   /auto_merge_enabled[\s\S]*already queued for auto-merge/,
   "catch-up must be idempotent for PRs already queued for auto-merge",
 );

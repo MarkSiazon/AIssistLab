@@ -26,7 +26,8 @@ jobs:
           fi
 
           if [ "${BASE_REF}" = "dev" ] && [ "${HEAD_REF}" = "main" ]; then
-            echo "Allowing protected main-to-dev history synchronization."
+            echo "::error::Use a checked sync/main-to-dev-* branch so strict up-to-date rules can preserve both protected histories."
+            exit 1
           fi
 
           echo "PR route is allowed."
