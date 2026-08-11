@@ -26,8 +26,7 @@ jobs:
           fi
 
           if [ "${BASE_REF}" = "dev" ] && [ "${HEAD_REF}" = "main" ]; then
-            echo "::error::main must not be used as a development branch into dev."
-            exit 1
+            echo "Allowing protected main-to-dev history synchronization."
           fi
 
           echo "PR route is allowed."
