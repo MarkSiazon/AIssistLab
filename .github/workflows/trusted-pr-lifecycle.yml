@@ -4,8 +4,12 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
 
 permissions:
+  checks: read
   contents: write
   pull-requests: write
 
@@ -13,9 +17,10 @@ jobs:
   queue-trusted-pr:
     name: queue-trusted-pr
     if: >-
-      github.event.workflow_run.event == 'pull_request' &&
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.pull_requests[0] != null
+      github.event.workflow_run.pull_requests[0] != null)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,37 +31,91 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           REPOSITORY_OWNER: ${{ github.repository_owner }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TRIGGER_EVENT: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
 
-          read -r state draft author association head_owner current_head_sha base_ref head_ref < <(
-            gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" \
-              --jq '[.state, (.draft | tostring), .user.login, .author_association, .head.repo.owner.login, .head.sha, .base.ref, .head.ref] | @tsv'
-          )
+          required_checks=(verify-release route-policy analyze)
 
-          trusted=false
-          case "${association}" in
-            OWNER|MEMBER|COLLABORATOR) trusted=true ;;
-          esac
-          case "${head_owner}" in
-            "${REPOSITORY_OWNER}"|Iron-Mark|MarkSiazon|MarkS-Trampettimg) trusted=true ;;
-          esac
-          case "${author}" in
-            "dependabot[bot]"|"imgbot[bot]") trusted=true ;;
-          esac
+          process_pr() {
+            local pr_number="$1"
+            local expected_head_sha="$2"
+            local state draft author association head_owner current_head_sha base_ref head_ref auto_merge_enabled
+            local trusted=false
 
-          if [[ "${state}" != "open" || "${trusted}" != "true" || "${current_head_sha}" != "${RUN_HEAD_SHA}" ]]; then
-            echo "PR #${PR_NUMBER} is closed, untrusted, or has moved since this CI run; leaving it manual."
-            exit 0
-          fi
+            read -r state draft author association head_owner current_head_sha base_ref head_ref auto_merge_enabled < <(
+              gh api "repos/${REPOSITORY}/pulls/${pr_number}" \
+                --jq '[.state, (.draft | tostring), .user.login, .author_association, .head.repo.owner.login, .head.sha, .base.ref, .head.ref, (.auto_merge != null | tostring)] | @tsv'
+            )
 
-          pr_url="https://github.com/${REPOSITORY}/pull/${PR_NUMBER}"
-          if [[ "${draft}" == "true" ]]; then
-            gh pr ready "${pr_url}"
-          fi
-          if [[ "${base_ref}" == "main" && "${head_ref}" == "dev" ]]; then
-            gh pr merge "${pr_url}" --auto --merge
+            case "${association}" in
+              OWNER|MEMBER|COLLABORATOR) trusted=true ;;
+            esac
+            case "${head_owner}" in
+              "${REPOSITORY_OWNER}"|Iron-Mark|MarkSiazon|MarkS-Trampettimg) trusted=true ;;
+            esac
+            case "${author}" in
+              "dependabot[bot]"|"imgbot[bot]") trusted=true ;;
+            esac
+
+            if [[ "${state}" != "open" || "${trusted}" != "true" || "${current_head_sha}" != "${expected_head_sha}" ]]; then
+              echo "PR #${pr_number} is closed, untrusted, or has moved; leaving it manual."
+              return
+            fi
+            if [[ "${base_ref}" == "main" && "${head_ref}" != "dev" ]]; then
+              echo "PR #${pr_number} is not a dev-to-main promotion; leaving it manual."
+              return
+            fi
+            if [[ "${base_ref}" != "main" && "${base_ref}" != "dev" ]]; then
+              echo "PR #${pr_number} targets an unmanaged branch; leaving it manual."
+              return
+            fi
+
+            local checks_json
+            checks_json="$(gh api "repos/${REPOSITORY}/commits/${current_head_sha}/check-runs?filter=latest&per_page=100")"
+            local required_check conclusion status
+            for required_check in "${required_checks[@]}"; do
+              read -r status conclusion < <(
+                jq -r --arg name "${required_check}" \
+                  '[.check_runs[] | select(.name == $name)] | sort_by(.completed_at) | last | [(.status // ""), (.conclusion // "")] | @tsv' \
+                  <<<"${checks_json}"
+              )
+              if [[ "${status}" != "completed" || "${conclusion}" != "success" ]]; then
+                echo "PR #${pr_number} does not have a successful ${required_check} check on ${current_head_sha}; leaving it queued."
+                return
+              fi
+            done
+
+            local latest_head_sha
+            latest_head_sha="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}" --jq '.head.sha')"
+            if [[ "${latest_head_sha}" != "${current_head_sha}" ]]; then
+              echo "PR #${pr_number} moved during validation; leaving it manual."
+              return
+            fi
+            if [[ "${auto_merge_enabled}" == "true" ]]; then
+              echo "PR #${pr_number} is already queued for auto-merge."
+              return
+            fi
+
+            local pr_url="https://github.com/${REPOSITORY}/pull/${pr_number}"
+            if [[ "${draft}" == "true" ]]; then
+              gh pr ready "${pr_url}"
+            fi
+            if [[ "${base_ref}" == "main" ]]; then
+              gh pr merge "${pr_url}" --auto --merge
+            else
+              gh pr merge "${pr_url}" --auto --squash
+            fi
+          }
+
+          if [[ "${TRIGGER_EVENT}" == "workflow_run" ]]; then
+            process_pr "${PR_NUMBER}" "${RUN_HEAD_SHA}"
           else
-            gh pr merge "${pr_url}" --auto --squash
+            gh api --paginate "repos/${REPOSITORY}/pulls?state=open&per_page=100" \
+              --jq '.[] | [.number, .head.sha] | @tsv' |
+            while IFS=$'\t' read -r open_pr_number open_pr_head_sha; do
+              [[ -n "${open_pr_number}" && -n "${open_pr_head_sha}" ]] || continue
+              process_pr "${open_pr_number}" "${open_pr_head_sha}"
+            done
           fi

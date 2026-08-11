@@ -14,7 +14,32 @@ assert.deepEqual(parseEnv("A=1\n# comment\nB='two words'\nC=\"three words\"\n"),
   C: "three words",
 });
 
-assert.equal(serializeEnv({ A: "1", B: "two words" }), 'A=1\nB="two words"\n');
+assert.equal(serializeEnv({ A: "1", B: "two words" }), "A=1\nB='two words'\n");
+assert.equal(
+  serializeEnv({
+    EMPTY: "",
+    HASH: "value # retained",
+    QUOTE: "O'Reilly user",
+    WINDOWS_PATH: "C:\\Users\\Example Workspace\\",
+  }),
+  "EMPTY=''\nHASH='value # retained'\nQUOTE='O'Reilly user'\nWINDOWS_PATH='C:\\Users\\Example Workspace\\'\n",
+);
+assert.deepEqual(
+  parseEnv(
+    serializeEnv({
+      EMPTY: "",
+      HASH: "value # retained",
+      QUOTE: "O'Reilly user",
+      WINDOWS_PATH: "C:\\Users\\Example Workspace\\",
+    }),
+  ),
+  {
+    EMPTY: "",
+    HASH: "value # retained",
+    QUOTE: "O'Reilly user",
+    WINDOWS_PATH: "C:\\Users\\Example Workspace\\",
+  },
+);
 
 {
   const publicEnv = publicEnvFileFromRaw(
