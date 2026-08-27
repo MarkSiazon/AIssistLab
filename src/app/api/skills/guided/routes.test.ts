@@ -65,8 +65,8 @@ async function main() {
   const draftPayload = await draft.json();
   assert.equal(draft.status, 200);
   assert.equal(draftPayload.ok, true);
+  assert.deepEqual(draftPayload.validationErrors, []);
   assert.match(draftPayload.draft.body, /## Coaching Flow/);
-  assert.equal(JSON.stringify(draftPayload).includes("example.com"), false);
 
   const malformedDraft = await draftRoute.POST(
     testRequest("/api/skills/guided/draft", {

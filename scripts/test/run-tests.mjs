@@ -44,6 +44,13 @@ if (tests.length === 0) {
   process.exit(1);
 }
 
+if (!hasLocalTsx) {
+  console.error(
+    "The local tsx dependency was not found. Run npm install before the test suite.",
+  );
+  process.exit(1);
+}
+
 const failed = [];
 
 function runTest(relativePath) {
@@ -56,19 +63,7 @@ function runTest(relativePath) {
     });
   }
 
-  if (hasLocalTsx) {
-    return spawnSync(process.execPath, ["--import", "tsx", normalizedPath], {
-      stdio: "inherit",
-    });
-  }
-
-  if (process.platform === "win32") {
-    return spawnSync("cmd.exe", ["/d", "/s", "/c", `npx --yes tsx ${normalizedPath}`], {
-      stdio: "inherit",
-    });
-  }
-
-  return spawnSync("npx", ["--yes", "tsx", normalizedPath], {
+  return spawnSync(process.execPath, ["--import", "tsx", normalizedPath], {
     stdio: "inherit",
   });
 }
