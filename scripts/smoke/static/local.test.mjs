@@ -364,6 +364,12 @@ assert.match(
 
 assert.match(
   source,
+  /function ignoreKnownNextDevReloadIssues\(\)[\s\S]*http 500: .*\\\/api\\\/settings\\\/runtime/,
+  "settings reload guard must ignore transient runtime 500s while stabilization is active",
+);
+
+assert.match(
+  source,
   /const stopIgnoringSettingsReloadIssues = ignoreKnownNextDevReloadIssues\(\);[\s\S]*await runSettingsSmoke\([\s\S]*await waitForSettingsRuntimeStable\(page, baseUrl\);[\s\S]*stopIgnoringSettingsReloadIssues\(\);/,
   "settings smoke must keep the dev-reload issue guard active until runtime stabilization",
 );
