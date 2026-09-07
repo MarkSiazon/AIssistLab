@@ -1,5 +1,20 @@
 version: 2
 updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: dev
+    groups:
+      npm-patch:
+        patterns:
+          - "*"
+        update-types:
+          - patch
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
