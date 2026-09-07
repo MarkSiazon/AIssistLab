@@ -89,6 +89,7 @@ function ignoreBrowserIssue(pattern) {
 function ignoreKnownNextDevReloadIssues() {
   const stopIgnoring = [
     ignoreBrowserIssue(/http 500: .*\/api\/settings\/path-exists/),
+    ignoreBrowserIssue(/http 500: .*\/api\/settings\/runtime/),
     ignoreBrowserIssue(/http 500: .*\/settings(?:[?#]|$)/),
     ignoreBrowserIssue(
       /console: Failed to load resource: the server responded with a status of 500/,

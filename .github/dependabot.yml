@@ -5,8 +5,13 @@ updates:
     schedule:
       interval: weekly
     target-branch: dev
+    allow:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-patch
     groups:
       npm-patch:
+        applies-to: version-updates
         patterns:
           - "*"
         update-types:
@@ -20,10 +25,17 @@ updates:
     schedule:
       interval: weekly
     target-branch: dev
+    allow:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-patch
     groups:
-      github-actions:
+      github-actions-patch:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - patch
     open-pull-requests-limit: 5
     commit-message:
       prefix: chore(ci)
