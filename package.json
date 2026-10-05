@@ -17,6 +17,7 @@
     "cleanup:project:dry-run": "node scripts/cleanup/project-processes.mjs --dry-run",
     "cleanup:artifacts": "node scripts/cleanup/local-artifacts.mjs --yes",
     "cleanup:artifacts:dry-run": "node scripts/cleanup/local-artifacts.mjs --dry-run",
+    "audit:dependencies": "node scripts/audit/dependencies.mjs",
     "audit:assets": "node scripts/audit/assets.mjs",
     "audit:docs": "node scripts/audit/docs.mjs",
     "audit:dead-code": "knip --include files,dependencies,unlisted,binaries,unresolved --no-progress",
