@@ -84,7 +84,7 @@ runCommand("Full test sweep", "npm", ["test"]);
 runCommand("Lint", "npm", ["run", "lint"]);
 runCommand("Production build", "npm", ["run", "build"]);
 runCommand("Production server smoke", "npm", ["run", "smoke:production"]);
-runCommand("Dependency audit", "npm", ["audit", "--audit-level=moderate"]);
+runCommand("Dependency audit", "npm", ["run", "audit:dependencies"]);
 runCommand("Local browser/API smoke", "npm", ["run", "smoke:local"]);
 runCommand("Safe button smoke", "npm", ["run", "smoke:buttons"]);
 runCommand("Manual QA helper auto smoke", "npm", ["run", "qa:manual:auto"]);

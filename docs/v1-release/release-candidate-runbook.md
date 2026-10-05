@@ -155,7 +155,7 @@ If you need to debug an individual gate, run the underlying commands:
 npm test
 npm run lint
 cmd.exe /c npm run build
-npm audit
+npm run audit:dependencies
 npm run smoke:local
 npm run smoke:buttons
 npm run smoke:production
@@ -171,6 +171,8 @@ git diff --check
 `npm run smoke:buttons` clicks low-risk visible buttons across the main local routes and fails on console errors or real failed requests. It intentionally skips auth launchers, native folder pickers, save/delete/export/send actions, secret reveal buttons, and provider calls.
 
 `npm run smoke:production` starts the built app with `next start` against the demo workspace and verifies production API guards including `POST /api/chat`, desktop/mobile visual rendering, landmarks, heading order, ARIA references, accessible control names, 44px action targets, local hash links, built-client Settings/editor/guided/chat/export interaction states, and browser console/page errors.
+
+`npm run audit:dependencies` requires production dependencies to have no moderate-or-higher advisory. It currently accepts only `GHSA-vfj7-8cjw-p6xm` and its dependent chains in the development toolchain: upstream has no patched `braces` release, the installed paths are limited to Tailwind and ESLint, and they receive only repository-controlled glob patterns. Any other advisory fails closed; remove the exception once an upstream patch is available.
 
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
