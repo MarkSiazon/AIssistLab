@@ -172,6 +172,12 @@ assert.match(
 
 assert.match(
   source,
+  /markVisibleButtonsCoveredByLabel\(page, \["Rebuild"\], \{\s*requireAll: false,\s*\}\);/,
+  "settings smoke must optionally account for the timing-dependent first-run Rebuild control",
+);
+
+assert.match(
+  source,
   /async function downloadByButton[\s\S]*page\.waitForEvent\("download", \{ timeout: 60000 \}\)[\s\S]*Download did not start for button/,
   "export smoke must use bounded retryable download waits",
 );
