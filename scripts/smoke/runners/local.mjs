@@ -1749,6 +1749,9 @@ async function runSettingsSmoke(page, baseUrl, workspacePath, settingsImportPath
     "Mark Skipped",
     "Reset",
   ]);
+  await markVisibleButtonsCoveredByLabel(page, ["Rebuild"], {
+    requireAll: false,
+  });
   await markVisibleButtonsCoveredByLabel(page, ["Refresh"], { requireAll: false });
   await markButtonLocatorCovered(page.locator(".settings-claude-refresh").first());
   await markAppRouteLinksCovered(page, ["Open Settings"]);
