@@ -15,6 +15,14 @@
 
 Active `dev` and `main` rulesets require pull requests and resolved review threads; block force pushes and branch deletion; and have no administrator bypass. Development PRs use squash merges, while `dev` promotions and trusted `sync/main-to-dev-*` history synchronizations use merge commits so long-lived branch ancestry stays intact. Direct `main`-to-`dev` PRs are rejected because strict up-to-date rules make that route circular. The required gates are `verify-release`, `route-policy`, and CodeQL `analyze`. Auto-merge may complete only after every required check passes.
 
+## Lifecycle recovery
+
+The controller reacts to successful CI, CodeQL, and route-policy completions. If an event omits its PR association, it considers open PRs only against that event's head SHA. Scheduled/manual catch-up remains available. Check selection uses the newest check-run ID from the GitHub Actions app, so an older successful attempt cannot hide a newer running or failed attempt. Incomplete checks are left pending; the controller does not cancel or rerun them.
+
+Queued auto-merge settings are preserved. Merge calls include the validated head SHA. An ancestry-sync prefix selects merge commits only for a branch in this repository; a trusted fork using that prefix receives ordinary squash handling. Lifecycle runs serialize to avoid competing state changes.
+
+For recovery after a missed event, dispatch the existing workflow on the default branch: `gh workflow run trusted-pr-lifecycle.yml --ref main --repo MarkSiazon/AIssistLab`. This revalidates trust and checks; it does not bypass protection. Run `node scripts/ci/lifecycle-controller.test.mjs` locally to test controller behavior without network access.
+
 ## Workflow supply chain
 
 All `uses:` references are pinned to verified full commit SHAs. Dependabot checks the `github-actions` ecosystem weekly, targets `dev`, and proposes grouped pin updates through the same required gate. CodeQL scans JavaScript and TypeScript on protected-branch pushes, pull requests, a weekly schedule, and manual dispatch.
