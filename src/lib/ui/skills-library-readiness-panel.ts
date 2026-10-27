@@ -33,7 +33,7 @@ export function skillLibraryReadinessActionHref(
 export function buildSkillQualitySummary(
   qualityReport: SkillLibraryQualityReport | null | undefined,
 ): SkillQualitySummary {
-  if (!qualityReport) {
+  if (!qualityReport || !Array.isArray(qualityReport.issues)) {
     return {
       status: "needs_action",
       label: "Checking",
