@@ -73,7 +73,7 @@ export function useSkillsPageController() {
     [data, error, indexStatus, qualityReport],
   );
 
-  const topQualityIssues = qualityReport?.issues.slice(0, 3) ?? [];
+  const topQualityIssues = Array.isArray(qualityReport?.issues) ? qualityReport.issues.slice(0, 3) : [];
   const qualitySummary = buildSkillQualitySummary(qualityReport);
 
   const deleteAction = selectedName
