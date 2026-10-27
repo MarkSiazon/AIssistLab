@@ -14,7 +14,7 @@ export function SkillQualityPanel({ qualityReport }: SkillQualityPanelProps) {
       >
         Skill Quality
       </div>
-      {qualityReport ? (
+      {qualityReport && Array.isArray(qualityReport.issues) ? (
         <SkillQualityPanelBody qualityReport={qualityReport} />
       ) : (
         <div className="text-xs" style={{ color: "var(--text-muted)" }}>
