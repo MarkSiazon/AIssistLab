@@ -104,7 +104,7 @@ export function SkillsImportPanel({
         type="button"
         onClick={onPreviewImport}
         disabled={!previewAction.canPreview}
-        aria-label={previewAction.ariaLabel}
+        aria-label={`${previewAction.buttonLabel}: ${previewAction.ariaLabel}`}
         aria-describedby="skills-import-readiness"
         title={previewAction.readinessMessage}
         className="ui-button ui-button-secondary text-xs"
