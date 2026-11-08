@@ -32,7 +32,7 @@
     "archiver": "^7.0.1",
     "js-yaml": "^4.3.2",
     "natural": "^8.1.2",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
@@ -47,10 +47,10 @@
     "@types/react-dom": "^18",
     "@vscode/ripgrep": "^1.18.0",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.5",
     "knip": "^6.34.0",
     "playwright": "^1.61.0",
-    "postcss": "8.5.31",
+    "postcss": "8.5.32",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.22.5",
     "typescript": "^5"
@@ -62,7 +62,7 @@
     "archiver-utils": {
       "glob": "^14.0.4"
     },
-    "postcss": "8.5.31",
+    "postcss": "8.5.32",
     "postcss-selector-parser": "7.1.6",
     "smol-toml": "1.9.0",
     "zod": "^4.6.7",
