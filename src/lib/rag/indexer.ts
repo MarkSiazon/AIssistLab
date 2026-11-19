@@ -1,4 +1,4 @@
-import { TfIdf } from "natural";
+import { TfIdf } from "natural/lib/natural/tfidf";
 import { Skill, SkillChunk } from "@/types/skill";
 
 export interface SkillIndex {
