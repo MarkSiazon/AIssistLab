@@ -26,6 +26,12 @@ This project is a local-first Next.js workbench for managing Claude Code skills,
 
 `src/lib/ui/` is intentionally flat for V1 because most files are small and already domain-prefixed, such as `settings-*`, `skills-*`, `chat-*`, `guided-*`, and `export-*`. Add new UI model helpers with a domain prefix or a clearly shared name. Split a domain into a subfolder only when the flat naming stops being easy to scan.
 
+The RAG indexer imports Natural's typed TF-IDF submodule directly. Do not replace
+it with the package-wide `natural` entry: that also initializes unrelated
+sentiment modules whose CommonJS-to-ESM imports fail on some hosted Node runtimes,
+before local-only API guards can respond. The indexer regression test checks
+TF-IDF scoring and that those unrelated modules are not loaded.
+
 ## Documentation Ownership
 
 - `README.md`: overview, quick start, and pointers only.
