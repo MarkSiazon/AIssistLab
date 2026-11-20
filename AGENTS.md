@@ -1,26 +1,22 @@
 # AGENTS for rag-interface
 
 ## Scope
-- This is the local repository instruction file for this repo.
-- Defer to any closer AGENTS.md if one is added inside subfolders.
-- Follow root C:\Codes Local\AGENTS.md first, then this file.
+- `rag-interface` (AIssistLab) — Next.js `16.4.6` (`--webpack`), React 18, TypeScript 5, Tailwind CSS 3, npm (`package-lock.json`).
+- Active integration branch is `dev` (synced with `main`).
+- Follow root `C:\Codes Local\AGENTS.md` first, then this file (defer to any closer `AGENTS.md` if added inside subfolders).
 
-## Local Operating Notes
-- Identify target paths from the repo root before running repo-wide changes.
-- Prefer existing local docs (README.md, docs/, specs/, and stack manifests).
-- Confirm required tooling and local environment before running heavy commands.
+## Key Commands
+- Dev / Build / Lint / Test: `npm run dev`, `npm run build`, `npm run lint`, `npm test`
+- Audits & Release Verification: `npm run audit:dependencies`, `npm run audit:docs`, `npm run verify:release`
 
-## Change Control
-- Keep changes scoped to the task.
+## Change Control & Verification
+- Keep changes scoped to the task; prefer existing local docs (`README.md`, `docs/`, `specs/`, `package.json`).
 - Do not assume generated artifacts (`.tmp`, `.codex`, `node_modules`, `build`, `.worktrees`) are required repository inputs.
 - Avoid committing credentials or secrets; scrub temporary artifacts before sharing snapshots.
+- Run repository-native verification (`npm run lint`, `npm test`, `npm run audit:docs`, `npm run build`, or `git status`) after meaningful changes.
 
-## Verification
-- Run at least one repository-native command after meaningful changes (git status, or the stack command in README).
-- Update notes if behavior or architecture changed.
-
-## Date
-- Created: 2026-05-29
+## Current Status
+- Last verified: 2026-11-20 — `npm audit` clean (`0` vulnerabilities; `"mongoose": "^9.12.1"` and transitive security overrides landed on `dev`).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
