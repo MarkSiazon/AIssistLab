@@ -149,6 +149,15 @@ The maintained local API route sources are [`src/lib/routes/api-routes.ts`](src/
 
 The local APIs cover index rebuild/status, chat/status, release readiness, settings/runtime/doctor/path browsing, Claude CLI profile/test/project checks, skill lifecycle/import/guided-builder flows, validation, export, and diagnostics ZIP generation. Endpoints that expose local readiness, filesystem, env, provider state, index content, or generated chat context are guarded for localhost usage.
 
+`npm run dev` binds to `127.0.0.1`, not the LAN. Keep that loopback binding:
+Host and Origin headers do not authenticate a remote network peer. Browser API
+requests must stay on the exact same origin (including port); cross-origin,
+`null`-origin, and cross-site Fetch Metadata requests are rejected before handlers
+read request bodies or change local state. Browser-marked writes also require an
+Origin header. Headerless CLI clients remain supported on the loopback server.
+Do not expose or reverse-proxy this development workbench to other machines.
+Hosted and production local-device/CLI APIs remain disabled.
+
 ## Diagnostics Export
 
 Diagnostics are only generated through the intentional export flow:
