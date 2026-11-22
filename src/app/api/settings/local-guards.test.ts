@@ -29,7 +29,7 @@ import { GET as nativeFolderGet } from "./native-folder/route";
 import { GET as pathExistsGet } from "./path-exists/route";
 import { GET as settingsGet, POST as settingsPost } from "./route";
 import { GET as runtimeGet } from "./runtime/route";
-import { jsonRequest, nonLocalRequest } from "@/lib/test-utils/request";
+import { jsonRequest, localRequest, nonLocalRequest } from "@/lib/test-utils/request";
 
 function routeParams(skillName: string) {
   return { params: Promise.resolve({ skillName }) };
@@ -44,6 +44,19 @@ async function assertForbidden(
 }
 
 async function main(): Promise<void> {
+  const untrustedBrowserHeaders: Array<Record<string, string>> = [
+    { origin: "https://attacker.example", "content-type": "text/plain" },
+    { origin: "null", "content-type": "application/json" },
+    { origin: "http://127.0.0.1:3001", "content-type": "application/json" },
+    { "sec-fetch-site": "cross-site", "content-type": "text/plain" },
+  ];
+  for (const headers of untrustedBrowserHeaders) {
+    const response = await settingsPost(localRequest("/api/settings", {
+      method: "POST", headers, body: "{",
+    }));
+    assert.equal(response.status, 403, "browser provenance is checked before parsing settings input");
+  }
+
   await assertForbidden(
     "POST /api/chat",
     chatPost(
