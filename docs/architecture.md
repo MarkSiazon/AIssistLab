@@ -32,6 +32,14 @@ sentiment modules whose CommonJS-to-ESM imports fail on some hosted Node runtime
 before local-only API guards can respond. The indexer regression test checks
 TF-IDF scoring and that those unrelated modules are not loaded.
 
+Device-local API guards live in `src/lib/local-access.ts`. The supported dev
+server binds only to `127.0.0.1`; a localhost Host header alone is not network
+authentication. Guards additionally reject foreign/null Origin headers and
+cross-origin Fetch Metadata, and browser-marked mutations need an exact Origin
+header. Non-browser CLI clients without those browser headers are supported only
+within that loopback trust boundary. Do not expose the workbench through a LAN
+listener or reverse proxy. Hosted/production guards remain fail-closed.
+
 ## Documentation Ownership
 
 - `README.md`: overview, quick start, and pointers only.
