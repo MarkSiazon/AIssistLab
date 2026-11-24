@@ -174,6 +174,8 @@ git diff --check
 
 `npm run audit:dependencies` requires production dependencies to have no moderate-or-higher advisory. It currently accepts only `GHSA-vfj7-8cjw-p6xm` and its dependent chains in the development toolchain: upstream has no patched `braces` release, the installed paths are limited to Tailwind and ESLint, and they receive only repository-controlled glob patterns. Any other advisory fails closed; remove the exception once an upstream patch is available.
 
+Keep the transitive Mongoose override pinned to its reviewed lockfile version. A grouped update can otherwise widen the override while retaining an incompatible lockfile, causing `npm ci` to fail. When updating this pin, verify the regenerated lockfile together with the manifest using `npm ci`.
+
 `npm run audit:assets` fails when tracked or visible untracked image/font/icon assets are not referenced by source or docs. Next's conventional `src/app/favicon.ico` is allowed without an explicit import.
 
 `npm run audit:docs` fails when README or docs markdown files link to missing repo-local files or missing markdown headings. It ignores external source/research links.
