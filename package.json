@@ -50,7 +50,7 @@
     "eslint-config-next": "16.4.6",
     "knip": "^6.34.0",
     "playwright": "^1.61.0",
-    "postcss": "8.5.32",
+    "postcss": "8.5.33",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.22.5",
     "typescript": "^5"
@@ -62,7 +62,7 @@
     "archiver-utils": {
       "glob": "^14.0.4"
     },
-    "postcss": "8.5.32",
+    "postcss": "8.5.33",
     "postcss-selector-parser": "7.1.6",
     "smol-toml": "1.9.0",
     "zod": "^4.6.7",
